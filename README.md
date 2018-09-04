@@ -22,21 +22,21 @@ Omniboard is written with React, Node.js, Express and Bootstrap
 
 _Omniboard_ requires [Node.js](https://nodejs.org/en/download/) v8 or higher.
 ##### To install: #####
-From source
+
+```npm
+npm i omniboard -g
 ```
-# clone the repository and cd into omniboard
-npm install
-```
+
 ##### To run: #####
 Start omniboard with MongoDB connection string in the format `-m hostname:port:database`.
 The default connection options are `localhost:27017:sacred`.  
 ```
-npm run prod -m hostname:port:database
+omniboard -m hostname:port:database
 ```
 For setting more advanced connection properties, use the `--mu` option together with the Sacred database name ("sacred" in the example):
 
 ```
-npm run prod --mu mongodb://user:pwd@host/admin?authMechanism=SCRAM-SHA-1 sacred
+omniboard --mu mongodb://user:pwd@host/admin?authMechanism=SCRAM-SHA-1 sacred
 ```
 
 Go to http://localhost:9000 to access omniboard.
@@ -61,7 +61,16 @@ docker run -it --rm -p 9000:9000 --name omniboard --link YOUR_MONGODB_CONTAINER:
 ```
 
 Go to http://localhost:9000 to access omniboard. To debug, use `docker logs <OMNIBOARD_CONTAINER>`
- 
+
+### Usage (source) ###
+
+To get the latest features, install from source
+```
+# clone the repository and cd into omniboard
+npm install
+npm run prod
+```
+For advanced MongoDB connection options, refer to npm usage.
 
 # Development
 
