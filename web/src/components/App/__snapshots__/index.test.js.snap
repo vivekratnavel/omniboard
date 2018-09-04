@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App component should render 1`] = `
+<div
+  className="App"
+>
+  <Uncontrolled(Navbar)
+    bsStyle="default"
+    fluid={true}
+    inverse={true}
+  >
+    <NavbarHeader>
+      <NavbarBrand>
+        <a
+          href="/"
+        >
+          Omniboard
+        </a>
+      </NavbarBrand>
+    </NavbarHeader>
+  </Uncontrolled(Navbar)>
+  <div
+    className="content"
+  >
+    <ToastContainer
+      autoClose={false}
+      bodyClassName={null}
+      className={null}
+      closeButton={
+        <CloseButton
+          ariaLabel="close"
+        />
+      }
+      closeOnClick={true}
+      draggable={true}
+      draggablePercent={80}
+      hideProgressBar={false}
+      newestOnTop={false}
+      pauseOnFocusLoss={true}
+      pauseOnHover={true}
+      position="top-right"
+      progressClassName={null}
+      rtl={false}
+      style={null}
+      toastClassName={null}
+      transition={[Function]}
+    />
+    <RunsTable
+      localStorageKey="runsTable"
+      stateFilterKeys={
+        Array [
+          "dropdownOptions",
+          "columnOrder",
+          "columnWidths",
+          "defaultSortIndices",
+          "sortIndices",
+          "sort",
+        ]
+      }
+    />
+  </div>
+</div>
+`;

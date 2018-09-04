@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Cells Header Cell should render correctly 1`] = `
+<FixedDataTableCellDefault
+  onMouseLeave={[Function]}
+  onMouseOver={[Function]}
+>
+  <a
+    onClick={[Function]}
+    role="button"
+    test-attr="header-sort-col_1"
+  >
+     
+    ↓
+  </a>
+</FixedDataTableCellDefault>
+`;
+
+exports[`Cells Select Cell should render correctly 1`] = `
+<FixedDataTableCellDefault>
+  <div
+    className="right-padding"
+    onClick={[Function]}
+  >
+    <StateManager
+      defaultInputValue=""
+      defaultMenuIsOpen={false}
+      defaultValue={null}
+      formatCreateLabel={[Function]}
+      isLoading={true}
+      isMulti={true}
+      menuPortalTarget={<body />}
+      options={
+        Array [
+          Object {
+            "label": Object {
+              "label": "Option 1",
+              "value": "opt1",
+            },
+            "value": Object {
+              "label": "Option 1",
+              "value": "opt1",
+            },
+          },
+          Object {
+            "label": Object {
+              "label": "Option 2",
+              "value": "opt2",
+            },
+            "value": Object {
+              "label": "Option 2",
+              "value": "opt2",
+            },
+          },
+        ]
+      }
+      placeholder="Add Tags..."
+      value={
+        Array [
+          Object {
+            "label": "tag1",
+            "value": "tag1",
+          },
+        ]
+      }
+    />
+  </div>
+</FixedDataTableCellDefault>
+`;
+
+exports[`Cells Text Cell should render correctly 1`] = `<FixedDataTableCellDefault />`;

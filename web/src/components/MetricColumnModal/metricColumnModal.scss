@@ -1,0 +1,10 @@
+.delete-icon {
+  color: #000;
+  font-size: 1.2em;
+  padding-top: 7px;
+  opacity: 0.2;
+  &:hover {
+    opacity: 0.5;
+    cursor: pointer;
+  }
+}

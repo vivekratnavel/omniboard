@@ -1,0 +1,424 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MetricColumnModal should render correctly 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      Manage Metric Columns
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      style={
+        Object {
+          "paddingBottom": "15px",
+        }
+      }
+    >
+      Add a column to display Min/Max of any metric value
+    </div>
+    <ProgressWrapper
+      loading={true}
+    >
+      <div>
+        <form />
+      </div>
+    </ProgressWrapper>
+    <div>
+      <Button
+        active={false}
+        block={false}
+        bsClass="btn"
+        bsSize="small"
+        bsStyle="info"
+        disabled={false}
+        onClick={[Function]}
+        test-attr="add-column-btn"
+      >
+        <span
+          aria-hidden="true"
+          className="glyphicon glyphicon-plus"
+        />
+         Add Column
+      </Button>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="default"
+      disabled={false}
+      onClick={[Function]}
+      test-attr="close-btn"
+    >
+      Close
+    </Button>
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="primary"
+      disabled={true}
+      onClick={[Function]}
+      test-attr="apply-btn"
+    >
+      <span>
+        Apply
+      </span>
+    </Button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`MetricColumnModal should render correctly 2`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      Manage Metric Columns
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      style={
+        Object {
+          "paddingBottom": "15px",
+        }
+      }
+    >
+      Add a column to display Min/Max of any metric value
+    </div>
+    <ProgressWrapper
+      loading={false}
+    >
+      <div>
+        <form>
+          <div
+            className="row"
+            key="0"
+          >
+            <div
+              className="col-xs-4"
+            >
+              <FormGroup
+                bsClass="form-group"
+                controlId="formColumnName"
+                validationState="success"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter column name"
+                  test-attr="column-name-text-0"
+                  type="text"
+                  value="train_loss_min"
+                />
+              </FormGroup>
+            </div>
+            <div
+              className="col-xs-4"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                isLoading={false}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "pretrain.train.loss",
+                      "value": "pretrain.train.loss",
+                    },
+                    Object {
+                      "label": "pretrain.val.loss",
+                      "value": "pretrain.val.loss",
+                    },
+                    Object {
+                      "label": "finetune.train.loss",
+                      "value": "finetune.train.loss",
+                    },
+                    Object {
+                      "label": "finetune.val.loss",
+                      "value": "finetune.val.loss",
+                    },
+                  ]
+                }
+                test-attr="metric-name-0"
+                value={
+                  Object {
+                    "label": "pretrain.train.loss",
+                    "value": "pretrain.train.loss",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col-xs-3"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "min",
+                      "value": "min",
+                    },
+                    Object {
+                      "label": "max",
+                      "value": "max",
+                    },
+                  ]
+                }
+                test-attr="extrema-0"
+                value={
+                  Object {
+                    "label": "min",
+                    "value": "min",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col-xs-1"
+            >
+              <i
+                className="glyphicon glyphicon-remove delete-icon"
+                onClick={[Function]}
+                test-attr="delete-0"
+              />
+            </div>
+          </div>
+          <div
+            className="row"
+            key="1"
+          >
+            <div
+              className="col-xs-4"
+            >
+              <FormGroup
+                bsClass="form-group"
+                controlId="formColumnName"
+                validationState="success"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter column name"
+                  test-attr="column-name-text-1"
+                  type="text"
+                  value="val_loss_max"
+                />
+              </FormGroup>
+            </div>
+            <div
+              className="col-xs-4"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                isLoading={false}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "pretrain.train.loss",
+                      "value": "pretrain.train.loss",
+                    },
+                    Object {
+                      "label": "pretrain.val.loss",
+                      "value": "pretrain.val.loss",
+                    },
+                    Object {
+                      "label": "finetune.train.loss",
+                      "value": "finetune.train.loss",
+                    },
+                    Object {
+                      "label": "finetune.val.loss",
+                      "value": "finetune.val.loss",
+                    },
+                  ]
+                }
+                test-attr="metric-name-1"
+                value={
+                  Object {
+                    "label": "pretrain.val.loss",
+                    "value": "pretrain.val.loss",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col-xs-3"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "min",
+                      "value": "min",
+                    },
+                    Object {
+                      "label": "max",
+                      "value": "max",
+                    },
+                  ]
+                }
+                test-attr="extrema-1"
+                value={
+                  Object {
+                    "label": "max",
+                    "value": "max",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col-xs-1"
+            >
+              <i
+                className="glyphicon glyphicon-remove delete-icon"
+                onClick={[Function]}
+                test-attr="delete-1"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+    </ProgressWrapper>
+    <div>
+      <Button
+        active={false}
+        block={false}
+        bsClass="btn"
+        bsSize="small"
+        bsStyle="info"
+        disabled={false}
+        onClick={[Function]}
+        test-attr="add-column-btn"
+      >
+        <span
+          aria-hidden="true"
+          className="glyphicon glyphicon-plus"
+        />
+         Add Column
+      </Button>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="default"
+      disabled={false}
+      onClick={[Function]}
+      test-attr="close-btn"
+    >
+      Close
+    </Button>
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="primary"
+      disabled={true}
+      onClick={[Function]}
+      test-attr="apply-btn"
+    >
+      <span>
+        Apply
+      </span>
+    </Button>
+  </ModalFooter>
+</Modal>
+`;

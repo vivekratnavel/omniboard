@@ -1,0 +1,257 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DrillDownView should render correctly 1`] = `
+<DrillDownView
+  height={500}
+  runId={200}
+  stateFilterKeys={
+    Array [
+      "selectedNavTab",
+    ]
+  }
+  width={600}
+>
+  <div
+    style={
+      Object {
+        "height": 500,
+        "width": 583,
+      }
+    }
+  >
+    <nav
+      className="navbar navbar-light"
+    >
+      <span
+        className="navbar-brand"
+      >
+        Details for: 
+        <strong />
+         (Id: 
+        200
+        ) 
+      </span>
+    </nav>
+    <div
+      className="sidebar-wrapper"
+    >
+      <div
+        className="sidebar-container full-height"
+      >
+        <div
+          id="sidebar"
+        >
+          <Nav
+            activeKey="metrics"
+            bsClass="nav"
+            bsStyle="pills"
+            justified={false}
+            onSelect={[Function]}
+            pullLeft={false}
+            pullRight={false}
+            stacked={true}
+          >
+            <ul
+              className="nav nav-pills nav-stacked"
+              role={null}
+            >
+              <NavItem
+                active={true}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="metrics"
+                key=".0"
+                onSelect={[Function]}
+              >
+                <li
+                  className="active"
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Metrics Plot
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
+              <NavItem
+                active={false}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="captured_out"
+                key=".1"
+                onSelect={[Function]}
+              >
+                <li
+                  className=""
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Captured Out
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
+              <NavItem
+                active={false}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="experiment"
+                key=".2"
+                onSelect={[Function]}
+              >
+                <li
+                  className=""
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Experiment Details
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
+              <NavItem
+                active={false}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="host_info"
+                key=".3"
+                onSelect={[Function]}
+              >
+                <li
+                  className=""
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Host Info
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
+              <NavItem
+                active={false}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="run_info"
+                key=".4"
+                onSelect={[Function]}
+              >
+                <li
+                  className=""
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Run Info
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
+              <NavItem
+                active={false}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="meta_info"
+                key=".5"
+                onSelect={[Function]}
+              >
+                <li
+                  className=""
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Meta Info
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
+            </ul>
+          </Nav>
+        </div>
+      </div>
+      <div
+        className="sidebar-content full-height"
+      >
+        <div
+          className="tab-content"
+        >
+          <ProgressWrapper
+            loading={true}
+          >
+            <div
+              className="table-display"
+            >
+              <div
+                className="table-cell-display gray"
+              >
+                <i
+                  className="glyphicon glyphicon-refresh glyphicon-refresh-animate"
+                />
+                  Loading...
+              </div>
+            </div>
+          </ProgressWrapper>
+        </div>
+      </div>
+    </div>
+  </div>
+</DrillDownView>
+`;

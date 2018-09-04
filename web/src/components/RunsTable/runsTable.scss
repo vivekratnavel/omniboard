@@ -1,0 +1,98 @@
+.table-header {
+  padding: 20px;
+}
+
+.empty-notes {
+  border-bottom: dashed 1px #0088cc;
+  text-decoration: none;
+}
+
+.fixedDataTableRowLayout_rowExpanded {
+  background-color: #FFF;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.table-wrapper {
+  color: #626466;
+  font-size: 12px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.public_fixedDataTable_bodyRow:hover .public_fixedDataTableCell_main {
+  background-color: #eeeeee;
+  cursor: pointer;
+}
+
+.right-padding {
+  padding-right: 10px;
+}
+
+.filter-label {
+  padding-right: 5px;
+}
+
+.add-remove-metric-columns {
+  padding-right: 10px;
+}
+
+.filters {
+  .filters-label {
+    padding: 0 5px;
+  }
+  .filters-select-container {
+    display: inline-block;
+    width: 85%;
+  }
+}
+
+.status-filter {
+  .multiselect-container {
+    &.dropdown-menu {
+      width: 200px;
+    }
+  }
+}
+
+.circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid #efefef;
+  margin: 2px 0;
+}
+
+.status-text {
+  line-height: 15px;
+  padding: 2px 0 2px 8px;
+}
+
+.running {
+  background-color: #1491c1;
+}
+
+.completed {
+  background-color: #1eb475;
+}
+
+.failed {
+  background-color: #ef6162;
+}
+
+.interrupted {
+  background-color: #ffa710;
+}
+
+.probably_dead {
+  background-color: #000;
+}
+
+.queued {
+  background-color: #999;
+}
+
+.timeout {
+  background-color: #8a6d3b;
+}

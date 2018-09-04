@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`XEditable should render correctly 1`] = `
+<span
+  className="editable-container editable-inline"
+>
+  <div>
+    <form
+      className="form-inline editableform"
+      onSubmit={[Function]}
+    >
+      <div
+        className="control-group form-group"
+      >
+        <div>
+          <div
+            className="editable-input"
+            style={
+              Object {
+                "position": "relative",
+              }
+            }
+          />
+          <div
+            className="editable-buttons"
+          >
+            <button
+              className="btn btn-primary btn-sm editable-submit"
+              onClick={[Function]}
+              type="submit"
+            >
+              <i
+                className="glyphicon glyphicon-ok"
+              />
+            </button>
+            <button
+              className="btn btn-default btn-sm editable-cancel"
+              onClick={[Function]}
+              type="button"
+            >
+              <i
+                className="glyphicon glyphicon-remove"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          className="editable-error-block help-block"
+        />
+      </div>
+    </form>
+  </div>
+</span>
+`;
+
+exports[`XEditable should render correctly 2`] = `
+<span
+  className="editable-container editable-inline"
+>
+  <div>
+    <div
+      className="editableform-loading"
+    />
+  </div>
+</span>
+`;

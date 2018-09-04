@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditableTextArea should render correctly 1`] = `
+<EditableTextArea
+  className="text-area"
+  cols={50}
+  id="text_area_id"
+  name="text-area-name"
+  onUpdate={[Function]}
+  rows={50}
+  value="test note"
+>
+  <a
+    className="editable editable-click"
+    onClick={[Function]}
+    role="button"
+    test-attr="edit-button"
+  >
+    <pre>
+      test note
+    </pre>
+  </a>
+</EditableTextArea>
+`;
+
+exports[`EditableTextArea should render correctly 2`] = `
+<EditableTextArea
+  className="text-area"
+  cols={50}
+  id="text_area_id"
+  name="text-area-name"
+  onUpdate={[Function]}
+  rows={50}
+  value="test note"
+>
+  <XEditable
+    cancel={[Function]}
+    isLoading={false}
+    save={[Function]}
+  >
+    <span
+      className="editable-container editable-inline"
+    >
+      <div>
+        <form
+          className="form-inline editableform"
+          onSubmit={[Function]}
+        >
+          <div
+            className="control-group form-group"
+          >
+            <div>
+              <div
+                className="editable-input"
+                style={
+                  Object {
+                    "position": "relative",
+                  }
+                }
+              >
+                <textarea
+                  className="form-control text-area"
+                  cols={50}
+                  defaultValue="test note"
+                  id="text_area_id"
+                  name="text-area-name"
+                  rows={50}
+                />
+              </div>
+              <div
+                className="editable-buttons"
+              >
+                <button
+                  className="btn btn-primary btn-sm editable-submit"
+                  onClick={[Function]}
+                  type="submit"
+                >
+                  <i
+                    className="glyphicon glyphicon-ok"
+                  />
+                </button>
+                <button
+                  className="btn btn-default btn-sm editable-cancel"
+                  onClick={[Function]}
+                  type="button"
+                >
+                  <i
+                    className="glyphicon glyphicon-remove"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              className="editable-error-block help-block"
+            />
+          </div>
+        </form>
+      </div>
+    </span>
+  </XEditable>
+</EditableTextArea>
+`;

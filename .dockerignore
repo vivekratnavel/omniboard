@@ -1,0 +1,8 @@
+# Dependency directories
+node_modules/
+dist/
+coverage/
+build/
+.dockerignore
+.gitignore
+README.md
