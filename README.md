@@ -20,7 +20,7 @@ Omniboard is written with React, Node.js, Express and Bootstrap
 
 ### Usage (npm) ###
 
-_Omniboard_ requires [Node.js](https://nodejs.org/en/download/) v6 or higher.
+_Omniboard_ requires [Node.js](https://nodejs.org/en/download/) v8 or higher.
 ##### To install: #####
 From source
 ```
