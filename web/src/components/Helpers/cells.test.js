@@ -18,8 +18,10 @@ describe('Cells', () => {
 
     it('should handle mouseover correctly', () => {
       wrapper.simulate('mouseover');
+
       expect(wrapper.state().isHover).toBeTruthy();
       wrapper.simulate('mouseleave');
+
       expect(wrapper.state().isHover).toBeFalsy();
     });
   });

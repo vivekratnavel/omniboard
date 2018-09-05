@@ -1,5 +1,8 @@
 # Omniboard
 
+[![Build Status](https://travis-ci.com/vivekratnavel/omniboard.svg?branch=master)](https://travis-ci.com/vivekratnavel/omniboard)
+[![Coverage Status](https://coveralls.io/repos/github/vivekratnavel/omniboard/badge.svg?branch=master)](https://coveralls.io/github/vivekratnavel/omniboard?branch=master)
+
 Omniboard is a web dashboard for the [Sacred](https://github.com/IDSIA/sacred)
 machine learning experiment management tool.
 
@@ -45,19 +48,24 @@ Go to http://localhost:9000 to access omniboard.
 
 Install [docker](https://www.docker.com/get-started) if not already installed.
 
-```
-cd <omniboard>
-# To build docker image from source
-docker build -f Dockerfile -t omniboard .
-# To run a container
-docker run -it --rm -p 9000:9000 --name omniboard omniboard -m <host>:<port>:<database>
-
+```docker
+# To start a container with omniboard
+docker run -it --rm -p 9000:9000 --name omniboard vivekratnavel/omniboard -m <host>:<port>:<database>
 ```
 
 To connect with mongodb that runs in another docker container:
+```docker
+docker run -it --rm -p 9000:9000 --name omniboard --link YOUR_MONGODB_CONTAINER:mongo vivekratnavel/omniboard -m mongo:27017:sacred
 ```
-docker run -it --rm -p 9000:9000 --name omniboard --link YOUR_MONGODB_CONTAINER:mongo omniboard -m mongo:27017:sacred
 
+##### To build docker image from source #####
+```
+cd <omniboard>
+npm install
+# To build docker image from source
+docker build -f Dockerfile -t omniboard .
+# To start a container with omniboard
+docker run -it --rm -p 9000:9000 --name omniboard omniboard -m <host>:<port>:<database>
 ```
 
 Go to http://localhost:9000 to access omniboard. To debug, use `docker logs <OMNIBOARD_CONTAINER>`

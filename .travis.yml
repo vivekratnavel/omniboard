@@ -1,0 +1,19 @@
+language: node_js
+node_js:
+  - "8"
+  - "9"
+  - "10"
+sudo: false
+script:
+  - npm run test-ci
+after_success:
+  - npm i -g coveralls
+  - npm run report-coverage
+cache:
+  yarn: true
+  directories:
+  - "node_modules"
+  - "web/node_modules"
+branches:
+  only:
+  - master

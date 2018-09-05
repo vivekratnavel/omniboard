@@ -33,27 +33,32 @@ describe('MetricColumnModal', () => {
     expect(wrapper.state().isLoadingColumns).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
+
     expect(wrapper.state().isLoadingColumns).toBeFalsy();
     expect(wrapper.update()).toMatchSnapshot();
   });
 
   it('should fetch metric columns on mount', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
+
     expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/Metrics', {params: {distinct: 'name'}});
     expect(wrapper.state().isLoadingMetricNames).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
+
     expect(wrapper.state().isLoadingMetricNames).toBeFalsy();
     expect(wrapper.state().metricNames).toHaveLength(4);
   });
 
   it('should handle close correctly', () => {
     wrapper.find('[test-attr="close-btn"]').simulate('click');
-    expect(closeHandler).toHaveBeenCalled();
+
+    expect(closeHandler).toHaveBeenCalledWith();
   });
 
   it('should handle data update correctly', done => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
+
     expect(wrapper.state().columns[0].id).toEqual(responseData[0]._id);
     expect(wrapper.find('[test-attr="apply-btn"]').props().disabled).toBeTruthy();
     wrapper.find('[test-attr="column-name-text-0"]').simulate('change', {
@@ -61,6 +66,7 @@ describe('MetricColumnModal', () => {
         value: 'col_1'
       }
     });
+
     expect(wrapper.state().columns[0].columnName).toEqual('col_1');
     // Test if apply button is not disabled
     expect(wrapper.find('[test-attr="apply-btn"]').props().disabled).toBeFalsy();
@@ -69,8 +75,8 @@ describe('MetricColumnModal', () => {
     mockAxios.mockResponse({status: 200, data: [responseData[0]]});
 
     setTimeout(() => {
-      expect(dataUpdateHandler).toHaveBeenCalled();
-      expect(closeHandler).toHaveBeenCalled();
+      expect(dataUpdateHandler).toHaveBeenCalledWith();
+      expect(closeHandler).toHaveBeenCalledWith();
       done();
     });
   });
@@ -91,10 +97,12 @@ describe('MetricColumnModal', () => {
         }
       });
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
+
       expect(mockAxios.post).toHaveBeenCalledTimes(2);
       mockAxios.mockResponse({status: 200, data: []});
       mockAxios.mockResponse({status: 200, data: []});
       await tick();
+
       expect(wrapper.state().isInProgress).toBeFalsy();
     });
   });
@@ -105,7 +113,8 @@ describe('MetricColumnModal', () => {
       mockAxios.mockResponse({status: 200, data: metricNamesResponse});
       wrapper.find('[test-attr="delete-0"]').simulate('click');
       mockAxios.mockResponse({status: 204, data: []});
-      expect(deleteHandler).toHaveBeenCalled();
+
+      expect(deleteHandler).toHaveBeenCalledWith("train_loss_min");
       expect(wrapper.state().columns).toHaveLength(1);
       expect(wrapper.state().columns[0].id).toEqual(responseData[1]._id);
     });
@@ -115,6 +124,7 @@ describe('MetricColumnModal', () => {
       mockAxios.mockResponse({status: 200, data: metricNamesResponse});
       wrapper.find('[test-attr="add-column-btn"]').simulate('click');
       wrapper.find('[test-attr="delete-0"]').simulate('click');
+
       expect(mockAxios.delete).not.toHaveBeenCalled();
       expect(wrapper.state().columns).toHaveLength(0);
     })
@@ -129,6 +139,7 @@ describe('MetricColumnModal', () => {
         wrapper.find('[test-attr="delete-0"]').simulate('click');
         mockAxios.mockResponse(errorResponse);
         await tick();
+
         expect(wrapper.state().columns).toHaveLength(2);
         expect(wrapper.state().error).toEqual(parseServerError(errorResponse));
       });
@@ -138,12 +149,14 @@ describe('MetricColumnModal', () => {
         mockAxios.mockResponse({status: 200, data: metricNamesResponse});
         wrapper.find('[test-attr="delete-0"]').simulate('click');
         mockAxios.mockError(errorResponse);
+
         expect(wrapper.state().error).toEqual(parseServerError(errorResponse));
       });
     });
 
     it('for fetch metric columns error', () => {
       mockAxios.mockError({status: 400, message: 'not found'});
+
       expect(wrapper.state().error).toEqual(parseServerError({status: 400, message: 'not found'}));
     });
 
@@ -152,6 +165,7 @@ describe('MetricColumnModal', () => {
         mockAxios.mockResponse({status: 200, data: responseData});
         mockAxios.mockResponse({status: 200, data: metricNamesResponse});
         wrapper.find('[test-attr="apply-btn"]').simulate('click');
+
         expect(wrapper.state().error).toEqual('There are no changes to be applied');
       });
 
@@ -162,6 +176,7 @@ describe('MetricColumnModal', () => {
         wrapper.find('[test-attr="apply-btn"]').simulate('click');
         mockAxios.mockError({status: 400, response: {data: {message: 'cannot update'}}});
         await tick();
+
         expect(wrapper.state().error).toEqual(parseServerError({status: 400, response: {data: {message: 'cannot update'}}}));
       });
     });
@@ -173,8 +188,6 @@ describe('MetricColumnModal', () => {
       mockAxios.mockResponse({status: 200, data: []});
       mockAxios.mockResponse({status: 200, data: metricNamesResponse});
       wrapper.find('[test-attr="add-column-btn"]').simulate('click');
-      expect(wrapper.state().columns).toHaveLength(1);
-      expect(wrapper.state().columns[0].id).toBeNull();
       wrapper.find('[test-attr="metric-name-0"]').simulate('change', {value: 'metric_1'});
       wrapper.find('[test-attr="extrema-0"]').simulate('change', {value: 'max'});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
@@ -188,12 +201,14 @@ describe('MetricColumnModal', () => {
     it('and update data handler', async () => {
       mockAxios.mockResponse({status: 201, data: []});
       await tick();
-      expect(dataUpdateHandler).toHaveBeenCalled();
+
+      expect(dataUpdateHandler).toHaveBeenCalledWith();
     });
 
     it('and handle errors', async () => {
       mockAxios.mockError({status: 400, response: {data: {message: 'cannot create'}}});
       await tick();
+
       expect(wrapper.state().error).toEqual(parseServerError({status: 400, response: {data: {message: 'cannot create'}}}));
     });
   });
@@ -202,6 +217,7 @@ describe('MetricColumnModal', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
     wrapper.find('[test-attr="add-column-btn"]').simulate('click');
+
     expect(wrapper.instance().isFormDirty).toBeTruthy();
   });
 
@@ -209,6 +225,7 @@ describe('MetricColumnModal', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
     wrapper.find('[test-attr="metric-name-0"]').simulate('change', {value: 'metric_1'});
+
     expect(wrapper.state().columns[0].metricName).toEqual('metric_1');
   });
 
@@ -216,6 +233,7 @@ describe('MetricColumnModal', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
     wrapper.find('[test-attr="extrema-1"]').simulate('change', {value: 'max'});
+
     expect(wrapper.state().columns[1].extrema).toEqual('max');
   });
 });

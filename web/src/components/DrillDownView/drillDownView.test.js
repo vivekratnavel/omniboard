@@ -9,6 +9,7 @@ import * as events from 'dom-helpers/events';
 describe('DrillDownView', () => {
   let wrapper = null;
   const off = jest.spyOn(events, 'off');
+  /* eslint-disable no-console */
   console.error = jest.fn();
   toast.error = jest.fn();
 
@@ -48,6 +49,7 @@ describe('DrillDownView', () => {
     mockAxios.mockResponse({status: 200, data: metricsResponseData});
     wrapper.setState({selectedNavTab: DRILLDOWN_VIEW.EXPERIMENT});
     await tick();
+
     expect(wrapper.state().isTableLoading).toBeFalsy();
   });
 
@@ -55,11 +57,13 @@ describe('DrillDownView', () => {
     mockAxios.mockResponse({status: 200, data: runsResponseData});
     mockAxios.mockResponse({status: 200, data: metricsResponseData});
     wrapper.find('a').last().simulate('click');
+
     expect(wrapper.find('li').last().hasClass('active')).toBeTruthy();
     expect(wrapper.find('li.active')).toHaveLength(1);
     await tick();
     const switchTabTest = tabKey => {
       wrapper.setState({selectedNavTab: tabKey});
+
       expect(wrapper.find('div.tab-content ProgressWrapper').instance().props.children.props.id).toEqual(tabKey);
     };
     [
@@ -75,9 +79,11 @@ describe('DrillDownView', () => {
   it('should render metrics plot correctly', async () => {
     mockAxios.mockResponse({status: 200, data: runsResponseData});
     mockAxios.mockResponse({status: 200, data: metricsResponseData});
+
     expect(shallow(wrapper.instance().getMetricsPlot()).find('.alert')).toHaveLength(1);
     await tick();
     const metricsPlotWrapper = shallow(wrapper.instance().getMetricsPlot());
+
     expect(metricsPlotWrapper.find('.metrics-plot-content')).toHaveLength(1);
     expect(metricsPlotWrapper.find('#plot-metric-names').children()).toHaveLength(2);
     expect(metricsPlotWrapper.find('#plot-x-axis-types').children()).toHaveLength(2);
@@ -102,6 +108,7 @@ describe('DrillDownView', () => {
           checked: true
         }
       });
+
       expect(wrapper.state().selectedMetricNames.size).toEqual(1);
       metricsPlotWrapper.find('[test-attr="plot-metric-name-0"]').simulate('change', {
         target: {
@@ -109,16 +116,19 @@ describe('DrillDownView', () => {
           checked: false
         }
       });
+
       expect(wrapper.state().selectedMetricNames.size).toEqual(0);
     });
 
     it('should handle x-axis change correctly', async () => {
       metricsPlotWrapper.find('[test-attr="plot-x-axis-0"]').simulate('change', {target: {value: X_AXIS_VALUE.TIME}});
+
       expect(wrapper.state().selectedXAxis).toEqual(X_AXIS_VALUE.TIME);
     });
 
     it('should handle y-axis change correctly', async () => {
       metricsPlotWrapper.find('[test-attr="plot-y-axis-0"]').simulate('change', {target: {value: SCALE_VALUE.LOGARITHMIC}});
+
       expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUE.LOGARITHMIC);
     });
   });
@@ -128,6 +138,7 @@ describe('DrillDownView', () => {
     mockAxios.mockResponse({status: 200, data: runsResponseData});
     mockAxios.mockError(err);
     await tick();
+
     expect(toast.error).toHaveBeenCalledWith(parseServerError(err));
   });
 
@@ -138,10 +149,12 @@ describe('DrillDownView', () => {
       const event = {deltaX: 5, stopPropagation: jest.fn()};
       wrapper.instance()._stopWheel(event);
       await tick();
+
       expect(event.stopPropagation).not.toHaveBeenCalled();
       wrapper.setState({selectedNavTab: DRILLDOWN_VIEW.CAPTURED_OUT});
       wrapper.instance()._stopWheel(event);
-      expect(event.stopPropagation).toHaveBeenCalled();
+
+      expect(event.stopPropagation).toHaveBeenCalledWith();
     });
 
     it('for vertical scroll', async () => {
@@ -150,13 +163,16 @@ describe('DrillDownView', () => {
       const event = {deltaY: -5, stopPropagation: jest.fn()};
       wrapper.instance()._stopWheel(event);
       await tick();
+
       expect(event.stopPropagation).not.toHaveBeenCalled();
       wrapper.instance().scrollableDiv = {scrollTop: 5, scrollHeight: 30, clientHeight: 40};
       wrapper.instance()._stopWheel(event);
+
       expect(event.stopPropagation).toHaveBeenCalledTimes(1);
       wrapper.instance().scrollableDiv = {scrollTop: 0, scrollHeight: 100, clientHeight: 40};
       event.deltaY = 5;
       wrapper.instance()._stopWheel(event);
+
       expect(event.stopPropagation).toHaveBeenCalledTimes(2);
     });
   });
@@ -164,6 +180,7 @@ describe('DrillDownView', () => {
   it('unregisters event listener on unmount', () => {
     expect(off).not.toHaveBeenCalled();
     wrapper.unmount();
+
     expect(off).toHaveBeenCalledTimes(1);
   });
 
@@ -173,11 +190,13 @@ describe('DrillDownView', () => {
     wrapper = mount(
       <DrillDownView height={500} width={600}/>
     );
+
     expect(mockAxios.get).not.toHaveBeenCalled();
     wrapper.unmount();
     wrapper = mount(
       <DrillDownView height={500} runId={1} width={600}/>
     );
+
     expect(mockAxios.get).toHaveBeenCalledTimes(2);
   })
 });

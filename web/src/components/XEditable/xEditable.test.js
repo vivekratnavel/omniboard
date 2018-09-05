@@ -17,6 +17,7 @@ describe('XEditable', () => {
     expect(wrapper).toMatchSnapshot();
     isLoading = true;
     wrapper.setProps({isLoading});
+
     expect(wrapper.update()).toMatchSnapshot();
   });
 });

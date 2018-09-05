@@ -40,14 +40,17 @@ describe('RunsTable', () => {
     mockAxios.mockResponse({status: 200, data: tagsResponse});
     mockAxios.mockResponse({status: 200, data: columnsResponse});
     await tick();
+
     expect(wrapper.state().isTableLoading).toBeFalsy();
     expect(wrapper.update()).toMatchSnapshot();
   });
 
   it('should open add remove metric columns modal', () => {
     wrapper.find('#add_remove_metric_columns').at(1).simulate('click');
+
     expect(wrapper.state().showMetricColumnModal).toBeTruthy();
     wrapper.find('[test-attr="close-btn"]').at(1).simulate('click');
+
     expect(wrapper.state().showMetricColumnModal).toBeFalsy();
   });
 
@@ -65,6 +68,7 @@ describe('RunsTable', () => {
     };
     it('with status filter query', () => {
       let queryString = {};
+
       expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
       mockAxios.mockResponse({status: 200, data: runsResponse});
       mockAxios.mockResponse({status: 200, data: tagsResponse});
@@ -77,6 +81,7 @@ describe('RunsTable', () => {
       };
       queryString = JSON.stringify({'$and': [{'$or': [{'status': 'running'}]}]});
       wrapper.instance()._handleStatusFilterChange({});
+
       expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
     });
 
@@ -93,6 +98,7 @@ describe('RunsTable', () => {
       const heartbeatTimeout = constantDate - PROBABLY_DEAD_TIMEOUT;
       const queryString = JSON.stringify({'$and': [{'$or': [{'$and': [{'status': STATUS.RUNNING}, {'heartbeat': `>${heartbeatTimeout}`}]}]}]});
       wrapper.instance()._handleStatusFilterChange({});
+
       expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
     });
 
@@ -109,6 +115,7 @@ describe('RunsTable', () => {
       const heartbeatTimeout = constantDate - PROBABLY_DEAD_TIMEOUT;
       const queryString = JSON.stringify({'$and': [{'$or': [{'$and': [{'status': STATUS.RUNNING}, {'heartbeat': `<${heartbeatTimeout}`}]}]}]});
       wrapper.instance()._handleStatusFilterChange({});
+
       expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
     });
 
@@ -121,6 +128,7 @@ describe('RunsTable', () => {
       mockAxios.mockResponse({status: 200, data: tagsResponse});
       mockAxios.mockResponse({status: 200, data: columnsResponse});
       await tick();
+
       expect(wrapper.state().isTableLoading).toBeFalsy();
     })
   });
@@ -132,6 +140,7 @@ describe('RunsTable', () => {
       mockAxios.mockResponse({status: 200, data: tagsResponse});
       mockAxios.mockError(errResponse);
       await tick();
+
       expect(wrapper.state().isError).toBeTruthy();
       expect(wrapper.state().errorMessage).toEqual(parseServerError(errResponse));
     });
@@ -143,10 +152,12 @@ describe('RunsTable', () => {
     mockAxios.mockResponse({status: 200, data: columnsResponse});
     await tick();
     wrapper.update().find('[test-attr="cell-row_expander-0"]').simulate('click');
+
     expect(wrapper.state().expandedRows).toContain(0);
     expect(wrapper.state().scrollToRow).toEqual(0);
     // Clicking on an expanded row should collapse it
     wrapper.find('[test-attr="cell-row_expander-0"]').simulate('click');
+
     expect(wrapper.state().expandedRows.size).toEqual(0);
     expect(wrapper.state().scrollToRow).toBeNull();
   });
@@ -163,8 +174,10 @@ describe('RunsTable', () => {
 
     it('for error response', () => {
       const errResponse = {status: 500, request: {}};
+
       expect(wrapper.state().isSelectLoading[rowIndex]).toBeTruthy();
       mockAxios.mockError(errResponse);
+
       expect(wrapper.state().isSelectLoading[rowIndex]).toBeFalsy();
       expect(wrapper.state().tags).not.toContain('tag1');
       expect(toast.error).toHaveBeenCalledWith('Error: No response was received from the server.');
@@ -176,8 +189,10 @@ describe('RunsTable', () => {
           tags: ['tag1','tag2']
         }
       });
+
       expect(wrapper.state().isSelectLoading[rowIndex]).toBeTruthy();
       mockAxios.mockResponse({status: 200});
+
       expect(wrapper.state().isSelectLoading[rowIndex]).toBeFalsy();
       expect(wrapper.state().tags).toContain('tag1');
       expect(wrapper.state().tags).toContain('tag2');
@@ -200,6 +215,7 @@ describe('RunsTable', () => {
     it('for error response', () => {
       const errResponse = {status: 500, message: 'unknown error'};
       mockAxios.mockError(errResponse);
+
       expect(toast.error).toHaveBeenCalledWith(parseServerError(errResponse));
     });
 
@@ -210,6 +226,7 @@ describe('RunsTable', () => {
         }
       });
       mockAxios.mockResponse({status: 200});
+
       expect(wrapper.state().sortedData.getObjectAt(rowIndex).notes).toEqual(notes);
     });
   });
@@ -223,10 +240,12 @@ describe('RunsTable', () => {
       preventDefault: jest.fn()
     };
     wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
-    expect(event.preventDefault).toHaveBeenCalled();
+
+    expect(event.preventDefault).toHaveBeenCalledWith();
     expect(wrapper.state().sort['_id']).toEqual('DESC');
     expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(11);
     wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
+
     expect(wrapper.state().sort['_id']).toEqual('ASC');
     expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(10);
   });
@@ -243,6 +262,7 @@ describe('RunsTable', () => {
       expect(wrapper.state().dropdownOptions.find(option => option.value === '_id').selected).toBeTruthy();
       wrapper.update().find('[test-attr="header-_id"]').at(1).simulate('mouseover');
       wrapper.update().find('[test-attr="header-sort-close-_id"]').simulate('click', '_id');
+
       expect(wrapper.state().dropdownOptions.find(option => option.value === '_id').selected).toBeFalsy();
       expect(wrapper.state().columnOrder).not.toContain('_id');
     });
@@ -253,8 +273,10 @@ describe('RunsTable', () => {
           val: () => ['start_time', 'heartbeat', 'stop_time']
         }
       };
+
       expect(wrapper.state().dropdownOptions.find(option => option.value === '_id').selected).toBeTruthy();
       wrapper.instance()._handleDropdownChange({});
+
       expect(wrapper.state().dropdownOptions.find(option => option.value === '_id').selected).toBeFalsy();
       expect(wrapper.state().columnOrder).not.toContain('_id');
       expect(wrapper.state().columnOrder).toHaveLength(3);
@@ -277,6 +299,7 @@ describe('RunsTable', () => {
       };
       wrapper.instance()._onColumnReorderEndCallback(event);
       const indexReorderColumn = wrapper.state().columnOrder.indexOf(event.reorderColumn);
+
       expect(wrapper.state().columnOrder[indexReorderColumn + 1]).toEqual(event.columnAfter);
       expect(wrapper.state().dropdownOptions[indexReorderColumn + 1].value).toEqual(event.columnAfter);
     });
@@ -287,6 +310,7 @@ describe('RunsTable', () => {
       };
       wrapper.instance()._onColumnReorderEndCallback(event);
       const indexReorderColumn = wrapper.state().columnOrder.indexOf(event.reorderColumn);
+
       expect(indexReorderColumn).toEqual(wrapper.state().columnOrder.length - 1);
       expect(wrapper.state().dropdownOptions[indexReorderColumn].value).toEqual(event.reorderColumn);
     });
@@ -298,6 +322,7 @@ describe('RunsTable', () => {
     mockAxios.mockResponse({status: 200, data: columnsResponse});
     await tick();
     wrapper.instance().handleMetricColumnDelete('_id');
+
     expect(wrapper.state().columnOrder.indexOf('_id')).toEqual(-1);
     expect(wrapper.state().dropdownOptions.indexOf('_id')).toEqual(-1);
     expect(Object.keys(wrapper.state().columnWidths).indexOf('_id')).toEqual(-1);

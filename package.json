@@ -42,7 +42,9 @@
     "build:web": "npm run clean:web && cd web && npm run build",
     "build:server": "npm run clean:server && babel server -d dist",
     "build": "npm run build:web && npm run build:server",
-    "prepare": "cd web && npm install && cd .. && npm run build"
+    "test-ci": "cd web && npm run lint && CI=true npm run test",
+    "prepare": "cd web && npm install && cd .. && npm run build",
+    "report-coverage": "cd web && npm run report-coverage"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

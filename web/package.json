@@ -29,6 +29,8 @@
     "eslint-loader": "1.9.0",
     "eslint-plugin-flowtype": "2.39.1",
     "eslint-plugin-import": "2.8.0",
+    "eslint-plugin-jasmine": "^2.10.1",
+    "eslint-plugin-jest": "^21.22.0",
     "eslint-plugin-jsx-a11y": "5.1.1",
     "eslint-plugin-react": "7.4.0",
     "extract-text-webpack-plugin": "3.0.2",
@@ -74,7 +76,8 @@
     "test": "node scripts/test.js --env=jsdom",
     "lint": "eslint src/*",
     "coverage": "npm test -- --coverage",
-    "test:debug": "node --inspect-brk scripts/test.js --runInBand --env=jsdom"
+    "test:debug": "node --inspect-brk scripts/test.js --runInBand --env=jsdom",
+    "report-coverage": "npm run coverage -- --coverageReporters=text-lcov | coveralls"
   },
   "jest": {
     "collectCoverageFrom": [

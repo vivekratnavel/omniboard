@@ -6,6 +6,7 @@ describe('Routes', () => {
     const wrapper = shallow(
       <Routes/>
     );
+
     expect(wrapper).toMatchSnapshot();
   });
 });
