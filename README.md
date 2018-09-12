@@ -13,11 +13,19 @@ Omniboard is written with React, Node.js, Express and Bootstrap
 
 # Features
 
-* Sort, reorder, resize columns
-* Show / hide columns
-* Add metric columns to display rolled up metric value
-* Add tags or notes to each experiment
-* Filter by tags or status 
+## Experiment Management
+* List all experiment runs in a tabular format with columns that are sortable, reorderable and resizable
+* Select which columns to show / hide 
+* Add metric columns to display rolled up metric value (e.g., minimum validation loss, maximum training accuracy, etc.)
+* Add tags or notes to each experiment to organize and guide your experiments 
+* Filter by tags or status
+
+## Experiment Drill Down
+* Show metric graphs
+* Show console output
+* Show all runtime library dependendies
+* Show hardware spec used
+* Show git hash/version control info 
 
 # Installation
 
@@ -27,7 +35,7 @@ _Omniboard_ requires [Node.js](https://nodejs.org/en/download/) v8 or higher.
 ##### To install: #####
 
 ```npm
-npm i omniboard -g
+npm install -g omniboard
 ```
 
 ##### To run: #####
@@ -60,7 +68,7 @@ docker run -it --rm -p 9000:9000 --name omniboard --link YOUR_MONGODB_CONTAINER:
 
 ##### To build docker image from source #####
 ```
-cd <omniboard>
+cd omniboard
 npm install
 # To build docker image from source
 docker build -f Dockerfile -t omniboard .
