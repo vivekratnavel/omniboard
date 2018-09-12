@@ -24,8 +24,17 @@ Omniboard is written with React, Node.js, Express and Bootstrap
 * Show metric graphs
 * Show console output
 * Show all runtime library dependendies
-* Show hardware spec used
+* Show hardware spec of the host (e.g., OS version, CPU / GPU device info, driver versions)
 * Show git hash/version control info 
+
+# Screenshots
+
+![Experiments Table](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/screenshots/table.png)
+![Metrics Graphs](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/screenshots/metric-graphs.png)
+![Adding Metrics Columns](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/screenshots/adding-metrics.png)
+![Console](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/screenshots/console.png)
+![Experiment Details](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/screenshots/experiment-details.png)
+![Host Info](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/screenshots/host-info.png)
 
 # Installation
 
