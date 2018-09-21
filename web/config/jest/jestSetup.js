@@ -1,5 +1,6 @@
 import Enzyme, { shallow, render, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
+import { LocalStorageMock } from './localStorageMock';
 
 // React 16 Enzyme adapter
 Enzyme.configure({ adapter: new Adapter() });
@@ -26,3 +27,5 @@ const noOp = () => {};
 if (typeof window.URL.createObjectURL === 'undefined') {
   Object.defineProperty(window.URL, 'createObjectURL', { value: noOp})
 }
+
+global.localStorage = new LocalStorageMock;

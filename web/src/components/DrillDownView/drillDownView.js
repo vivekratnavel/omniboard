@@ -5,14 +5,13 @@ import ReactJson from 'react-json-view'
 import './drillDownView.scss'
 import { Nav, NavItem } from 'react-bootstrap';
 import { on, off } from 'dom-helpers/events';
-import { capitalize } from '../Helpers/utils';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
-import Plot from 'react-plotly.js';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { parseServerError } from '../Helpers/utils';
 import { toast } from 'react-toastify';
-import { xAxisValues, DRILLDOWN_VIEW, scaleValues, SCALE_VALUE } from '../../constants/drillDownView.constants';
+import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
+import { MetricsPlotView } from '../MetricsPlotView/metricsPlotView';
 
 class JsonView extends React.PureComponent {
   static propTypes = {
@@ -44,10 +43,7 @@ class DrillDownView extends Component {
       selectedNavTab: DRILLDOWN_VIEW.METRICS,
       isTableLoading: false,
       runsResponse: null,
-      metricsResponse: null,
-      selectedMetricNames: new Set(),
-      selectedXAxis: xAxisValues[0],
-      selectedYAxis: scaleValues[0]
+      metricsResponse: null
     };
   }
 
@@ -119,117 +115,8 @@ class DrillDownView extends Component {
     off(this.scrollableDiv, 'wheel', this._stopWheel);
   }
 
-  _handleXAxisChange = (event) => {
-    this.setState({
-      selectedXAxis: event.target.value
-    });
-  };
-
-  _handleYAxisChange = (event) => {
-    this.setState({
-      selectedYAxis: event.target.value
-    });
-  };
-
-  _handleMetricNamesChange = (event) => {
-    const {selectedMetricNames} = this.state;
-    const value = event.target.value;
-    if (event.target.checked) {
-      selectedMetricNames.add(value);
-    } else {
-      selectedMetricNames.delete(value);
-    }
-    this.setState({
-      selectedMetricNames
-    })
-  };
-
-  getMetricsPlot() {
-    const {metricsResponse, selectedMetricNames, selectedXAxis, selectedYAxis} = this.state;
-    let metricsResponseMap = {},
-      metricNames = [];
-    if (metricsResponse && metricsResponse.length) {
-      metricsResponseMap = metricsResponse.reduce((map = {}, metric) => {
-        map[metric.name] = metric;
-        return map;
-      }, {});
-      metricNames = Object.keys(metricsResponseMap);
-    }
-    if (!metricNames.length) {
-      return (
-        <div className="alert alert-warning">No metrics are available to plot</div>
-      )
-    }
-    const plotData = Array.from(selectedMetricNames).map(metricName => {
-      return {
-        type: 'scatter',
-        mode: 'lines+points',
-        name: metricName,
-        x: metricsResponseMap[metricName][selectedXAxis],
-        y: metricsResponseMap[metricName]['values']
-      };
-    });
-    const yAxisLayout = selectedYAxis === SCALE_VALUE.LOGARITHMIC ? {type: 'log', autorange: true} : {};
-    return (
-      <div>
-        <div className="metrics-plot-left">
-          <h4>Metrics to plot</h4>
-          <div id="plot-metric-names">
-            {metricNames.map( (metricName, i) => {
-              return (
-                <div key={i} className="checkbox">
-                  <label>
-                    <input test-attr={"plot-metric-name-" + i} type="checkbox" value={metricName} checked={selectedMetricNames.has(metricName)} onChange={this._handleMetricNamesChange}/>
-                    {metricName}
-                  </label>
-                </div>
-              )
-            })}
-          </div>
-          <h4>X-Axis Type</h4>
-          <div id="plot-x-axis-types">
-            {xAxisValues.map( (value, i) => {
-              return (
-                <div key={i} className="radio">
-                  <label>
-                    <input test-attr={"plot-x-axis-" + i} type="radio" name="x-axis" value={value} checked={selectedXAxis === value} onChange={this._handleXAxisChange} />
-                    {capitalize(value)}
-                  </label>
-                </div>
-              )
-            })}
-          </div>
-          <h4>Y-Axis Type</h4>
-          <div id="plot-y-axis-types">
-            {scaleValues.map( (value, i) => {
-              return (
-                <div key={i} className="radio">
-                  <label>
-                    <input test-attr={"plot-y-axis-" + i} type="radio" name="y-axis" value={value} checked={selectedYAxis === value} onChange={this._handleYAxisChange} />
-                    {capitalize(value)}
-                  </label>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-        <div className="metrics-plot-content">
-          <Plot
-            data={plotData}
-            layout={{
-              width: 700,
-              height: 300,
-              title: 'Metrics Plot',
-              yaxis: yAxisLayout
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
-
   render () {
-    const {selectedNavTab, isTableLoading, runsResponse} = this.state;
+    const {selectedNavTab, isTableLoading, runsResponse, metricsResponse} = this.state;
     const {width, height, runId} = this.props;
     const experimentName = runsResponse !== null && 'experiment' in runsResponse ? runsResponse.experiment.name : '';
     // Adjust the width of scrollbar from total width
@@ -237,6 +124,7 @@ class DrillDownView extends Component {
       height: height,
       width: width - 17,
     };
+    const localStorageKey = `MetricsPlotView|${runId}`;
     const getTabContent = (key) => {
       let content = '';
       if (runsResponse) {
@@ -257,7 +145,7 @@ class DrillDownView extends Component {
             content = <div id={DRILLDOWN_VIEW.META_INFO}><JsonView data={runsResponse.meta}/></div>;
             break;
           case DRILLDOWN_VIEW.METRICS:
-            content = <div id={DRILLDOWN_VIEW.METRICS}>{this.getMetricsPlot()}</div>;
+            content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} localStorageKey={localStorageKey}/></div>;
             break;
           default:
         }

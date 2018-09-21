@@ -2,7 +2,6 @@
 
 exports[`RunsTable should render 1`] = `
 <RunsTable
-  localStorageKey="runsTable"
   stateFilterKeys={
     Array [
       "dropdownOptions",
@@ -1152,7 +1151,6 @@ exports[`RunsTable should render 1`] = `
 
 exports[`RunsTable should render 2`] = `
 <RunsTable
-  localStorageKey="runsTable"
   stateFilterKeys={
     Array [
       "dropdownOptions",

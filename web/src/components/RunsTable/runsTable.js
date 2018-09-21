@@ -47,8 +47,7 @@ const STATUS_FILTER_OPTIONS = [
 class RunsTable extends Component {
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort'],
-    localStorageKey: 'runsTable'
+    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort']
   };
 
   tableWrapperDomNode = null;

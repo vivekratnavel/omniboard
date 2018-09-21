@@ -1,9 +1,11 @@
 import React from 'react';
-import {TextCell, SelectCell, HeaderCell} from './cells';
+import {TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell} from './cells';
 import { DataListWrapper } from './dataListWrapper';
 
 describe('Cells', () => {
   let wrapper = null;
+  /* eslint-disable no-console */
+  console.error = jest.fn();
 
   describe('Header Cell', () => {
     const sortHandler = jest.fn();
@@ -33,11 +35,25 @@ describe('Cells', () => {
       isLoading = {0:true, 1:false};
 
     beforeEach(() => {
-      wrapper = shallow(<SelectCell columnKey={"col_1"} isLoading={isLoading} rowIndex={0} options={options} data={data}
+      wrapper = mount(<SelectCell columnKey={"col_1"} isLoading={isLoading} rowIndex={0} options={options} data={data}
                                     tagChangeHandler={tagHandler}/>);
     });
 
     it('should render correctly', () => {
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should handle click', () => {
+      const event = {
+        stopPropagation: jest.fn()
+      };
+      wrapper.find('.select-cell').simulate('click', event);
+      expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+    });
+
+    it('should render select without options and data', () => {
+      wrapper = mount(<SelectCell columnKey={"col_1"} isLoading={isLoading} rowIndex={0} options={[]}
+                                  tagChangeHandler={tagHandler}/>);
       expect(wrapper).toMatchSnapshot();
     });
   });
@@ -53,4 +69,38 @@ describe('Cells', () => {
     });
   });
 
+  describe('Expand Row Cell', () => {
+    const callback = jest.fn();
+    beforeEach(() => {
+      wrapper = mount(<ExpandRowCell rowIndex={1} callback={callback} children={<div></div>}/>);
+    });
+
+    it('should render correctly', () => {
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should call callback function', () => {
+      wrapper.find('.fixedDataTableCellLayout_wrap1').simulate('click');
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Editable Cell', () => {
+    const data = new DataListWrapper([0,1], [{col_1: ['tag1']}, {col_2: ['tag2']}]);
+    beforeEach(() => {
+      wrapper = mount(<EditableCell rowIndex={1} changeHandler={jest.fn()} columnKey={'col_1'} data={data}/>);
+    });
+
+    it('should render correctly', () => {
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should handle click', () => {
+      const event = {
+        stopPropagation: jest.fn()
+      };
+      wrapper.find('.editable-cell').simulate('click', event);
+      expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+    });
+  });
 });

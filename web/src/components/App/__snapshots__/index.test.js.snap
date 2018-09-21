@@ -46,7 +46,7 @@ exports[`App component should render 1`] = `
       transition={[Function]}
     />
     <RunsTable
-      localStorageKey="runsTable"
+      localStorageKey="RunsTable|1"
       stateFilterKeys={
         Array [
           "dropdownOptions",

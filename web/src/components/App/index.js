@@ -7,6 +7,7 @@ import './style.scss';
 
 class App extends Component {
   render() {
+    const localStorageKey = 'RunsTable|1';
     return (
       <div className="App">
         <Navbar inverse fluid>
@@ -18,7 +19,7 @@ class App extends Component {
         </Navbar>
         <div className="content">
           <ToastContainer autoClose={false}/>
-          <RunsTable/>
+          <RunsTable localStorageKey={localStorageKey}/>
         </div>
       </div>
     );

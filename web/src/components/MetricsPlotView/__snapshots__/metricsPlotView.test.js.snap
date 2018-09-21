@@ -1,0 +1,239 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MetricsPlotView should render correctly 1`] = `
+<MetricsPlotView
+  localStorageKey="metricsPlot|222"
+  metricsResponse={
+    Array [
+      Object {
+        "_id": "5a2b5a8c9c7a505a652f6127",
+        "name": "pretrain.train.loss",
+        "run_id": 222,
+        "steps": Array [
+          0,
+          1,
+          2,
+          3,
+          4,
+        ],
+        "timestamps": Array [
+          "2017-12-09T03:37:44.425Z",
+          "2017-12-09T03:41:54.414Z",
+          "2017-12-09T03:46:01.766Z",
+          "2017-12-09T03:50:07.365Z",
+          "2017-12-09T03:54:12.560Z",
+        ],
+        "values": Array [
+          0.7159541824544438,
+          0.3840367944955761,
+          0.3469185283233073,
+          0.30483262065173106,
+          0.28915774130337507,
+        ],
+      },
+      Object {
+        "_id": "5a2b5aa09c7a505a652f6146",
+        "name": "pretrain.val.loss",
+        "run_id": 223,
+        "steps": Array [
+          0,
+          1,
+          2,
+          3,
+          4,
+        ],
+        "timestamps": Array [
+          "2017-12-09T03:38:01.945Z",
+          "2017-12-09T03:42:11.673Z",
+          "2017-12-09T03:46:18.843Z",
+          "2017-12-09T03:50:24.377Z",
+          "2017-12-09T03:54:29.752Z",
+        ],
+        "values": Array [
+          0.32177006650114165,
+          0.23237958704995795,
+          0.23340759051386187,
+          0.21925230575196739,
+          0.20541178824900605,
+        ],
+      },
+    ]
+  }
+  runId={222}
+  stateFilterKeys={
+    Array [
+      "selectedMetricNames",
+      "selectedXAxis",
+      "selectedYAxis",
+    ]
+  }
+>
+  <div>
+    <div
+      className="metrics-plot-left"
+    >
+      <h4>
+        Metrics to plot
+      </h4>
+      <div
+        id="plot-metric-names"
+      >
+        <div
+          className="checkbox"
+          key="MetricName2220"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              test-attr="plot-metric-name-0"
+              type="checkbox"
+              value="pretrain.train.loss"
+            />
+            pretrain.train.loss
+          </label>
+        </div>
+        <div
+          className="checkbox"
+          key="MetricName2221"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              test-attr="plot-metric-name-1"
+              type="checkbox"
+              value="pretrain.val.loss"
+            />
+            pretrain.val.loss
+          </label>
+        </div>
+      </div>
+      <h4>
+        X-Axis Type
+      </h4>
+      <div
+        id="plot-x-axis-types"
+      >
+        <div
+          className="radio"
+          key="XAxisPlot2220"
+        >
+          <label>
+            <input
+              checked={true}
+              key="XAxisPlotInput2220"
+              onChange={[Function]}
+              test-attr="plot-x-axis-0"
+              type="radio"
+              value="steps"
+            />
+            Steps
+          </label>
+        </div>
+        <div
+          className="radio"
+          key="XAxisPlot2221"
+        >
+          <label>
+            <input
+              checked={false}
+              key="XAxisPlotInput2221"
+              onChange={[Function]}
+              test-attr="plot-x-axis-1"
+              type="radio"
+              value="timestamps"
+            />
+            Timestamps
+          </label>
+        </div>
+      </div>
+      <h4>
+        Y-Axis Type
+      </h4>
+      <div
+        id="plot-y-axis-types"
+      >
+        <div
+          className="radio"
+          key="YAxisPlot2220"
+        >
+          <label>
+            <input
+              checked={true}
+              key="YAxisPlotInput2220"
+              onChange={[Function]}
+              test-attr="plot-y-axis-0"
+              type="radio"
+              value="linear"
+            />
+            Linear
+          </label>
+        </div>
+        <div
+          className="radio"
+          key="YAxisPlot2221"
+        >
+          <label>
+            <input
+              checked={false}
+              key="YAxisPlotInput2221"
+              onChange={[Function]}
+              test-attr="plot-y-axis-1"
+              type="radio"
+              value="logarithmic"
+            />
+            Logarithmic
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      className="metrics-plot-content"
+    >
+      <PlotlyComponent
+        data={Array []}
+        debug={false}
+        fit={false}
+        layout={
+          Object {
+            "height": 300,
+            "title": "Metrics Plot",
+            "width": 700,
+            "xaxis": Object {
+              "autorange": true,
+              "range": Array [
+                -1,
+                6,
+              ],
+            },
+            "yaxis": Object {
+              "autorange": true,
+              "range": Array [
+                -1,
+                4,
+              ],
+            },
+          }
+        }
+        style={
+          Object {
+            "display": "inline-block",
+            "position": "relative",
+          }
+        }
+        useResizeHandler={false}
+      >
+        <div
+          style={
+            Object {
+              "display": "inline-block",
+              "position": "relative",
+            }
+          }
+        />
+      </PlotlyComponent>
+    </div>
+  </div>
+</MetricsPlotView>
+`;

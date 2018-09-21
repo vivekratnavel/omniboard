@@ -14,7 +14,6 @@ ReactDOM.render(<AppContainer><Routes /></AppContainer>, rootEl);
 
 if (module.hot) {
   module.hot.accept('./routes', () => {
-    // const NextApp = require('./routes').default; // eslint-disable-line global-require
     ReactDOM.render(
       <AppContainer>
         <NextApp />

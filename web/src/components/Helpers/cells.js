@@ -86,7 +86,7 @@ class EditableCell extends React.PureComponent {
     const value = data.getObjectAt(rowIndex)[columnKey];
     return (
       <Cell {...props}>
-        <div onClick={this._handleClick} className="right-padding">
+        <div onClick={this._handleClick} className="editable-cell right-padding">
           <EditableTextArea
             name={'notes'+rowIndex}
             onUpdate={changeHandler(rowIndex)}
@@ -167,7 +167,7 @@ class SelectCell extends React.PureComponent {
     }
     return (
       <Cell {...props}>
-        <div onClick={this._handleClick} className="right-padding">
+        <div onClick={this._handleClick} className="select-cell right-padding">
           <CreatableSelect
             isMulti
             options={selectOptions}
