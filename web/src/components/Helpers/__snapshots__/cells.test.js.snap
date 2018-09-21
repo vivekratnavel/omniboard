@@ -116,7 +116,9 @@ exports[`Cells Expand Row Cell should render correctly 1`] = `
           >
             <div
               rowIndex={1}
-            />
+            >
+              test
+            </div>
           </div>
         </div>
       </div>

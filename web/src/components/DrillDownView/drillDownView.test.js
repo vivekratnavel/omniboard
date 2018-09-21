@@ -108,6 +108,7 @@ describe('DrillDownView', () => {
       mockAxios.mockResponse({status: 200, data: runsResponseData});
       mockAxios.mockResponse({status: 200, data: metricsResponseData});
       const event = {deltaY: -5, stopPropagation: jest.fn()};
+
       expect(event.stopPropagation).toHaveBeenCalledTimes(0);
       wrapper.instance()._stopWheel(event);
       await tick();

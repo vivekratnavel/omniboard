@@ -28,18 +28,23 @@ describe('MetricsPlotView', () => {
   });
 
   it('should render correctly', async () => {
+
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should set default selection correctly', () => {
+    /* eslint-disable no-global-assign */
     localStorage = {getItem: () => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear"}'};
     wrapper.instance()._setDefaultSelection();
-    expect(wrapper.state().selectedMetricNames.length).toEqual(1);
+
+    expect(wrapper.state().selectedMetricNames).toHaveLength(1);
     expect(wrapper.state().selectedXAxis).toEqual('time');
     expect(wrapper.state().selectedYAxis).toEqual('linear');
+
     localStorage = {getItem: () => '{}'};
     wrapper.instance()._setDefaultSelection();
-    expect(wrapper.state().selectedMetricNames.length).toEqual(0);
+
+    expect(wrapper.state().selectedMetricNames).toHaveLength(0);
     expect(wrapper.state().selectedXAxis).toEqual('');
     expect(wrapper.state().selectedYAxis).toEqual('');
     // reset localStorage
@@ -50,11 +55,13 @@ describe('MetricsPlotView', () => {
     wrapper = mount(
       <MetricsPlotView metricsResponse={[]} runId={222} localStorageKey={"metricsPlot|222"}/>
     );
+
     expect(wrapper.find('.alert')).toHaveLength(1);
   });
 
   describe('should handle', () => {
     it('metricNamesChange correctly', async () => {
+
       expect(wrapper.find('[test-attr="plot-metric-name-0"]')).toHaveLength(1);
       wrapper.find('[test-attr="plot-metric-name-0"]').simulate('change', {
         target: {
@@ -68,7 +75,8 @@ describe('MetricsPlotView', () => {
           checked: true
         }
       });
-      expect(wrapper.state().selectedMetricNames.length).toEqual(1);
+
+      expect(wrapper.state().selectedMetricNames).toHaveLength(1);
 
       wrapper.find('[test-attr="plot-metric-name-0"]').simulate('change', {
         target: {
@@ -76,7 +84,8 @@ describe('MetricsPlotView', () => {
           checked: false
         }
       });
-      expect(wrapper.state().selectedMetricNames.length).toEqual(0);
+
+      expect(wrapper.state().selectedMetricNames).toHaveLength(0);
     });
 
     it('x-axis change correctly', async () => {

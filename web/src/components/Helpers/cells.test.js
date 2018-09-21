@@ -40,6 +40,7 @@ describe('Cells', () => {
     });
 
     it('should render correctly', () => {
+
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -48,12 +49,14 @@ describe('Cells', () => {
         stopPropagation: jest.fn()
       };
       wrapper.find('.select-cell').simulate('click', event);
+
       expect(event.stopPropagation).toHaveBeenCalledTimes(1);
     });
 
     it('should render select without options and data', () => {
       wrapper = mount(<SelectCell columnKey={"col_1"} isLoading={isLoading} rowIndex={0} options={[]}
                                   tagChangeHandler={tagHandler}/>);
+
       expect(wrapper).toMatchSnapshot();
     });
   });
@@ -65,6 +68,7 @@ describe('Cells', () => {
     });
 
     it('should render correctly', () => {
+
       expect(wrapper).toMatchSnapshot();
     });
   });
@@ -72,15 +76,17 @@ describe('Cells', () => {
   describe('Expand Row Cell', () => {
     const callback = jest.fn();
     beforeEach(() => {
-      wrapper = mount(<ExpandRowCell rowIndex={1} callback={callback} children={<div></div>}/>);
+      wrapper = mount(<ExpandRowCell rowIndex={1} callback={callback}><div>test</div></ExpandRowCell>);
     });
 
     it('should render correctly', () => {
+
       expect(wrapper).toMatchSnapshot();
     });
 
     it('should call callback function', () => {
       wrapper.find('.fixedDataTableCellLayout_wrap1').simulate('click');
+
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
@@ -92,6 +98,7 @@ describe('Cells', () => {
     });
 
     it('should render correctly', () => {
+
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -100,6 +107,7 @@ describe('Cells', () => {
         stopPropagation: jest.fn()
       };
       wrapper.find('.editable-cell').simulate('click', event);
+
       expect(event.stopPropagation).toHaveBeenCalledTimes(1);
     });
   });
