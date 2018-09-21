@@ -1,9 +1,8 @@
 # Omniboard
 
 [![Build Status](https://travis-ci.com/vivekratnavel/omniboard.svg?branch=master)](https://travis-ci.com/vivekratnavel/omniboard)
-[![Coverage Status](https://coveralls.io/repos/github/vivekratnavel/omniboard/badge.svg?branch=master)](https://coveralls.io/github/vivekratnavel/omniboard?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/vivekratnavel/omniboard/badge.svg?branch=master&service=github)](https://coveralls.io/github/vivekratnavel/omniboard?branch=master)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
 
 Omniboard is a web dashboard for the [Sacred](https://github.com/IDSIA/sacred)
 machine learning experiment management tool.
