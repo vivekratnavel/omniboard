@@ -21,9 +21,8 @@ if ('m' in argv) {
   }
 } else if ('mu' in argv) {
   // Parse mongodb connection url passed as an arg
-  // Ex: --mu mongodb://user:pwd@host/admin?authMechanism=SCRAM-SHA-1 sacred
-  const db = argv._ || defaultDatabase;
-  mongodbURI = `${argv['mu']}/${db}`;
+  // Ex: --mu mongodb://user:pwd@host/sacred?authSource=admin
+  mongodbURI = `${argv['mu']}`;
 } else {
   mongodbURI = `${defaultURI}/${defaultDatabase}`;
 }
