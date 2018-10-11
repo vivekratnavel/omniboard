@@ -7,9 +7,9 @@ mongoose.Promise = Promise;
 export const RunsSchema = new Schema({
     _id: {type: Number},
     heartbeat: {type: Date},
-    meta: {type: Schema.Types.ObjectId},
-    config: {type: Schema.Types.ObjectId},
-    experiment: {type: Schema.Types.ObjectId},
+    meta: {},
+    config: {},
+    experiment: {},
     start_time: {type: Date},
     omniboard: {
         tags: [

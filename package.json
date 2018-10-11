@@ -37,7 +37,6 @@
     "clean:server": "rm -rf ./dist/*",
     "clean:web": "rm -rf ./web/build/*",
     "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
-    "dev:server": "cd web && npm run build && cd .. && npm run start",
     "prod": "cross-env NODE_ENV=production node dist/index.js",
     "build:web": "npm run clean:web && cd web && npm run build",
     "build:server": "npm run clean:server && babel server -d dist",

@@ -5,7 +5,9 @@ export const DRILLDOWN_VIEW = {
   META_INFO: 'meta_info',
   HOST_INFO: 'host_info',
   METRICS: 'metrics',
-  CAPTURED_OUT: 'captured_out'
+  CAPTURED_OUT: 'captured_out',
+  ARTIFACTS: 'artifacts',
+  SOURCE_FILES: 'source_files'
 };
 
 export const X_AXIS_VALUE = {

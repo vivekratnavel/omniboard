@@ -8,6 +8,8 @@ import restify from 'express-restify-mongoose';
 import RunsModel from './models/runs';
 import MetricsModel from './models/metrics';
 import OmniboardColumnsModel from './models/omniboard.columns';
+import FilesModel from './models/fs.files';
+import ChunksModel from './models/fs.chunks';
 
 const app = express();
 const router = express.Router();
@@ -35,6 +37,8 @@ app.use(function(req, res, next) {
 restify.serve(router, RunsModel);
 restify.serve(router, MetricsModel);
 restify.serve(router, OmniboardColumnsModel);
+restify.serve(router, FilesModel);
+restify.serve(router, ChunksModel);
 app.use(router);
 
 if (process.env.NODE_ENV === 'production') {

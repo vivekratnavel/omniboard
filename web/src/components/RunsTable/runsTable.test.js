@@ -295,7 +295,7 @@ describe('RunsTable', () => {
     it('when columnAfter is present', () => {
       const event = {
         reorderColumn: 'notes',
-        columnAfter: 'artifacts'
+        columnAfter: '_id'
       };
       wrapper.instance()._onColumnReorderEndCallback(event);
       const indexReorderColumn = wrapper.state().columnOrder.indexOf(event.reorderColumn);

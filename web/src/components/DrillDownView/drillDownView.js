@@ -12,6 +12,7 @@ import { parseServerError } from '../Helpers/utils';
 import { toast } from 'react-toastify';
 import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
 import { MetricsPlotView } from '../MetricsPlotView/metricsPlotView';
+import { SourceFilesView } from '../SourceFilesView/sourceFilesView';
 
 class JsonView extends React.PureComponent {
   static propTypes = {
@@ -82,7 +83,7 @@ class DrillDownView extends Component {
       axios.all([
         axios.get(`/api/v1/Runs/${runId}`, {
           params: {
-            select: 'captured_out,info,meta,host,experiment'
+            select: 'captured_out,info,meta,host,experiment,artifacts'
           }
         }),
         axios.get('/api/v1/Metrics', {
@@ -125,6 +126,19 @@ class DrillDownView extends Component {
       width: width - 17,
     };
     const localStorageKey = `MetricsPlotView|${runId}`;
+    let experimentFiles = [];
+    // convert experiment sources to the same structure as artifacts
+    // source is an array with the following structure
+    // [ "filename", ObjectId ]
+    if (runsResponse !== null && 'experiment' in runsResponse &&
+      runsResponse.experiment.sources && runsResponse.experiment.sources.length) {
+      experimentFiles = runsResponse.experiment.sources.map(source => {
+        return {
+          name: source[0],
+          file_id: source[1]
+        }
+      });
+    }
     const getTabContent = (key) => {
       let content = '';
       if (runsResponse) {
@@ -147,10 +161,20 @@ class DrillDownView extends Component {
           case DRILLDOWN_VIEW.METRICS:
             content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} localStorageKey={localStorageKey}/></div>;
             break;
+          case DRILLDOWN_VIEW.ARTIFACTS:
+            content = <div id={DRILLDOWN_VIEW.ARTIFACTS}>
+              <SourceFilesView key={"artifacts-"+runsResponse._id} type="artifacts" runId={runsResponse._id} files={runsResponse.artifacts}/>
+            </div>;
+            break;
+          case DRILLDOWN_VIEW.SOURCE_FILES:
+            content = <div id={DRILLDOWN_VIEW.SOURCE_FILES}>
+              <SourceFilesView key={"files-"+runsResponse._id} type="source_files" runId={runsResponse._id} files={experimentFiles}/>
+            </div>;
+            break;
           default:
         }
       }
-      return <ProgressWrapper loading={isTableLoading}>{content}</ProgressWrapper>;
+      return <ProgressWrapper id="ddv-progress-wrapper" loading={isTableLoading}>{content}</ProgressWrapper>;
     };
     return(
       <div style={style}>
@@ -178,6 +202,12 @@ class DrillDownView extends Component {
                 </NavItem>
                 <NavItem eventKey={DRILLDOWN_VIEW.META_INFO}>
                   Meta Info
+                </NavItem>
+                <NavItem eventKey={DRILLDOWN_VIEW.ARTIFACTS}>
+                  Artifacts
+                </NavItem>
+                <NavItem eventKey={DRILLDOWN_VIEW.SOURCE_FILES}>
+                  Source Files
                 </NavItem>
               </Nav>
             </div>

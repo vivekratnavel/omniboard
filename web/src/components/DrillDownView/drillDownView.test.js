@@ -18,7 +18,11 @@ describe('DrillDownView', () => {
     meta: {},
     info: {},
     host: {},
-    experiment: {},
+    experiment: {
+      sources: [
+        ["hello_world.py", "SGVsbG8gV29ybGQh"]
+      ]
+    },
     captured_out: 'captured out',
   };
 
@@ -64,7 +68,7 @@ describe('DrillDownView', () => {
     const switchTabTest = tabKey => {
       wrapper.setState({selectedNavTab: tabKey});
 
-      expect(wrapper.find('div.tab-content ProgressWrapper').instance().props.children.props.id).toEqual(tabKey);
+      expect(wrapper.find('div.tab-content ProgressWrapper#ddv-progress-wrapper').instance().props.children.props.id).toEqual(tabKey);
     };
     [
       DRILLDOWN_VIEW.EXPERIMENT,
@@ -72,7 +76,8 @@ describe('DrillDownView', () => {
       DRILLDOWN_VIEW.HOST_INFO,
       DRILLDOWN_VIEW.META_INFO,
       DRILLDOWN_VIEW.METRICS,
-      DRILLDOWN_VIEW.RUN_INFO
+      DRILLDOWN_VIEW.RUN_INFO,
+      DRILLDOWN_VIEW.SOURCE_FILES
     ].forEach(key => switchTabTest(key));
   });
 

@@ -202,6 +202,9 @@ class RunsTable extends Component {
         // Remove metrics from it being displayed as a column
         latestColumnOrder.delete('metrics');
 
+        // Remove artifacts from it being displayed as a column
+        latestColumnOrder.delete('artifacts');
+
         latestColumnOrder = [...latestColumnOrder];
 
         // Set columns array and dropdown options only the first time data is fetched
