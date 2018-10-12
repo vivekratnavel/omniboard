@@ -188,10 +188,10 @@ class RunsTable extends Component {
           return data;
         });
 
-        let latestColumnOrder = runsResponseData.reduce((columns = new Set(), row) => {
+        let latestColumnOrder = runsResponseData.reduce((columns, row) => {
           columns = Array.from(columns);
           return new Set([...columns, ...Object.keys(row)]);
-        });
+        }, new Set());
 
         if (!latestColumnOrder.has('tags')) {
           latestColumnOrder.add('tags');
@@ -660,7 +660,7 @@ class RunsTable extends Component {
           }
         }).reduce( (rowValues, value) => {
           return Object.assign({}, rowValues, value);
-        });
+        }, {});
       });
       rowData = new DataListWrapper(indexArray, _rowData);
     }

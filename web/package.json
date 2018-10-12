@@ -79,9 +79,16 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
     "lint": "eslint src/*",
+    "lint:fix": "eslint src/* --fix",
     "coverage": "npm test -- --coverage",
     "test:debug": "node --inspect-brk scripts/test.js --runInBand --env=jsdom",
     "report-coverage": "npm run coverage -- --coverageReporters=text-lcov | coveralls"
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm run lint:fix",
+      "git add"
+    ]
   },
   "jest": {
     "collectCoverageFrom": [
