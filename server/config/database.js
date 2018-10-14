@@ -27,10 +27,46 @@ if ('m' in argv) {
   mongodbURI = `${defaultURI}/${defaultDatabase}`;
 }
 
-const db = mongoose.createConnection(mongodbURI);
-db.on('error', console.error.bind(console, 'Database connection error: '));
-db.once('open', function() {
-  console.log(`Database ${mongodbURI} connected successfully!`);
-});
+const mongoOptions = { auto_reconnect: true, useNewUrlParser: true };
+const reconnectTries = 2;
+let counter = 0;
+const createConnection = function(mongodbURI, mongoOptions) {
+  const db = mongoose.createConnection(mongodbURI, mongoOptions);
 
-export default db;
+  db.on('error', function(err) {
+    // If first connect fails because mongod is down, try again later.
+    // This is only needed for first connect, not for runtime reconnects.
+    // See: https://github.com/Automattic/mongoose/issues/5169
+    if (err.message && err.message.match(/failed to connect to server .* on first connect/)) {
+      console.log(new Date(), String(err));
+      if (counter < reconnectTries) {
+        counter++;
+        // Wait for a bit, then try to connect again
+        console.log('Retrying in 20 seconds...');
+        setTimeout(function () {
+          console.log('Retrying first connect...');
+          db.openUri(mongodbURI).catch(() => {
+          });
+          // Why the empty catch?
+          // Well, errors thrown by db.open() will also be passed to .on('error'),
+          // so we can handle them there, no need to log anything in the catch here.
+          // But we still need this empty catch to avoid unhandled rejections.
+        }, 20 * 1000);
+      } else {
+        console.log(`Failed to establish connection to ${mongodbURI} after ${reconnectTries} retries. Exiting now...`);
+        process.exit(1);
+      }
+    } else {
+      // Some other error occurred.  Log it.
+      console.error(new Date(), String(err));
+    }
+  });
+
+  db.once('open', function() {
+    console.log(`Connection to ${mongodbURI} established successfully!`);
+  });
+
+  return db;
+};
+
+export default createConnection(mongodbURI, mongoOptions);

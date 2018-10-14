@@ -26,7 +26,7 @@
     "express-restify-mongoose": "^4.3.0",
     "method-override": "^2.3.10",
     "mongodb": "^3.0.1",
-    "mongoose": "^4.13.7",
+    "mongoose": "^5.3.3",
     "morgan": "~1.9.0",
     "yargs": "^12.0.1"
   },
