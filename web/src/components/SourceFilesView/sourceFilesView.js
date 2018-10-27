@@ -96,8 +96,13 @@ class SourceFilesView extends Component {
     return (event) => {
       const {sourceFiles} = this.state;
       if (sourceFiles[fileName] && sourceFiles[fileName].data) {
-        const file = new File([atob(sourceFiles[fileName].data)], fileName, {type: "text/plain;charset=utf-8"});
-        saveAs(file);
+        const binaryString = atob(sourceFiles[fileName].data);
+        const byteArray = new Uint8Array(binaryString.length);
+        for (let index = 0; index < binaryString.length; index++) {
+          byteArray[index] = binaryString.charCodeAt(index);
+        }
+        const file = new Blob([byteArray]);
+        saveAs(file, fileName);
       } else {
         this.setState({
           error: `Unable to download file "${fileName}"`
