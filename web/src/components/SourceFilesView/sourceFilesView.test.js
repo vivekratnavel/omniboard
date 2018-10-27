@@ -68,7 +68,7 @@ describe('SourceFilesView', () => {
       wrapper.update().find('[test-attr="down-btn-hello_world.py"]').simulate('click');
       await tick();
 
-      expect(saveAs).toHaveBeenCalledWith(new File([atob(responseData[0].chunk[0].data)], files[0].name));
+      expect(saveAs).toHaveBeenCalledWith(new Blob([atob(responseData[0].chunk[0].data)]), files[0].name);
     });
 
     it('display error when source does not exist', async () => {
