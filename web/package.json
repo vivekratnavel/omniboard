@@ -1,6 +1,6 @@
 {
   "name": "omniboard-web",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Web-based dashboard for Sacred",
   "author": "Vivek Ratnavel Subramanian <vivekratnavel.s@gmail.com>",
   "license": "MIT",
