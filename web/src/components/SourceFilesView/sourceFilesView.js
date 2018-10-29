@@ -11,24 +11,9 @@ import {
   AccordionItemTitle,
   AccordionItemBody,
 } from 'react-accessible-accordion';
-import SyntaxHighlighter, { registerLanguage } from "react-syntax-highlighter/prism-light";
-import json from 'react-syntax-highlighter/languages/prism/json';
-import python from 'react-syntax-highlighter/languages/prism/python';
-import { tomorrow } from 'react-syntax-highlighter/styles/prism';
 import saveAs from 'file-saver';
 import JSZip from 'jszip';
-
-registerLanguage('json', json);
-registerLanguage('python', python);
-
-const getLanguageFromFileName = (fileName) => {
-  const languageMapping = {
-    'py': 'python',
-    'json': 'json'
-  };
-  const extension = fileName.split(".").splice(-1)[0];
-  return languageMapping[extension] || '';
-};
+import { FilePreview } from '../FilePreview/filePreview';
 
 class SourceFilesView extends Component {
   static propTypes = {
@@ -92,17 +77,20 @@ class SourceFilesView extends Component {
     }
   };
 
-  _downloadFile = (fileName) => {
+  _downloadFile = (fileId, fileName) => {
     return (event) => {
-      const {sourceFiles} = this.state;
-      if (sourceFiles[fileName] && sourceFiles[fileName].data) {
-        const file = new File([atob(sourceFiles[fileName].data)], fileName, {type: "text/plain;charset=utf-8"});
-        saveAs(file);
-      } else {
+      axios({
+        url: '/api/v1/files/' + fileId,
+        method: 'GET',
+        responseType: 'blob'
+      }).then(response => {
+        saveAs(new Blob([response.data]), fileName);
+      }).catch(error => {
+        const message = parseServerError(error);
         this.setState({
-          error: `Unable to download file "${fileName}"`
+          error: message
         });
-      }
+      });
     };
   };
 
@@ -168,14 +156,12 @@ class SourceFilesView extends Component {
                 <div className="clearfix">
                   <div className="pull-left upload-date">Upload Date: {sourceFiles[file.name] && sourceFiles[file.name].uploadDate}</div>
                   <div className="pull-right">
-                    <Button test-attr={"down-btn-"+file.name} bsStyle="default" bsSize="xsmall" onClick={this._downloadFile(file.name)}>
+                    <Button test-attr={"down-btn-"+file.name} bsStyle="default" bsSize="xsmall" onClick={this._downloadFile(file.file_id, file.name)}>
                       <i className='glyphicon glyphicon-download-alt'/> Download
                     </Button>
                   </div>
                 </div>
-                <SyntaxHighlighter language={getLanguageFromFileName(file.name)} style={tomorrow}>
-                  {sourceFiles[file.name] && atob(sourceFiles[file.name].data)}
-                </SyntaxHighlighter>
+                <FilePreview fileName={file.name} fileId={file.file_id} sourceFiles={sourceFiles}/>
               </AccordionItemBody>
             </AccordionItem>
           )}
@@ -192,4 +178,4 @@ class SourceFilesView extends Component {
   }
 }
 
-export {SourceFilesView, getLanguageFromFileName};
+export {SourceFilesView};

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SourceFilesView, getLanguageFromFileName } from './sourceFilesView';
+import { SourceFilesView } from './sourceFilesView';
 import mockAxios from 'jest-mock-axios';
 import { parseServerError } from '../Helpers/utils';
 import saveAs from 'file-saver';
@@ -66,19 +66,22 @@ describe('SourceFilesView', () => {
       mockAxios.mockResponse({status: 200, data: responseData});
       await tick();
       wrapper.update().find('[test-attr="down-btn-hello_world.py"]').simulate('click');
+      mockAxios.mockResponse({status: 200, data: responseData[0].chunk[0].data});
       await tick();
 
-      expect(saveAs).toHaveBeenCalledWith(new File([atob(responseData[0].chunk[0].data)], files[0].name));
+      expect(saveAs).toHaveBeenCalledWith(new Blob([responseData[0].chunk[0].data]), files[0].name);
     });
 
     it('display error when source does not exist', async () => {
       mockAxios.mockResponse({status: 200, data: []});
       await tick();
       wrapper.update().find('[test-attr="down-btn-hello_world.py"]').simulate('click');
+      const err = {status: 500, message: 'internal server error'};
+      mockAxios.mockError(err);
       await tick();
 
       expect(saveAs).not.toHaveBeenCalled();
-      expect(wrapper.state().error).toEqual(`Unable to download file "${files[0].name}"`);
+      expect(wrapper.state().error).toEqual(parseServerError(err));
     });
   });
 
@@ -117,12 +120,4 @@ describe('SourceFilesView', () => {
     expect(wrapper.find('[test-attr="warn-alert"]')).toHaveLength(1);
   });
 
-  it('should map language from filename correctly', () => {
-    let fileName = 'abc.py';
-
-    expect(getLanguageFromFileName(fileName)).toEqual('python');
-    fileName = 'unknown.abc';
-
-    expect(getLanguageFromFileName(fileName)).toEqual('');
-  });
 });

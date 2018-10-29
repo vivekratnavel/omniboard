@@ -21,10 +21,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(methodOverride());
 
+// Extend express mime types
+express.static.mime.define({'text/plain': ['py']});
+express.static.mime.define({'application/octet-stream': ['pickle']});
+
 //To prevent errors from Cross Origin Resource Sharing, we will set
 //our headers to allow CORS with middleware like so:
 app.use(function(req, res, next) {
-  // console.log('Inside use', req.url);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE');
@@ -40,6 +43,20 @@ restify.serve(router, OmniboardColumnsModel);
 restify.serve(router, FilesModel);
 restify.serve(router, ChunksModel);
 app.use(router);
+
+router.get('/api/v1/files/:id', function(req, res) {
+  FilesModel.findById(req.params.id).populate('chunk').exec(function(err, result) {
+    if (err) throw (err);
+    const resultData = new Buffer.from(result.chunk[0].data, 'base64');
+    const fileName = result.filename.split('/').splice(-1)[0];
+    res.contentType(fileName);
+    res.set({
+      'Content-Length': resultData.length,
+      'Content-Disposition': 'attachment; filename=' + fileName
+    });
+    res.send(resultData);
+  });
+});
 
 if (process.env.NODE_ENV === 'production') {
   // Serve any static files
