@@ -112,7 +112,14 @@ yarn run dev
 ```
 This should start both server and web. Go to http://localhost:3000 to access omniboard.
 
-### About Omniboard ###
+This project uses [commitizen](https://github.com/commitizen/cz-cli) for commit messages. To commit changes, run
+```npm
+yarn run cm
+```
+
+
+About Omniboard
+-------
 
 Lead Developer: [Vivek Ratnavel Subramanian](https://github.com/vivekratnavel)
 
