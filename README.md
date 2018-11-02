@@ -112,6 +112,14 @@ yarn run dev
 ```
 This should start both server and web. Go to http://localhost:3000 to access omniboard.
 
+### About Omniboard ###
+
+Lead Developer: [Vivek Ratnavel Subramanian](https://github.com/vivekratnavel)
+
+Project Advisor: [Yusaku Sako](https://github.com/u39kun)
+
+Omniboard was conceived while Yusaku was working on Kaggle competitions and could not find suitable open source software for easily managing hundreds of experiments to iterate on models quickly.  Omniboard takes inspiration from [Sacredboard](https://github.com/chovanecm/sacredboard).  See blog[https://medium.com/@u39kun/managing-your-machine-learning-experiments-and-making-them-repeatable-in-tensorflow-pytorch-bc8043099dbd].
+
 License
 -------
 MIT License
