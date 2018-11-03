@@ -21,7 +21,7 @@ deploy:
   provider: script
   skip_cleanup: true
   script:
-  - npx travis-deploy-once "npx semantic-release"
+  - npx travis-deploy-once --pro "npx semantic-release"
 before_install:
   # Decrypt the git_gpg_keys.asc.enc key into /tmp/git_gpg_keys.asc
   - openssl aes-256-cbc -K $encrypted_31a89d3bbb58_key -iv $encrypted_31a89d3bbb58_iv
