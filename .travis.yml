@@ -17,6 +17,7 @@ cache:
 branches:
   only:
   - master
+  - /^greenkeeper\/.*$/
 deploy:
   provider: script
   skip_cleanup: true
