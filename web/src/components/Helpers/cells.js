@@ -112,12 +112,12 @@ class StatusCell extends React.PureComponent {
       // Get the value for the given column to set value of select input
       const experimentName = data.getObjectAt(rowIndex)[columnKey];
       const status = data.getObjectAt(rowIndex)['status'];
-      const classNames = 'circle pull-left ' + status.toLowerCase();
+      const classNames = 'circle float-left ' + status.toLowerCase();
       return (
         <Cell {...props}>
           <div className="clearfix">
             <div className={classNames}></div>
-            <div className="status-text pull-left">{experimentName}</div>
+            <div className="status-text float-left">{experimentName}</div>
           </div>
         </Cell>
       );
@@ -221,7 +221,7 @@ class HeaderCell extends Component {
     const {columnKey, sortDir, callback, children, onSortChangeHandler, ...props} = this.props;
     let closeButton = '';
     if (this.state.isHover) {
-      closeButton = <a test-attr={"header-sort-close-" + columnKey} className="pull-right" role="button" onClick={() => callback(columnKey)}>
+      closeButton = <a test-attr={"header-sort-close-" + columnKey} className="float-right" role="button" onClick={() => callback(columnKey)}>
         <span className="glyphicon glyphicon-remove" aria-hidden="true"/>
       </a>;
     }

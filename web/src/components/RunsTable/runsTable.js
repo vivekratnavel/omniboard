@@ -29,8 +29,8 @@ const EXPERIMENT_NAME = 'experiment_name';
 
 function getStatusLabel(label) {
   return `<div class="clearfix">
-            <div class="circle ${label} pull-left"></div>
-            <div class="status-text pull-left">${capitalize(label)}</div>
+            <div class="circle ${label} float-left"></div>
+            <div class="status-text float-left">${capitalize(label)}</div>
           </div>`;
 }
 
@@ -675,8 +675,8 @@ class RunsTable extends Component {
       <div>
         <div className="table-header">
           <div className="row">
-            <div className="col-xs-2">
-              <div className="status-filter pull-left">
+            <div className="col col-xs-2">
+              <div className="status-filter float-left">
                 <label className="filter-label">Status: </label>
                 <Multiselect
                   id={"status_filter"}
@@ -699,7 +699,7 @@ class RunsTable extends Component {
                 />
               </div>
             </div>
-            <div className="col-xs-6">
+            <div className="col col-xs-6">
               <div className="filters">
                 <label className="filters-label">Filters: </label>
                 <div className="filters-select-container">
@@ -715,8 +715,8 @@ class RunsTable extends Component {
                 </div>
               </div>
             </div>
-            <div className="col-xs-4">
-              <div className="show-hide-columns pull-right">
+            <div className="col col-xs-4">
+              <div className="show-hide-columns float-right">
                 <Multiselect data={dropdownOptions} multiple
                              includeSelectAllOption={true}
                              maxHeight={300}
@@ -730,8 +730,8 @@ class RunsTable extends Component {
                              onDeselectAll={this._handleDropdownChange}
                 />
               </div>
-              <ButtonToolbar className="pull-right">
-                <div className="add-remove-metric-columns pull-right">
+              <ButtonToolbar className="float-right">
+                <div className="add-remove-metric-columns float-right">
                   <Button id={"add_remove_metric_columns"} onClick={this._handleAddRemoveMetricColumnsClick}>+/- Metric Columns</Button>
                 </div>
               </ButtonToolbar>
@@ -743,7 +743,7 @@ class RunsTable extends Component {
           {
             isError
             ?
-            <Alert bsStyle="danger">{errorMessage}</Alert>
+            <Alert variant="danger">{errorMessage}</Alert>
             :
             <ProgressWrapper loading={isTableLoading}>
               <Table

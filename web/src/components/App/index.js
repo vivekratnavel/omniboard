@@ -10,12 +10,10 @@ class App extends Component {
     const localStorageKey = 'RunsTable|1';
     return (
       <div className="App">
-        <Navbar inverse fluid>
-          <Navbar.Header>
-            <Navbar.Brand>
-              <a href="/">Omniboard</a>
-            </Navbar.Brand>
-          </Navbar.Header>
+        <Navbar variant="dark" bg="dark">
+          <Navbar.Brand href="/">
+            Omniboard
+          </Navbar.Brand>
         </Navbar>
         <div className="content">
           <ToastContainer autoClose={false}/>

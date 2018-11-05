@@ -129,13 +129,13 @@ class SourceFilesView extends Component {
     const {files, type} = this.props;
     const {isLoadingSourceFiles, isZipInProgress, error, sourceFiles} = this.state;
 
-    const errorAlert = error ? <Alert bsStyle="danger">{error}</Alert> : '';
+    const errorAlert = error ? <Alert variant="danger">{error}</Alert> : '';
     const warningText = `Oops! There are no ${type} available for this run.`;
     const accordions = <ProgressWrapper loading={isLoadingSourceFiles}>
       <div>
         <div className="download-all-wrapper clearfix">
-          <div className="pull-right">
-            <Button test-attr="down-all-btn" bsStyle="info" bsSize="small" onClick={this._downloadAllFiles} disabled={isZipInProgress}>
+          <div className="float-right">
+            <Button test-attr="down-all-btn" variant="info" size="sm" onClick={this._downloadAllFiles} disabled={isZipInProgress}>
               {isZipInProgress ? <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/> : <i className='glyphicon glyphicon-download-alt'/>}
               &nbsp;
               {isZipInProgress ? "Preparing..." : "Download All"}
@@ -154,9 +154,9 @@ class SourceFilesView extends Component {
               </AccordionItemTitle>
               <AccordionItemBody>
                 <div className="clearfix">
-                  <div className="pull-left upload-date">Upload Date: {sourceFiles[file.name] && sourceFiles[file.name].uploadDate}</div>
-                  <div className="pull-right">
-                    <Button test-attr={"down-btn-"+file.name} bsStyle="default" bsSize="xsmall" onClick={this._downloadFile(file.file_id, file.name)}>
+                  <div className="float-left upload-date">Upload Date: {sourceFiles[file.name] && sourceFiles[file.name].uploadDate}</div>
+                  <div className="float-right">
+                    <Button test-attr={"down-btn-"+file.name} variant="info" size="sm" onClick={this._downloadFile(file.file_id, file.name)}>
                       <i className='glyphicon glyphicon-download-alt'/> Download
                     </Button>
                   </div>
@@ -168,7 +168,7 @@ class SourceFilesView extends Component {
         </Accordion>
       </div>
     </ProgressWrapper>;
-    const content = files.length > 0 ? accordions : <Alert test-attr="warn-alert" bsStyle="warning">{warningText}</Alert>;
+    const content = files.length > 0 ? accordions : <Alert test-attr="warn-alert" variant="warning">{warningText}</Alert>;
     return(
       <div id="source-files-container">
         {errorAlert}

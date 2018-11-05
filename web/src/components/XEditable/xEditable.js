@@ -36,7 +36,7 @@ export default class XEditable extends React.Component {
                       <button type='submit' className='btn btn-primary btn-sm editable-submit' onClick={save}>
                         <i className='glyphicon glyphicon-ok'/>
                       </button>
-                      <button type='button' className='btn btn-default btn-sm editable-cancel' onClick={cancel}>
+                      <button type='button' className='btn btn-secondary btn-sm editable-cancel' onClick={cancel}>
                         <i className='glyphicon glyphicon-remove'/>
                       </button>
                     </div>

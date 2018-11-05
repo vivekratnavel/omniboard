@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { PureComponent } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert } from 'react-bootstrap';
+import { Button, Modal, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert } from 'react-bootstrap';
+import ModalHeader from 'react-bootstrap/lib/ModalHeader';
 import './metricColumnModal.scss';
 import axios from 'axios';
 import Select from 'react-select';
@@ -358,7 +359,7 @@ class MetricColumnModal extends PureComponent {
     const submitButtonText = isInProgress ? <span>
       <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/> Applying...</span>: <span>Apply</span>;
 
-    const errorAlert = error ? <Alert bsStyle="danger">{error}</Alert> : '';
+    const errorAlert = error ? <Alert variant="danger">{error}</Alert> : '';
 
     return(
       <Modal show={show} onHide={handleClose}>
@@ -378,14 +379,14 @@ class MetricColumnModal extends PureComponent {
             </div>
           </ProgressWrapper>
           <div>
-            <Button test-attr="add-column-btn"  bsStyle="info" bsSize="small" onClick={this._handleAddColumn}>
+            <Button test-attr="add-column-btn"  variant="info" size="sm" onClick={this._handleAddColumn}>
               <span className="glyphicon glyphicon-plus" aria-hidden="true"/> Add Column
             </Button>
           </div>
         </ModalBody>
         <ModalFooter>
           <Button test-attr="close-btn" onClick={handleClose}>Close</Button>
-          <Button test-attr="apply-btn" bsStyle="primary" onClick={this._handleApply} disabled={this.isSubmitDisabled}>
+          <Button test-attr="apply-btn" variant="primary" onClick={this._handleApply} disabled={this.isSubmitDisabled}>
             {submitButtonText}
           </Button>
         </ModalFooter>

@@ -184,7 +184,7 @@ class DrillDownView extends Component {
         <div className="sidebar-wrapper">
           <div className="sidebar-container full-height">
             <div id="sidebar">
-              <Nav bsStyle="pills" stacked activeKey={selectedNavTab} onSelect={this._handleSelectNavPill}>
+              <Nav variant="pills" stacked activeKey={selectedNavTab} onSelect={this._handleSelectNavPill}>
                 <NavItem eventKey={DRILLDOWN_VIEW.METRICS}>
                   Metrics Plot
                 </NavItem>
