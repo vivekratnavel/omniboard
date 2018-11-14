@@ -79,7 +79,10 @@ docker run -it --rm -p 9000:9000 --name omniboard vivekratnavel/omniboard -m <ho
 
 To connect with mongodb that runs in another docker container:
 ```docker
-docker run -it --rm -p 9000:9000 --name omniboard --link YOUR_MONGODB_CONTAINER:mongo vivekratnavel/omniboard -m mongo:27017:sacred
+# create a new docker network or use an existing network
+docker network create omniboard-network
+# make sure that mongodb container is using the same docker network before running this command
+docker run -it --rm -p 9000:9000 --name omniboard --net=omniboard-network vivekratnavel/omniboard -m MONGODB_CONTAINER:27017:sacred
 ```
 
 ##### To build docker image from source #####
