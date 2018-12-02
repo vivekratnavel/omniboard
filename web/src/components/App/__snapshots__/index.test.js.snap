@@ -18,6 +18,41 @@ exports[`App component should render 1`] = `
         </a>
       </NavbarBrand>
     </NavbarHeader>
+    <NavbarCollapse>
+      <Nav
+        bsClass="nav"
+        justified={false}
+        pullLeft={false}
+        pullRight={true}
+        stacked={false}
+      >
+        <NavDropdown
+          eventKey={1}
+          id="settings"
+          title={
+            <Glyphicon
+              bsClass="glyphicon"
+              glyph="cog"
+            />
+          }
+        >
+          <MenuItem
+            bsClass="dropdown"
+            disabled={false}
+            divider={false}
+            eventKey={1.1}
+            header={false}
+            onClick={[Function]}
+          >
+            <Glyphicon
+              bsClass="glyphicon"
+              glyph="refresh"
+            />
+              Reset Cache
+          </MenuItem>
+        </NavDropdown>
+      </Nav>
+    </NavbarCollapse>
   </Uncontrolled(Navbar)>
   <div
     className="content"
