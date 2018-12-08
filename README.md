@@ -97,6 +97,58 @@ docker run -it --rm -p 9000:9000 --name omniboard omniboard -m <host>:<port>:<da
 
 Go to http://localhost:9000 to access omniboard. To debug, use `docker logs <OMNIBOARD_CONTAINER>`
 
+### Usage (docker-compose) ###
+To start omniboard together with a password protected mongoDB using `docker-compose` and directly connect them, you can use the following
+`docker-compose.yml` as a template
+
+```docker
+version: '3'
+services:
+
+  mongo:
+    image: mongo
+    ports:
+      - 127.0.0.1:27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sample
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: db
+    expose:
+      - 27017
+    networks:
+      - sacred
+
+  omniboard:
+    image: vivekratnavel/omniboard:latest
+    command: ["--mu", "mongodb://sample:password@mongo:27017/db?authSource=admin"]
+    ports:
+      - 127.0.0.1:9000:9000
+    networks:
+      - sacred
+    depends_on:
+      - mongo
+
+networks:
+  sacred:
+```
+In the same directory as the `docker-compose.yml` file run
+
+```
+docker-compose up
+```
+
+This will start both containers bound to the localhost IP address. The important part
+here is to set the `authSource=admin` parameters, as the root user is created in the 
+admin database and not in the database that we are connecting omniboard to.
+
+In your sacred code you can then create a MongoObserver like so
+```python
+MongoObserver.create(url=f'mongodb://sample:password@localhost:27017/?authMechanism=SCRAM-SHA-1',
+                     db_name='db'))
+```
+
+For production settings you should of course opt for a more secure password.
+
 ### Usage (source) ###
 
 To get the latest features, install from source
