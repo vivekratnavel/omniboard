@@ -111,7 +111,7 @@ class RunsTable extends Component {
       axios.get('/api/v1/Runs', {
         params: {
           select: '_id,heartbeat,experiment,command,artifacts,host,stop_time,config,' +
-          'result,start_time,resources,format,status,omniboard,metrics',
+          'result,start_time,resources,format,status,omniboard,metrics,meta',
           sort: '-_id',
           query: queryString,
           populate: 'metrics'
@@ -157,6 +157,16 @@ class RunsTable extends Component {
             if (data['status'] === STATUS.RUNNING && (new Date() - new Date(data['heartbeat']) > 120000)) {
               data['status'] = STATUS.PROBABLY_DEAD;
             }
+          }
+
+          // If a comment exist, add it to notes field.
+          if ('meta' in data) {
+            const meta = data['meta']
+            var comment = ''
+            if ('comment' in meta) {
+              comment = meta['comment']
+            }
+            data = {...data, 'notes': comment}
           }
 
           // Expand omniboard columns
