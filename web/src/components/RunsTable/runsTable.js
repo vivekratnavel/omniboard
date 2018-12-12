@@ -159,21 +159,24 @@ class RunsTable extends Component {
             }
           }
 
-          // If a comment exist, add it to notes field.
-          if ('meta' in data) {
-            const meta = data['meta']
-            var comment = ''
-            if ('comment' in meta) {
-              comment = meta['comment']
-            }
-            data = {...data, 'notes': comment}
-          }
 
           // Expand omniboard columns
           if ('omniboard' in data) {
             const omniboard = data['omniboard'];
             delete data['omniboard'];
             data = {...data, ...omniboard};
+          }
+
+          // Add notes from comment if none has been saved in omniboard
+          if (!('notes' in data)) {
+            if ('meta' in data) {
+              const meta = data['meta'];
+              delete data['meta']
+              if ('comment' in meta) {
+                const comment = meta['comment'];
+                data = {...data, 'notes': comment}
+              }
+            }
           }
 
           // Include metric columns
