@@ -24,6 +24,7 @@ deploy:
   script:
   - npx travis-deploy-once --pro "npx semantic-release"
 before_install:
+  if: env(TRAVIS_PULL_REQUEST) IS false
   # Decrypt the git_gpg_keys.asc.enc key into /tmp/git_gpg_keys.asc
   - openssl aes-256-cbc -K $encrypted_31a89d3bbb58_key -iv $encrypted_31a89d3bbb58_iv
     -in git_gpg_keys.asc.enc -out /tmp/git_gpg_keys.asc -d
