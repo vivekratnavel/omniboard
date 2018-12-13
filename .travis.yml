@@ -25,21 +25,20 @@ deploy:
   - npx travis-deploy-once --pro "npx semantic-release"
 before_install:
 - |
-  if [ $TRAVIS_PULL_REQUEST == false ]
+  if [ $TRAVIS_PULL_REQUEST == false ];
   then
     # Decrypt the git_gpg_keys.asc.enc key into /tmp/git_gpg_keys.asc
-    openssl aes-256-cbc -K $encrypted_31a89d3bbb58_key -iv $encrypted_31a89d3bbb58_iv
-    -in git_gpg_keys.asc.enc -out /tmp/git_gpg_keys.asc -d
+    openssl aes-256-cbc -K $encrypted_31a89d3bbb58_key -iv $encrypted_31a89d3bbb58_iv -in git_gpg_keys.asc.enc -out /tmp/git_gpg_keys.asc -d &&
     # Make sure only the current user can read the keys
-    chmod 600 /tmp/git_gpg_keys.asc
+    chmod 600 /tmp/git_gpg_keys.asc &&
     # Import the gpg key
-    gpg --batch --yes --import /tmp/git_gpg_keys.asc
+    gpg --batch --yes --import /tmp/git_gpg_keys.asc &&
     # Create a script that pass the passphrase to the gpg CLI called by git
-    echo '/usr/bin/gpg2 --passphrase ${GPG_PASSPHRASE} --batch --no-tty "$@"' > /tmp/gpg-with-passphrase && chmod +x /tmp/gpg-with-passphrase
+    echo '/usr/bin/gpg2 --passphrase ${GPG_PASSPHRASE} --batch --no-tty "$@"' > /tmp/gpg-with-passphrase && chmod +x /tmp/gpg-with-passphrase &&
     # Configure git to use the script that passes the passphrase
-    git config gpg.program "/tmp/gpg-with-passphrase"
+    git config gpg.program "/tmp/gpg-with-passphrase" &&
     # Configure git to sign the commits and tags
-    git config commit.gpgsign true
+    git config commit.gpgsign true &&
     # Configure git to use your GPG key
     git config --global user.signingkey ${GPG_KEY_ID}
   fi
