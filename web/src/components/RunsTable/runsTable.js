@@ -160,7 +160,7 @@ class RunsTable extends Component {
       axios.get('/api/v1/Runs', {
         params: {
           select: '_id,heartbeat,experiment,command,artifacts,host,stop_time,config,' +
-          'result,start_time,resources,format,status,omniboard,metrics',
+          'result,start_time,resources,format,status,omniboard,metrics,meta',
           sort: '-_id',
           query: queryString,
           populate: 'metrics'
@@ -213,6 +213,7 @@ class RunsTable extends Component {
             }
           }
 
+
           // Expand omniboard columns
           if ('omniboard' in data) {
             const omniboard = data['omniboard'];
@@ -220,6 +221,18 @@ class RunsTable extends Component {
             data = {...data, ...omniboard};
             const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
             columnNameMap = {...columnNameMap, ...omniboardMap};
+          }
+
+          // Add notes from comment if none has been saved in omniboard
+          if (!('notes' in data)) {
+            if ('meta' in data) {
+              const meta = data['meta'];
+              delete data['meta']
+              if ('comment' in meta) {
+                const comment = meta['comment'];
+                data = {...data, 'notes': comment}
+              }
+            }
           }
 
           // Include metric columns
