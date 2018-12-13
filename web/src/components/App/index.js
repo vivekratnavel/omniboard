@@ -24,7 +24,7 @@ class App extends Component {
           <Navbar.Collapse>
             <Nav pullRight>
               <NavDropdown eventKey={1} title={<Glyphicon glyph="cog" />} id="settings">
-                <MenuItem eventKey={1.1} onClick={this.resetCache}>
+                <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this.resetCache}>
                   <Glyphicon glyph="refresh"/>
                   &nbsp; Reset Cache
                 </MenuItem>

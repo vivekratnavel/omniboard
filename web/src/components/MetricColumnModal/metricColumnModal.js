@@ -306,11 +306,9 @@ class MetricColumnModal extends PureComponent {
       label: 'max',
       value: 'max'
     }];
-    const getSelectValue = (value) => {
-      return {
-        label: value,
-        value
-      }
+    const getSelectValue = (options, value) => {
+      const selectValue = options.find(option => option.value === value);
+      return selectValue ? selectValue : '';
     };
     const renderColumnRow = (columnRow, key) => {
       return (
@@ -334,9 +332,10 @@ class MetricColumnModal extends PureComponent {
               test-attr={"metric-name-" + key}
               options={metricNameOptions}
               onChange={this._handleMetricNameChange(key)}
-              value={getSelectValue(columnRow.metricName)}
+              value={getSelectValue(metricNameOptions, columnRow.metricName)}
               isLoading={isLoadingMetricNames}
               clearable={false}
+              placeholder="Metric Name"
             />
           </div>
           <div className="col-xs-3">
@@ -344,8 +343,9 @@ class MetricColumnModal extends PureComponent {
               test-attr={"extrema-" + key}
               options={extremaOptions}
               onChange={this._handleExtremaChange(key)}
-              value={getSelectValue(columnRow.extrema)}
+              value={getSelectValue(extremaOptions, columnRow.extrema)}
               clearable={false}
+              placeholder="Extrema"
             />
           </div>
           <div className="col-xs-1">

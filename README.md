@@ -21,7 +21,7 @@ Omniboard is written with React, Node.js, Express and Bootstrap
 * Select which columns to show / hide 
 * Add metric columns to display rolled up metric value (e.g., minimum validation loss, maximum training accuracy, etc.)
 * Add tags or notes to each experiment to organize and guide your experiments 
-* Filter by tags or status
+* Filter by all columns except metric columns
 
 ## Experiment Drill Down
 * Show metric graphs

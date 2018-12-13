@@ -1,13 +1,14 @@
 import React from 'react';
-import RunsTable from './runsTable';
+import RunsTable, { FILTER_OPERATOR_LABELS } from './runsTable';
 import mockAxios from 'jest-mock-axios';
 import { parseServerError } from '../Helpers/utils';
 import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
 import { toast } from "react-toastify";
+import { LocalStorageMock } from "../../../config/jest/localStorageMock";
 
 describe('RunsTable', () => {
   let wrapper = null;
-  const runsResponse = [{"_id":10,"heartbeat":"2017-11-27T09:32:23.011Z","experiment":{"dependencies":["sacred==0.7.2"],"mainfile":"train.py","name":"train","sources":[["config.py","5a1bd242ca100c1a210b0d3a"],["data.py","5a1bd242ca100c1a210b0d3c"]],"base_dir":"/home/src","repositories":[{"dirty":false,"commit":"1","url":"git@gitlab.com/hhh.git"}]},"command":"main","artifacts":[],"host":{"gpus":{"gpus":[{"model":"GeForce GTX","persistence_mode":false,"total_memory":11172}],"driver_version":"384.90"},"python_version":"3.5.3","os":["Linux","Linux-4.4.0-98-generic-x86_64-with-debian-stretch-sid"],"ENV":{},"hostname":"nyabuntu","cpu":"Intel(R) Core(TM) i7-6850K CPU @ 3.60GHz"},"stop_time":"2017-11-27T09:32:23.013Z","config":{"optimizer_name":"SGD","weight_decay":0.0001,"random_flip":true},"result":null,"start_time":"2017-11-27T09:30:27.500Z","resources":[],"format":"MongoObserver-0.7.0","status":"INTERRUPTED","metrics":[]},{"_id":11,"config":{"debug":false},"artifacts":[],"resources":[],"host":{"hostname":"nyabuntu","ENV":{},"cpu":"Intel(R) Core(TM) i7-6850K CPU @ 3.60GHz","python_version":"3.5.3","os":["Linux","Linux-4.4.0-98-generic-x86_64-with-debian-stretch-sid"],"gpus":{"driver_version":"384.90","gpus":[{"total_memory":11172,"persistence_mode":false,"model":"GeForce GTX"}]}},"heartbeat":"2017-11-27T09:33:55.210Z","result":null,"experiment":{"mainfile":"train.py","repositories":[{"url":"git@gitlab.com/hhh.git","commit":"2","dirty":false}],"dependencies":["numpy==1.12.1"],"base_dir":"/home/src","sources":[["config.py","5a1bd242ca100c1a210b0d3a"]],"name":"train_mvcnn"},"format":"MongoObserver-0.7.0","command":"main","start_time":"2017-11-27T09:33:54.515Z","stop_time":"2017-11-27T09:33:55.212Z","status":"INTERRUPTED","metrics":[]}];
+  let runsResponse = null;
   const tagsResponse = ["test"];
   const columnsResponse = [{"_id":"5b7ef4714232e2d5bec00e2f","name":"pretrain_loss_min","metric_name":"pretrain.train.loss","extrema":"min","__v":0}];
   const RealDate = Date;
@@ -18,6 +19,9 @@ describe('RunsTable', () => {
     wrapper = mount(
       <RunsTable/>
     );
+    // runsTable deletes certain keys in this data and it produces unexpected results
+    // That's why assigning data everytime in "beforeEach" block
+    runsResponse = [{"_id":10,"heartbeat":"2017-11-27T09:32:23.011Z","experiment":{"dependencies":["sacred==0.7.2"],"mainfile":"train.py","name":"train","sources":[["config.py","5a1bd242ca100c1a210b0d3a"],["data.py","5a1bd242ca100c1a210b0d3c"]],"base_dir":"/home/src","repositories":[{"dirty":false,"commit":"1","url":"git@gitlab.com/hhh.git"}]},"command":"main","artifacts":[],"host":{"gpus":{"gpus":[{"model":"GeForce GTX","persistence_mode":false,"total_memory":11172}],"driver_version":"384.90"},"python_version":"3.5.3","os":["Linux","Linux-4.4.0-98-generic-x86_64-with-debian-stretch-sid"],"ENV":{},"hostname":"nyabuntu","cpu":"Intel(R) Core(TM) i7-6850K CPU @ 3.60GHz"},"stop_time":"2017-11-27T09:32:23.013Z","config":{"optimizer_name":"SGD","weight_decay":0.0001,"random_flip":true},"result":null,"start_time":"2017-11-27T09:30:27.500Z","resources":[],"format":"MongoObserver-0.7.0","status":"INTERRUPTED","metrics":[]},{"_id":11,"config":{"debug":false},"artifacts":[],"resources":[],"host":{"hostname":"nyabuntu","ENV":{},"cpu":"Intel(R) Core(TM) i7-6850K CPU @ 3.60GHz","python_version":"3.5.3","os":["Linux","Linux-4.4.0-98-generic-x86_64-with-debian-stretch-sid"],"gpus":{"driver_version":"384.90","gpus":[{"total_memory":11172,"persistence_mode":false,"model":"GeForce GTX"}]}},"heartbeat":"2017-11-27T09:33:55.210Z","result":null,"experiment":{"mainfile":"train.py","repositories":[{"url":"git@gitlab.com/hhh.git","commit":"2","dirty":false}],"dependencies":["numpy==1.12.1"],"base_dir":"/home/src","sources":[["config.py","5a1bd242ca100c1a210b0d3a"]],"name":"train_mvcnn"},"format":"MongoObserver-0.7.0","command":"main","start_time":"2017-11-27T09:33:54.515Z","stop_time":"2017-11-27T09:33:55.212Z","status":"INTERRUPTED","metrics":[]}];
     global.Date = class extends RealDate {
       constructor(dateString) {
         super();
@@ -31,6 +35,9 @@ describe('RunsTable', () => {
     mockAxios.reset();
     jest.clearAllMocks();
     global.Date = RealDate;
+    // reset localStorage
+    /* eslint-disable no-global-assign */
+    localStorage = new LocalStorageMock;
   });
 
   it('should render', async () => {
@@ -284,7 +291,7 @@ describe('RunsTable', () => {
     });
   });
 
-  describe('it should handle column reorder correctly', () => {
+  describe('should handle column reorder correctly', () => {
     beforeEach(async () => {
       mockAxios.mockResponse({status: 200, data: runsResponse});
       mockAxios.mockResponse({status: 200, data: tagsResponse});
@@ -326,5 +333,122 @@ describe('RunsTable', () => {
     expect(wrapper.state().columnOrder.indexOf('_id')).toEqual(-1);
     expect(wrapper.state().dropdownOptions.indexOf('_id')).toEqual(-1);
     expect(Object.keys(wrapper.state().columnWidths).indexOf('_id')).toEqual(-1);
+  });
+
+  describe('should add or remove filters', () => {
+    beforeEach(async () => {
+      mockAxios.mockResponse({status: 200, data: runsResponse});
+      mockAxios.mockResponse({status: 200, data: tagsResponse});
+      mockAxios.mockResponse({status: 200, data: columnsResponse});
+      await tick();
+    });
+
+    afterEach(() => {
+      wrapper.setState({
+        filters: {
+          status: [],
+          advanced: []
+        },
+        filterColumnName: '',
+        filterColumnOperator: '$eq',
+        filterColumnValue: ''
+      });
+    });
+
+    it('should add filter', async() => {
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
+      await tick();
+      mockAxios.mockResponse({status: 200, data: []});
+      wrapper.find('[test-attr="filter-column-operator-dropdown"]').at(1).prop('onChange')({value: '$eq'});
+      wrapper.find('[test-attr="filter-column-value"]').at(1).prop('onChange')({value: 'host1'});
+      wrapper.find('#add_filter').at(1).simulate('click');
+
+      expect(wrapper.state().filters.advanced[0].value).toEqual('host1');
+      expect(wrapper.state().filters.advanced[0].name).toEqual('host.hostname');
+      expect(wrapper.state().filterColumnName).toEqual('');
+      expect(wrapper.state().filterColumnOperator).toEqual('$eq');
+      expect(wrapper.state().filterColumnValue).toEqual('');
+      expect(wrapper.find('.tags-container').find('.item').find('.tag').at(0).text()).toEqual(`Hostname ${FILTER_OPERATOR_LABELS['$eq']} host1`);
+    });
+
+    it('should handle add filter errors', async() => {
+      expect(wrapper.state().filterColumnNameError).toBeFalsy();
+      expect(wrapper.state().filterColumnValueError).toBeFalsy();
+      wrapper.find('#add_filter').at(1).simulate('click');
+
+      expect(wrapper.state().filterColumnNameError).toBeTruthy();
+      expect(wrapper.state().filterColumnValueError).toBeFalsy();
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
+      wrapper.find('#add_filter').at(1).simulate('click');
+
+      expect(wrapper.update().state().filterColumnNameError).toBeFalsy();
+      expect(wrapper.state().filterColumnValueError).toBeTruthy();
+    });
+
+    it('should load value dropdown options', async() => {
+      const response = ["host1", "host2"];
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
+      await tick();
+      mockAxios.mockResponse({status: 200, data: response});
+      await tick();
+      const expectedOptions = response.map(value => { return {label: value, value} });
+      const dropdownOptions = wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options;
+
+      expect(dropdownOptions).toEqual(expectedOptions);
+    });
+
+    it('should change value dropdown to multiselect', async() => {
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
+      await tick();
+
+      expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().isMulti).toBeFalsy();
+
+      mockAxios.mockResponse({status: 200, data: ["host1", "host2"]});
+      wrapper.find('[test-attr="filter-column-operator-dropdown"]').at(1).prop('onChange')({value: '$in'});
+
+      expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().isMulti).toBeTruthy();
+    });
+
+    it('value dropdown should allow multiple values', async() => {
+      const response = ["host1", "host2"];
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
+      await tick();
+      mockAxios.mockResponse({status: 200, data: response});
+      wrapper.find('[test-attr="filter-column-operator-dropdown"]').at(1).prop('onChange')({value: '$in'});
+      wrapper.update().find('[test-attr="filter-column-value"]').at(1).prop('onChange')([{value: 'host1'}, {value: 'host2'}]);
+      const expectedValues = response.map(value => { return {label: value, value} });
+
+      expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().value).toEqual(expectedValues);
+    });
+
+    it('should handle value dropdown options error', async() => {
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
+      await tick();
+      mockAxios.mockResponse({status: 400});
+
+      expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options).toHaveLength(0);
+    });
+
+    it('should remove a filter', async() => {
+      wrapper.setState({
+        filterColumnName: '_id',
+        filterColumnOperator: '$gt',
+        filterColumnValue: '7',
+      });
+      wrapper.instance()._handleAddFilterClick();
+      wrapper.setState({
+        filterColumnName: '_id',
+        filterColumnOperator: '$lt',
+        filterColumnValue: '11',
+      });
+      wrapper.instance()._handleAddFilterClick();
+
+      expect(wrapper.update().state().filters.advanced).toHaveLength(2);
+      expect(wrapper.state().filters.advanced[0].value).toEqual(7);
+      wrapper.update().find('.tags-container').find('.item').at(0).find('.is-delete').simulate('click');
+
+      expect(wrapper.update().state().filters.advanced).toHaveLength(1);
+      expect(wrapper.state().filters.advanced[0].value).toEqual(11);
+    });
   });
 });

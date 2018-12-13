@@ -218,6 +218,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                     },
                   ]
                 }
+                placeholder="Metric Name"
                 test-attr="metric-name-0"
                 value={
                   Object {
@@ -248,6 +249,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                     },
                   ]
                 }
+                placeholder="Extrema"
                 test-attr="extrema-0"
                 value={
                   Object {
@@ -320,6 +322,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                     },
                   ]
                 }
+                placeholder="Metric Name"
                 test-attr="metric-name-1"
                 value={
                   Object {
@@ -350,6 +353,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                     },
                   ]
                 }
+                placeholder="Extrema"
                 test-attr="extrema-1"
                 value={
                   Object {

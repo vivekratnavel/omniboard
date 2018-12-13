@@ -17,7 +17,8 @@ import { headerText, arrayDiff, reorderArray, capitalize, parseServerError } fro
 import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
-import Select, { components } from 'react-select';
+import Select  from 'react-select';
+import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable';
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -44,10 +45,32 @@ const STATUS_FILTER_OPTIONS = [
   {label: getStatusLabel('queued'), value: STATUS.QUEUED, selected: true}
   ];
 
+const FILTER_OPERATOR_OPTIONS = [
+  {label: '==', value: '$eq'},
+  {label: '!=', value: '$ne'},
+  {label: '<', value: '$lt'},
+  {label: '<=', value: '$lte'},
+  {label: '>', value: '$gt'},
+  {label: '>=', value: '$gte'},
+  {label: 'in', value: '$in'},
+  {label: 'regex', value: '$regex'}
+  ];
+
+export const FILTER_OPERATOR_LABELS = {
+  $eq: '==',
+  $ne: '!=',
+  $lt: '<',
+  $lte: '<=',
+  $gt: '>',
+  $gte: '>=',
+  $in: 'in',
+  $regex: 'regex'
+};
+
 class RunsTable extends Component {
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort']
+    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort', 'columnNameMap']
   };
 
   tableWrapperDomNode = null;
@@ -71,22 +94,41 @@ class RunsTable extends Component {
       sort: {},
       sortIndices: [],
       isSelectLoading: {},
-      filters: {},
+      filters: {
+        status: [],
+        advanced: []
+      },
       tags: [],
-      filterValues: [],
       expandedRows: new Set(),
       scrollToRow: null,
       showMetricColumnModal: false,
+      filterColumnName: '',
+      filterColumnOperator: '$eq',
+      filterColumnValue: '',
+      columnNameMap: {},
+      asyncValueOptionsKey: 'async-1',
+      filterColumnValueError: false,
+      filterColumnNameError: false,
+      currentColumnValueOptions: [],
       isError: false,
       errorMessage: ''
     };
   }
 
+  _getColumnNameMap = (configs, rootName) => {
+    return Object.keys(configs).reduce( (configMap, conf) => {
+      configMap[conf] = `${rootName}.${conf}`;
+      return configMap;
+    }, {});
+  };
+
   loadData = () => {
     const {filters, columnOrder, dropdownOptions, columnWidths} = this.state;
     let latestDropdownOptions = [];
     const queryJson = {'$and': []};
-    if (filters && filters.status && filters.status.length) {
+    let columnNameMap = {};
+
+    if (filters && filters.status.length) {
       const statusFilter = filters.status.map(status => {
         if (status === STATUS.PROBABLY_DEAD || status === STATUS.RUNNING) {
           // Apply condition to filter "probably dead" status
@@ -99,8 +141,15 @@ class RunsTable extends Component {
       });
       queryJson.$and.push({'$or': statusFilter});
     }
-    if (filters && filters.tags && filters.tags.length) {
-      queryJson.$and.push({'$or': [{'omniboard.tags': filters.tags}]});
+    if (filters && filters.advanced.length) {
+      filters.advanced.forEach(filter => {
+        if (filter.operator === '$in') {
+          queryJson.$and.push({'$or': [{[filter.name]: filter.value}]});
+        } else {
+          filter.value = isNaN(filter.value) ? filter.value : Number(filter.value);
+          queryJson.$and.push({[filter.name]: {[filter.operator]: filter.value}});
+        }
+      });
     }
     const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : {};
     this.setState({
@@ -136,16 +185,21 @@ class RunsTable extends Component {
             // Expand each key of config column as individual columns
             delete data['config'];
             data = {...data, ...config};
+            const configNameMap = this._getColumnNameMap(config, 'config');
+            columnNameMap = {...columnNameMap, ...configNameMap};
           }
           if ('experiment' in data) {
             const experiment = data['experiment'];
             delete data['experiment'];
             data = {...data, 'experiment_name': experiment['name']};
+            columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
           }
           if ('host' in data) {
             const host = data['host'];
             delete data['host'];
             data = {...data, 'hostname': host['hostname']};
+            const hostMap = this._getColumnNameMap(host, 'host');
+            columnNameMap = {...columnNameMap, ...hostMap};
           }
 
           // Add duration column; duration = heartbeat - start_time
@@ -164,11 +218,14 @@ class RunsTable extends Component {
             const omniboard = data['omniboard'];
             delete data['omniboard'];
             data = {...data, ...omniboard};
+            const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
+            columnNameMap = {...columnNameMap, ...omniboardMap};
           }
 
           // Include metric columns
           if (metricColumnsData.length) {
             const metricColumnsObject = {};
+            const metricColumnNameMap = {};
             metricColumnsData.forEach(column => {
               let value = 0;
               const metric = data['metrics'].find(metric => metric.name === column.metric_name);
@@ -182,8 +239,10 @@ class RunsTable extends Component {
                 }
               }
               metricColumnsObject[column.name] = value;
+              metricColumnNameMap[column.name] = `omniboard.columns.${column.name}`;
             });
             data = {...data, ...metricColumnsObject};
+            columnNameMap = {...columnNameMap, ...metricColumnNameMap};
           }
           return data;
         });
@@ -268,7 +327,8 @@ class RunsTable extends Component {
         const sortedData = new DataListWrapper(sortIndices, runsResponseData);
         this.setState({
           data: runsResponseData,
-          defaultSortIndices: _defaultSortIndices
+          defaultSortIndices: _defaultSortIndices,
+          columnNameMap
         }, () => {
           // Apply sort if sorting is already enabled
           if (Object.keys(this.state.sort).length) {
@@ -586,34 +646,41 @@ class RunsTable extends Component {
     });
   };
 
+  _handleAddFilterClick = () => {
+    const { filterColumnOperator, filterColumnValue, filterColumnName, filters } = this.state;
+    this.setState({
+      filterColumnValueError: false,
+      filterColumnNameError: false
+    });
+    if (!filterColumnName) {
+      this.setState({
+        filterColumnNameError: true
+      });
+    } else if (!filterColumnValue) {
+      this.setState({
+        filterColumnValueError: true
+      });
+    } else {
+      const advancedFilters = Object.assign([...filters.advanced]);
+      const newFilter = {
+        name: filterColumnName,
+        operator: filterColumnOperator,
+        value: filterColumnValue
+      };
+      advancedFilters.push(newFilter);
+      this.setState({
+        filters: Object.assign({}, filters, {'advanced': advancedFilters}),
+        filterColumnName: '',
+        filterColumnOperator: '$eq',
+        filterColumnValue: ''
+      }, this.loadData);
+    }
+  };
+
   _handleMetricColumnModalClose = () => {
     this.setState({
       showMetricColumnModal: false
     });
-  };
-
-  get filterOptions() {
-    const {tags} = this.state;
-    return [
-      {
-        label: 'Tags',
-        options: tags.map(tag => {return {value: tag, label: tag, group: 'tag'}})
-      },
-    ];
-  }
-
-  _handleFilterChange = (values) => {
-    const optionValues = values.map(optionValue => optionValue.value);
-    const updateFilter = () => {
-      const {filters} = this.state;
-      const newFilters = Object.assign({}, filters, {tags: optionValues});
-      this.setState({
-        filters: newFilters
-      }, this.loadData);
-    };
-    this.setState({
-      filterValues: values
-    }, updateFilter);
   };
 
   handleMetricColumnDelete = (columnName) => {
@@ -635,9 +702,120 @@ class RunsTable extends Component {
     }
   };
 
+  _updateAsyncKey = () => {
+    // A workaround to loadOptions manually for "Value" dropdown
+    // is to change its "key" prop
+    const {asyncValueOptionsKey} = this.state;
+    const asyncKeySplit = asyncValueOptionsKey.split('-');
+    // Increment counter
+    asyncKeySplit[1] = Number(asyncKeySplit[1]) + 1;
+    this.setState({
+      asyncValueOptionsKey: asyncKeySplit.join('-')
+    });
+  };
+
+  _handleFilterColumnNameChange = ({value}) => {
+    this.setState({
+      filterColumnName: value
+    }, this._updateAsyncKey)
+  };
+
+  _handleFilterOperatorChange = ({value}) => {
+    const {filterColumnOperator, filterColumnValue} = this.state;
+    // Reset FilterValue dropdown if there is a change from/to $in
+    // Because $in operator renders multi select for FilterValue dropdown
+    const newFilterColumnValue = filterColumnOperator === '$in' || value === '$in' ? '' : filterColumnValue;
+    this.setState({
+      filterColumnOperator: value,
+      filterColumnValue: newFilterColumnValue
+    })
+  };
+
+  _handleFilterColumnValueChange = (value) => {
+    // value will be array for multi select
+    const resultantValue = Array.isArray(value) ? value.map(val => val.value) : value.value;
+    this.setState({
+      filterColumnValue: resultantValue
+    })
+  };
+
+  _getColumnNameOptions = () => {
+    const {dropdownOptions, columnNameMap} = this.state;
+    return dropdownOptions.reduce((options, option) => {
+      // Exclude duration and metric columns from dropdown options
+      // since filter cannot be applied directly on those fields
+      if (option.value !== 'duration') {
+        const newValue = option.value in columnNameMap ? columnNameMap[option.value] : option.value;
+        if (newValue.indexOf('omniboard.columns.') === -1) {
+          options.push(Object.assign({}, option, {value: newValue}));
+        }
+      }
+      return options;
+    }, []);
+  };
+
+  _getColumnValueOptions = inputValue => {
+    const {filterColumnName} = this.state;
+    // construct case-insensitive regex
+    const regex = `^(?i)(${inputValue})`;
+    return new Promise(resolve => {
+      // Get suggestions for columns of types other than Date or Number
+      // Since Date type Number type doesn't support regex
+      if (filterColumnName.length && !['_id', 'start_time', 'stop_time', 'heartbeat', 'duration'].includes(filterColumnName)) {
+        const operator = inputValue && !isNaN(inputValue) ? "$eq" : "$regex";
+        const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
+        const queryJson = {[filterColumnName]: { [operator]: value}};
+        // Fetch autocomplete suggestions
+        axios.get('/api/v1/Runs', {
+          params: {
+            distinct: filterColumnName,
+            query: JSON.stringify(queryJson)
+          }
+        }).then(response => {
+          if (response.status === 200) {
+            const options = response.data.reduce( (result, current) => {
+              if (typeof current !== "object") {
+                result.push({label: current.toString(), value: current.toString()});
+              }
+              return result;
+            }, []);
+            this.setState({
+              currentColumnValueOptions: options
+            });
+            resolve(options);
+          } else {
+            resolve([]);
+          }
+        });
+      } else {
+        resolve([]);
+      }
+    });
+  };
+
+  _handleDeleteFilter = filter => {
+    return () => {
+      const {filters} = this.state;
+      if ('name' in filter && 'operator' in filter && 'value' in filter) {
+        const advancedFilters = filters.advanced.reduce((advFilters, advFilter) => {
+          if (advFilter.name !== filter.name || advFilter.operator !== filter.operator ||
+            JSON.stringify(advFilter.value) !== JSON.stringify(filter.value)) {
+            advFilters.push(advFilter);
+          }
+          return advFilters;
+        }, []);
+        this.setState({
+          filters: Object.assign({}, filters, {'advanced': advancedFilters})
+        }, this.loadData);
+      }
+    }
+  };
+
   render() {
     const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
-      columnWidths, statusFilterOptions, showMetricColumnModal, isError, errorMessage, isTableLoading, filterValues } = this.state;
+      columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
+      errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, asyncValueOptionsKey,
+      filters, currentColumnValueOptions, columnNameMap } = this.state;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
       const indexArray = sortedData.getIndexArray();
@@ -664,18 +842,28 @@ class RunsTable extends Component {
       });
       rowData = new DataListWrapper(indexArray, _rowData);
     }
-    // Override filter label to display in the format "ColumnName: Value"
-    const MultiValueLabel = (props) => {
-      const newProps = Object.assign({}, props, {children: `${capitalize(props.data.group)}: ${props.data.label}`});
-      return (
-        <components.MultiValueLabel {...newProps}/>
-      );
+    const getSelectValue = (options, value) => {
+      const selectValue = options.find(option => option.value === value);
+      return selectValue ? selectValue : value ? {label: value, value} : '';
     };
+    const getMultiSelectValue = (options, value) => {
+      if (Array.isArray(value)) {
+        return value.map(val => getSelectValue(options, val));
+      }
+      return getSelectValue(options, value);
+    };
+    const getCreateLabel = input => input;
+    const getFilterNameLabel = value => {
+      const columnName = Object.keys(columnNameMap).find(key => columnNameMap[key] === value) || value;
+      return headerText(columnName);
+    };
+    const getFilterValueLabel = value => Array.isArray(value) ? value.join(',') : value;
+    const filterColumnNameOptions = this._getColumnNameOptions();
     return (
       <div>
         <div className="table-header">
-          <div className="row">
-            <div className="col-xs-2">
+          <div className="flex-container">
+            <div className="item">
               <div className="status-filter pull-left">
                 <label className="filter-label">Status: </label>
                 <Multiselect
@@ -699,23 +887,66 @@ class RunsTable extends Component {
                 />
               </div>
             </div>
-            <div className="col-xs-6">
-              <div className="filters">
-                <label className="filters-label">Filters: </label>
-                <div className="filters-select-container">
-                  <Select
-                    isMulti
-                    options={this.filterOptions}
-                    onChange={this._handleFilterChange}
-                    value={filterValues}
-                    menuPortalTarget={document.body}
-                    placeholder="Add Filters..."
-                    components={{MultiValueLabel}}
-                    />
+            <div className="item">
+              <div className="flex-container tags-container clearfix">
+                {
+                  filters.advanced.map((filter, i) =>
+                    <div key={i} className="item">
+                      <div className="tags">
+                        <span className="tag">{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
+                        <a onClick={this._handleDeleteFilter(filter)} className="tag is-delete"/>
+                      </div>
+                    </div>
+                  )
+                }
+              </div>
+              <div className="flex-container filters">
+                <label className="item filters-label">Filters: </label>
+                <div className="item filters-select-container">
+                  <div className="row">
+                    <div className="col col-xs-5">
+                      <Select
+                        test-attr="filter-column-name-dropdown"
+                        className={filterColumnNameError ? 'validation-error' : 'filter-name'}
+                        placeholder="Column Name"
+                        options={filterColumnNameOptions}
+                        onChange={this._handleFilterColumnNameChange}
+                        value={getSelectValue(filterColumnNameOptions, filterColumnName)}
+                        clearable={false}
+                      />
+                    </div>
+                    <div className="col col-xs-2">
+                      <Select
+                        test-attr="filter-column-operator-dropdown"
+                        placeholder="Operator"
+                        options={FILTER_OPERATOR_OPTIONS}
+                        onChange={this._handleFilterOperatorChange}
+                        value={getSelectValue(FILTER_OPERATOR_OPTIONS, filterColumnOperator)}
+                        clearable={false}
+                      />
+                    </div>
+                    <div className="col col-xs-5">
+                      <AsyncCreatableSelect
+                        key={asyncValueOptionsKey}
+                        test-attr="filter-column-value"
+                        className={filterColumnValueError ? 'validation-error' : 'filter-value'}
+                        placeholder="Enter Value..."
+                        loadOptions={this._getColumnValueOptions}
+                        formatCreateLabel={getCreateLabel}
+                        onChange={this._handleFilterColumnValueChange}
+                        defaultOptions
+                        isMulti={filterColumnOperator === "$in"}
+                        value={getMultiSelectValue(currentColumnValueOptions, filterColumnValue)}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="item">
+                  <Button id={"add_filter"} onClick={this._handleAddFilterClick}>Add Filter</Button>
                 </div>
               </div>
             </div>
-            <div className="col-xs-4">
+            <div className="item">
               <div className="show-hide-columns pull-right">
                 <Multiselect data={dropdownOptions} multiple
                              includeSelectAllOption={true}
@@ -766,8 +997,8 @@ class RunsTable extends Component {
                   fixed={true}
                   width={30}
                 />
-                {columnOrder.map((columnKey, i) => {
-                  return <Column
+                {columnOrder.map((columnKey, i) =>
+                  <Column
                     allowCellsRecycling={true}
                     columnKey={columnKey}
                     key={i}
@@ -785,8 +1016,8 @@ class RunsTable extends Component {
                     width={columnWidths[columnKey]}
                     flexGrow={1}
                     isResizable={true}
-                  />;
-                })}
+                  />
+                )}
               </Table>
             </ProgressWrapper>
           }

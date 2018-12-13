@@ -43,6 +43,7 @@ exports[`App component should render 1`] = `
             eventKey={1.1}
             header={false}
             onClick={[Function]}
+            test-attr="reset-cache-button"
           >
             <Glyphicon
               bsClass="glyphicon"
@@ -90,6 +91,7 @@ exports[`App component should render 1`] = `
           "defaultSortIndices",
           "sortIndices",
           "sort",
+          "columnNameMap",
         ]
       }
     />
