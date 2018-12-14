@@ -10,11 +10,6 @@ script:
 after_success:
 - npm i -g coveralls
 - npm run report-coverage
-cache:
-  yarn: true
-  directories:
-  - node_modules
-  - web/node_modules
 branches:
   only:
   - master
