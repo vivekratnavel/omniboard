@@ -11,6 +11,8 @@ of Omniboard dashboard and fill out the details in the modal dialog that pops up
 
 ![Adding Metrics Columns](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/adding-metrics.png)
 
+Check out [How it works](https://vivekratnavel.github.io/omniboard/#/quick-start?id=metric-columns) documentation for more info on how `Metric Columns` are stored in Mongodb.
+
 ## Download Source Files or Artifacts
 
 To download `Source Files` or `Artifacts`, click on any row of experiment run

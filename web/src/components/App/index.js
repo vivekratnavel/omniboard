@@ -11,10 +11,6 @@ class App extends Component {
     location.reload();
   };
 
-  _showManageConfigColumns = () => {
-
-  };
-
   render() {
     const localStorageKey = 'RunsTable|1';
     return (
@@ -31,9 +27,6 @@ class App extends Component {
                 <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this._resetCache}>
                   <Glyphicon glyph="refresh"/>
                   &nbsp; Reset Cache
-                </MenuItem>
-                <MenuItem test-attr="manage-config-columns-button" eventKey={1.2} onClick={this._showManageConfigColumns}>
-                  +/- Config Columns
                 </MenuItem>
               </NavDropdown>
             </Nav>

@@ -115,6 +115,7 @@ It also adds two new columns `Tags` and `Notes` whose values are stored under th
 When users make any changes to columns such as hiding or resizing or re-ordering a column,
 those changes are saved in the browsers local storage. This enables Omniboard to 
 remember these settings when the page is reloaded or reopened later.
+Check out the [Troubleshooting Guide](https://vivekratnavel.github.io/omniboard/#/troubleshooting?id=reset-cache) for documentation on how to reset cache.
 
 ### Metric Columns
 
