@@ -6,9 +6,13 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
 
 class App extends Component {
-  resetCache = () => {
+  _resetCache = () => {
     localStorage.clear();
     location.reload();
+  };
+
+  _showManageConfigColumns = () => {
+
   };
 
   render() {
@@ -24,9 +28,12 @@ class App extends Component {
           <Navbar.Collapse>
             <Nav pullRight>
               <NavDropdown eventKey={1} title={<Glyphicon glyph="cog" />} id="settings">
-                <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this.resetCache}>
+                <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this._resetCache}>
                   <Glyphicon glyph="refresh"/>
                   &nbsp; Reset Cache
+                </MenuItem>
+                <MenuItem test-attr="manage-config-columns-button" eventKey={1.2} onClick={this._showManageConfigColumns}>
+                  +/- Config Columns
                 </MenuItem>
               </NavDropdown>
             </Nav>
