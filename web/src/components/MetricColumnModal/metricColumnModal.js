@@ -171,39 +171,33 @@ class MetricColumnModal extends PureComponent {
   _handleColumnNameChange = (key) => {
     return (e) => {
       const {columns} = this.state;
-      if (key < columns.length) {
-        const columnsClone = columns.slice();
-        columnsClone[key].columnName = e.target.value;
-        this.setState({
-          columns: columnsClone
-        });
-      }
+      const columnsClone = columns.slice();
+      columnsClone[key].columnName = e.target.value;
+      this.setState({
+        columns: columnsClone
+      });
     }
   };
 
   _handleMetricNameChange = (key) => {
     return ({value}) => {
       const {columns} = this.state;
-      if (key < columns.length) {
-        const columnsClone = columns.slice();
-        columnsClone[key].metricName = value;
-        this.setState({
-          columns: columnsClone
-        });
-      }
+      const columnsClone = columns.slice();
+      columnsClone[key].metricName = value;
+      this.setState({
+        columns: columnsClone
+      });
     }
   };
 
   _handleExtremaChange = (key) => {
     return ({value}) => {
       const {columns} = this.state;
-      if (key < columns.length) {
-        const columnsClone = columns.slice();
-        columnsClone[key].extrema = value;
-        this.setState({
-          columns: columnsClone
-        });
-      }
+      const columnsClone = columns.slice();
+      columnsClone[key].extrema = value;
+      this.setState({
+        columns: columnsClone
+      });
     }
   };
 

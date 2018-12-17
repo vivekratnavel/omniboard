@@ -23,6 +23,7 @@ describe('DrillDownView', () => {
         ["hello_world.py", "SGVsbG8gV29ybGQh"]
       ]
     },
+    artifacts: [],
     captured_out: 'captured out',
   };
 
@@ -77,6 +78,7 @@ describe('DrillDownView', () => {
       DRILLDOWN_VIEW.META_INFO,
       DRILLDOWN_VIEW.METRICS,
       DRILLDOWN_VIEW.RUN_INFO,
+      DRILLDOWN_VIEW.ARTIFACTS,
       DRILLDOWN_VIEW.SOURCE_FILES
     ].forEach(key => switchTabTest(key));
   });

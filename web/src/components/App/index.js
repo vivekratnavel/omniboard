@@ -6,12 +6,32 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showConfigColumnModal: false
+    }
+  }
+
   _resetCache = () => {
     localStorage.clear();
     location.reload();
   };
 
+  _showConfigColumnModal = () => {
+    this.setState({
+      showConfigColumnModal: true
+    });
+  };
+
+  _handleConfigColumnModalClose = () => {
+    this.setState({
+      showConfigColumnModal: false
+    });
+  };
+
   render() {
+    const {showConfigColumnModal} = this.state;
     const localStorageKey = 'RunsTable|1';
     return (
       <div className="App">
@@ -28,13 +48,17 @@ class App extends Component {
                   <Glyphicon glyph="refresh"/>
                   &nbsp; Reset Cache
                 </MenuItem>
+                <MenuItem test-attr="manage-config-columns-button" eventKey={1.2} onClick={this._showConfigColumnModal}>
+                  +/- Config Columns
+                </MenuItem>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
         <div className="content">
           <ToastContainer autoClose={false}/>
-          <RunsTable localStorageKey={localStorageKey}/>
+          <RunsTable localStorageKey={localStorageKey} showConfigColumnModal={showConfigColumnModal}
+                     handleConfigColumnModalClose={this._handleConfigColumnModalClose} />
         </div>
       </div>
     );

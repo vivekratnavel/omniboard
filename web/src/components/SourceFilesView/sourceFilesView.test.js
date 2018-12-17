@@ -29,6 +29,22 @@ describe('SourceFilesView', () => {
           "files_id": "5a1bd242ca100c1a210b0d3a"
         }
       ]
+    },
+    {
+      "_id": "5a1bd242ca100c1a210b0d3b",
+      "uploadDate": "2017-11-27T08:53:18.562Z",
+      "md5": "6ef452da81287e70540ee3cf9bffd13e",
+      "length": 0,
+      "chunkSize": 0,
+      "filename": "/src/hello_world_2.py",
+      "chunk": [
+        {
+          "_id": "5a1bd242ca100c1a210b0d3c",
+          "data": "",
+          "n": 0,
+          "files_id": "5a1bd242ca100c1a210b0d3b"
+        }
+      ]
     }
   ];
 

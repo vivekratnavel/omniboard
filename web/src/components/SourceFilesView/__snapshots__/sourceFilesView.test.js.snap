@@ -240,6 +240,13 @@ exports[`SourceFilesView should render correctly 2`] = `
                     "id": "5a1bd242ca100c1a210b0d3a",
                     "uploadDate": "2017-11-27T08:52:18.562Z",
                   },
+                  "hello_world_2.py": Object {
+                    "data": "",
+                    "filename": "hello_world_2.py",
+                    "filepath": "/src/hello_world_2.py",
+                    "id": "5a1bd242ca100c1a210b0d3b",
+                    "uploadDate": "2017-11-27T08:53:18.562Z",
+                  },
                 }
               }
             />

@@ -8,6 +8,7 @@ import restify from 'express-restify-mongoose';
 import RunsModel from './models/runs';
 import MetricsModel from './models/metrics';
 import OmniboardColumnsModel from './models/omniboard.columns';
+import OmniboardConfigColumnsModel from './models/omniboard.config.columns';
 import FilesModel from './models/fs.files';
 import ChunksModel from './models/fs.chunks';
 
@@ -40,6 +41,7 @@ app.use(function(req, res, next) {
 restify.serve(router, RunsModel);
 restify.serve(router, MetricsModel);
 restify.serve(router, OmniboardColumnsModel);
+restify.serve(router, OmniboardConfigColumnsModel);
 restify.serve(router, FilesModel);
 restify.serve(router, ChunksModel);
 app.use(router);

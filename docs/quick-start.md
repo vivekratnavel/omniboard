@@ -121,3 +121,8 @@ Check out the [Troubleshooting Guide](https://vivekratnavel.github.io/omniboard/
 
 The metadata of newly created metric columns are stored in a new collection
 `omniboard.columns` in Mongodb. 
+
+### Config Columns
+
+The metadata of newly added config columns are stored in a new collection
+`omniboard.config.columns` in Mongodb.

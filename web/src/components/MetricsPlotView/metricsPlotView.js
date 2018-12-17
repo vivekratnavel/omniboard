@@ -97,7 +97,7 @@ class MetricsPlotView extends Component {
     let metricsResponseMap = {},
       metricNames = [];
     if (metricsResponse && metricsResponse.length) {
-      metricsResponseMap = metricsResponse.reduce((map = {}, metric) => {
+      metricsResponseMap = metricsResponse.reduce((map, metric) => {
         map[metric.name] = metric;
         return map;
       }, {});

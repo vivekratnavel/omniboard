@@ -19,6 +19,8 @@ import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
 import Select  from 'react-select';
 import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable';
+import { ConfigColumnModal } from "../ConfigColumnModal/configColumnModal";
+import PropTypes from 'prop-types';
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -73,6 +75,11 @@ class RunsTable extends Component {
     stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort', 'columnNameMap']
   };
 
+  static propTypes = {
+    showConfigColumnModal: PropTypes.bool.isRequired,
+    handleConfigColumnModalClose: PropTypes.func.isRequired
+  };
+
   tableWrapperDomNode = null;
   showHideColumnsDomNode = null;
   statusFilterDomNode = null;
@@ -121,6 +128,10 @@ class RunsTable extends Component {
       return configMap;
     }, {});
   };
+
+  _resolveObjectPath = (object, path, defaultValue) => path
+    .split('.')
+    .reduce((o, p) => o && o.hasOwnProperty(p) ? o[p] : defaultValue, object);
 
   loadData = () => {
     const {filters, columnOrder, dropdownOptions, columnWidths} = this.state;
@@ -171,11 +182,13 @@ class RunsTable extends Component {
           distinct: 'omniboard.tags'
         }
       }),
-      axios.get('/api/v1/Omniboard.Columns')
+      axios.get('/api/v1/Omniboard.Columns'),
+      axios.get('/api/v1/Omniboard.Config.Columns')
     ])
-    .then(axios.spread((runsResponse, tags, metricColumns) => {
+    .then(axios.spread((runsResponse, tags, metricColumns, configColumns) => {
       let runsResponseData = runsResponse.data;
       const metricColumnsData = metricColumns.data;
+      const configColumnsData = configColumns.data;
       const duration = 'duration';
       if (runsResponseData && runsResponseData.length) {
         const _defaultSortIndices = [];
@@ -187,13 +200,29 @@ class RunsTable extends Component {
             data = {...data, ...config};
             const configNameMap = this._getColumnNameMap(config, 'config');
             columnNameMap = {...columnNameMap, ...configNameMap};
+
+            // Include config columns
+            if (configColumnsData.length) {
+              const configColumnsObject = {};
+              const configColumnNameMap = {};
+              configColumnsData.forEach(column => {
+                const columnName = column.name;
+                const configPath = column.config_path;
+                configColumnsObject[columnName] = this._resolveObjectPath(config, configPath, '');
+                configColumnNameMap[columnName] = `config.${configPath}`;
+              });
+              data = {...data, ...configColumnsObject};
+              columnNameMap = {...columnNameMap, ...configColumnNameMap};
+            }
           }
+
           if ('experiment' in data) {
             const experiment = data['experiment'];
             delete data['experiment'];
             data = {...data, 'experiment_name': experiment['name']};
             columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
           }
+
           if ('host' in data) {
             const host = data['host'];
             delete data['host'];
@@ -213,7 +242,6 @@ class RunsTable extends Component {
             }
           }
 
-
           // Expand omniboard columns
           if ('omniboard' in data) {
             const omniboard = data['omniboard'];
@@ -227,12 +255,17 @@ class RunsTable extends Component {
           if (!('notes' in data)) {
             if ('meta' in data) {
               const meta = data['meta'];
-              delete data['meta']
+              delete data['meta'];
               if ('comment' in meta) {
                 const comment = meta['comment'];
                 data = {...data, 'notes': comment}
               }
             }
+          }
+
+          // Delete meta if not deleted already
+          if ('meta' in data) {
+            delete data['meta'];
           }
 
           // Include metric columns
@@ -257,6 +290,7 @@ class RunsTable extends Component {
             data = {...data, ...metricColumnsObject};
             columnNameMap = {...columnNameMap, ...metricColumnNameMap};
           }
+
           return data;
         });
 
@@ -309,13 +343,15 @@ class RunsTable extends Component {
           }
           this.showHideColumnsDomNode.syncData();
         } else {
-          // Handle addition/deletion of metric columns
+          // Handle addition/deletion of metric/config columns
           const dropdownOptionValues = dropdownOptions.map(option => option.value);
           const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
+          const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
 
           let newColumnOrder = columnOrder.slice();
           let newDropdownOptions = dropdownOptions.slice();
           let newColumnWidths = Object.assign({}, columnWidths);
+
           if (columnsToAdd.length) {
             newColumnOrder = newColumnOrder.concat(columnsToAdd);
             const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
@@ -325,11 +361,16 @@ class RunsTable extends Component {
             }, {});
             newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
           }
+
           this.setState({
             columnOrder: newColumnOrder,
             columnWidths: newColumnWidths,
             dropdownOptions: newDropdownOptions
           });
+
+          if (columnsToDelete.length) {
+            columnsToDelete.map(this._handleColumnDelete);
+          }
         }
 
         for (let index = 0; index < runsResponseData.length; index++) {
@@ -696,7 +737,7 @@ class RunsTable extends Component {
     });
   };
 
-  handleMetricColumnDelete = (columnName) => {
+  _handleColumnDelete = (columnName) => {
     const {columnOrder, dropdownOptions, columnWidths} = this.state;
     let newColumnOrder = columnOrder.slice();
     let newDropdownOptions = dropdownOptions.slice();
@@ -787,7 +828,7 @@ class RunsTable extends Component {
         }).then(response => {
           if (response.status === 200) {
             const options = response.data.reduce( (result, current) => {
-              if (typeof current !== "object") {
+              if (typeof current !== "object" && current) {
                 result.push({label: current.toString(), value: current.toString()});
               }
               return result;
@@ -829,6 +870,7 @@ class RunsTable extends Component {
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, asyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap } = this.state;
+    const {showConfigColumnModal, handleConfigColumnModalClose} = this.props;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
       const indexArray = sortedData.getIndexArray();
@@ -1036,7 +1078,9 @@ class RunsTable extends Component {
           }
         </div>
         <MetricColumnModal show={showMetricColumnModal} handleClose={this._handleMetricColumnModalClose}
-                           handleDataUpdate={this.loadData} handleDelete={this.handleMetricColumnDelete}/>
+                           handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
+        <ConfigColumnModal show={showConfigColumnModal} handleClose={handleConfigColumnModalClose}
+                           handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
       </div>
     );
   }

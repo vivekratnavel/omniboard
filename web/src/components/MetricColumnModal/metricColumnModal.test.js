@@ -181,6 +181,22 @@ describe('MetricColumnModal', () => {
       });
     });
 
+    it('for update', async() => {
+      const errorResponse = {status: 400, message: 'unknown error'};
+      mockAxios.mockResponse({status: 200, data: responseData});
+      mockAxios.mockResponse({status: 200, data: metricNamesResponse});
+      wrapper.find('[test-attr="column-name-text-0"]').simulate('change', {
+        target: {
+          value: 'col_1'
+        }
+      });
+      wrapper.find('[test-attr="apply-btn"]').simulate('click');
+      mockAxios.mockResponse(errorResponse);
+      await tick();
+
+      expect(wrapper.state().error).toEqual(parseServerError(errorResponse));
+    });
+
   });
 
   describe('should add columns correctly', () => {

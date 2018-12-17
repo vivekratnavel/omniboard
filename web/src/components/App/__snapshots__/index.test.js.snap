@@ -51,6 +51,17 @@ exports[`App component should render 1`] = `
             />
               Reset Cache
           </MenuItem>
+          <MenuItem
+            bsClass="dropdown"
+            disabled={false}
+            divider={false}
+            eventKey={1.2}
+            header={false}
+            onClick={[Function]}
+            test-attr="manage-config-columns-button"
+          >
+            +/- Config Columns
+          </MenuItem>
         </NavDropdown>
       </Nav>
     </NavbarCollapse>
@@ -82,7 +93,9 @@ exports[`App component should render 1`] = `
       transition={[Function]}
     />
     <RunsTable
+      handleConfigColumnModalClose={[Function]}
       localStorageKey="RunsTable|1"
+      showConfigColumnModal={false}
       stateFilterKeys={
         Array [
           "dropdownOptions",

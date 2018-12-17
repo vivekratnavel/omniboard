@@ -32,6 +32,14 @@ describe('MetricsPlotView', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
+  it('should render when no metrics data is available', () => {
+    wrapper = mount(
+      <MetricsPlotView metricsResponse={[]} runId={222} localStorageKey={"metricsPlot|222"}/>
+    );
+
+    expect(wrapper.find('#plot-metric-names')).toHaveLength(0);
+  });
+
   it('should set default selection correctly', () => {
     /* eslint-disable no-global-assign */
     localStorage = {getItem: () => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear"}'};

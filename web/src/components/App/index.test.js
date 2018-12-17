@@ -21,4 +21,14 @@ describe('App component', () => {
 
     expect(Object.keys(localStorage.getAllItems())).toHaveLength(0);
   });
+
+  it('should show/hide ManageConfigColumns modal', () => {
+    wrapper.find('[test-attr="manage-config-columns-button"]').simulate('click');
+
+    expect(wrapper.state().showConfigColumnModal).toBeTruthy();
+    wrapper.instance()._handleConfigColumnModalClose();
+
+    expect(wrapper.state().showConfigColumnModal).toBeFalsy();
+  });
+
 });
