@@ -50,6 +50,8 @@
     "promise": "8.0.1",
     "prop-types": "^15.6.0",
     "raf": "3.4.0",
+    "rc-slider": "^8.6.4",
+    "rc-util": "^4.6.0",
     "react": "^16.2.0",
     "react-accessible-accordion": "^2.4.4",
     "react-bootstrap": "^0.31.5",

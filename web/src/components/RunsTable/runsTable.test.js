@@ -444,6 +444,19 @@ describe('RunsTable', () => {
       expect(dropdownOptions).toEqual(expectedOptions);
     });
 
+    it('should load value dropdown options for status', async() => {
+      const response = ["completed", "interrupted"];
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'status'});
+      await tick();
+      mockAxios.mockResponse({status: 200, data: response});
+      await tick();
+      const expectedOptions = response.map(value => { return {label: value, value} });
+      expectedOptions.push({label: STATUS.PROBABLY_DEAD, value: STATUS.PROBABLY_DEAD});
+      const dropdownOptions = wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options;
+
+      expect(dropdownOptions).toEqual(expectedOptions);
+    });
+
     it('should change value dropdown to multiselect', async() => {
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       await tick();

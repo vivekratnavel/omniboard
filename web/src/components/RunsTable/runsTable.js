@@ -5,7 +5,6 @@ import { Table, Column } from 'fixed-data-table-2';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
 import ms from 'ms';
-import './runsTable.scss';
 import 'fixed-data-table-2/dist/fixed-data-table.css';
 import { Button, ButtonToolbar, Alert } from 'react-bootstrap';
 import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';

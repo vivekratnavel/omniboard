@@ -65,6 +65,8 @@ exports[`MetricsPlotView should render correctly 1`] = `
       "selectedMetricNames",
       "selectedXAxis",
       "selectedYAxis",
+      "plotWidth",
+      "plotHeight",
     ]
   }
 >
@@ -187,6 +189,293 @@ exports[`MetricsPlotView should render correctly 1`] = `
           </label>
         </div>
       </div>
+      <h4>
+        Plot Size
+      </h4>
+      <div
+        id="plot-size"
+      >
+        <div
+          style={
+            Object {
+              "margin": 0,
+              "width": 120,
+            }
+          }
+        >
+          <div>
+            Width: 
+            800
+            px
+          </div>
+          <ComponentEnhancer(undefined)
+            activeDotStyle={Object {}}
+            className=""
+            disabled={false}
+            dotStyle={Object {}}
+            dots={false}
+            handle={[Function]}
+            handleStyle={
+              Array [
+                Object {},
+              ]
+            }
+            included={true}
+            marks={Object {}}
+            max={1200}
+            min={700}
+            onAfterChange={[Function]}
+            onBeforeChange={[Function]}
+            onChange={[Function]}
+            prefixCls="rc-slider"
+            railStyle={Object {}}
+            step={50}
+            test-attr="plot-width-slider"
+            trackStyle={
+              Array [
+                Object {},
+              ]
+            }
+            value={800}
+            vertical={false}
+          >
+            <div
+              className="rc-slider"
+              onBlur={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onMouseDown={[Function]}
+              onMouseUp={[Function]}
+              onTouchStart={[Function]}
+            >
+              <div
+                className="rc-slider-rail"
+                style={Object {}}
+              />
+              <Track
+                className="rc-slider-track"
+                included={true}
+                length={20}
+                offset={0}
+                style={Object {}}
+                vertical={false}
+              >
+                <div
+                  className="rc-slider-track"
+                  style={
+                    Object {
+                      "left": "0%",
+                      "width": "20%",
+                    }
+                  }
+                />
+              </Track>
+              <Steps
+                activeDotStyle={Object {}}
+                dotStyle={Object {}}
+                dots={false}
+                included={true}
+                lowerBound={700}
+                marks={Object {}}
+                max={1200}
+                min={700}
+                prefixCls="rc-slider"
+                step={50}
+                upperBound={800}
+                vertical={false}
+              >
+                <div
+                  className="rc-slider-step"
+                />
+              </Steps>
+              <Handle
+                className="rc-slider-handle"
+                disabled={false}
+                key="0"
+                max={1200}
+                min={700}
+                offset={20}
+                prefixCls="rc-slider"
+                style={Object {}}
+                value={800}
+                vertical={false}
+              >
+                <div
+                  aria-disabled={false}
+                  aria-valuemax={1200}
+                  aria-valuemin={700}
+                  aria-valuenow={800}
+                  className="rc-slider-handle"
+                  onBlur={[Function]}
+                  onKeyDown={[Function]}
+                  role="slider"
+                  style={
+                    Object {
+                      "left": "20%",
+                    }
+                  }
+                  tabIndex={0}
+                />
+              </Handle>
+              <Marks
+                className="rc-slider-mark"
+                included={true}
+                lowerBound={700}
+                marks={Object {}}
+                max={1200}
+                min={700}
+                onClickLabel={[Function]}
+                upperBound={800}
+                vertical={false}
+              >
+                <div
+                  className="rc-slider-mark"
+                />
+              </Marks>
+            </div>
+          </ComponentEnhancer(undefined)>
+        </div>
+        <div
+          style={
+            Object {
+              "margin": 0,
+              "width": 120,
+            }
+          }
+        >
+          <div>
+            Height: 
+            400
+            px
+          </div>
+          <ComponentEnhancer(undefined)
+            activeDotStyle={Object {}}
+            className=""
+            disabled={false}
+            dotStyle={Object {}}
+            dots={false}
+            handle={[Function]}
+            handleStyle={
+              Array [
+                Object {},
+              ]
+            }
+            included={true}
+            marks={Object {}}
+            max={600}
+            min={300}
+            onAfterChange={[Function]}
+            onBeforeChange={[Function]}
+            onChange={[Function]}
+            prefixCls="rc-slider"
+            railStyle={Object {}}
+            step={50}
+            test-attr="plot-height-slider"
+            trackStyle={
+              Array [
+                Object {},
+              ]
+            }
+            value={400}
+            vertical={false}
+          >
+            <div
+              className="rc-slider"
+              onBlur={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onMouseDown={[Function]}
+              onMouseUp={[Function]}
+              onTouchStart={[Function]}
+            >
+              <div
+                className="rc-slider-rail"
+                style={Object {}}
+              />
+              <Track
+                className="rc-slider-track"
+                included={true}
+                length={33.33333333333333}
+                offset={0}
+                style={Object {}}
+                vertical={false}
+              >
+                <div
+                  className="rc-slider-track"
+                  style={
+                    Object {
+                      "left": "0%",
+                      "width": "33.33333333333333%",
+                    }
+                  }
+                />
+              </Track>
+              <Steps
+                activeDotStyle={Object {}}
+                dotStyle={Object {}}
+                dots={false}
+                included={true}
+                lowerBound={300}
+                marks={Object {}}
+                max={600}
+                min={300}
+                prefixCls="rc-slider"
+                step={50}
+                upperBound={400}
+                vertical={false}
+              >
+                <div
+                  className="rc-slider-step"
+                />
+              </Steps>
+              <Handle
+                className="rc-slider-handle"
+                disabled={false}
+                key="0"
+                max={600}
+                min={300}
+                offset={33.33333333333333}
+                prefixCls="rc-slider"
+                style={Object {}}
+                value={400}
+                vertical={false}
+              >
+                <div
+                  aria-disabled={false}
+                  aria-valuemax={600}
+                  aria-valuemin={300}
+                  aria-valuenow={400}
+                  className="rc-slider-handle"
+                  onBlur={[Function]}
+                  onKeyDown={[Function]}
+                  role="slider"
+                  style={
+                    Object {
+                      "left": "33.33333333333333%",
+                    }
+                  }
+                  tabIndex={0}
+                />
+              </Handle>
+              <Marks
+                className="rc-slider-mark"
+                included={true}
+                lowerBound={300}
+                marks={Object {}}
+                max={600}
+                min={300}
+                onClickLabel={[Function]}
+                upperBound={400}
+                vertical={false}
+              >
+                <div
+                  className="rc-slider-mark"
+                />
+              </Marks>
+            </div>
+          </ComponentEnhancer(undefined)>
+        </div>
+      </div>
     </div>
     <div
       className="metrics-plot-content"
@@ -197,9 +486,9 @@ exports[`MetricsPlotView should render correctly 1`] = `
         fit={false}
         layout={
           Object {
-            "height": 300,
+            "height": 400,
             "title": "Metrics Plot",
-            "width": 700,
+            "width": 800,
             "xaxis": Object {
               "autorange": true,
               "range": Array [

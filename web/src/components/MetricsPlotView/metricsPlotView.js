@@ -1,12 +1,15 @@
-import React, {Component} from "react";
-import { SCALE_VALUE, scaleValues, xAxisValues } from "../../constants/drillDownView.constants";
-import { capitalize } from "../Helpers/utils";
-import Plot from "react-plotly.js";
+import React, {Component} from 'react';
+import { SCALE_VALUE, scaleValues, xAxisValues } from '../../constants/drillDownView.constants';
+import { capitalize } from '../Helpers/utils';
+import Plot from 'react-plotly.js';
 import PropTypes from 'prop-types'
-import reactMixin from "react-mixin";
-import LocalStorageMixin from "react-localstorage";
+import reactMixin from 'react-mixin';
+import Slider from 'rc-slider';
+import LocalStorageMixin from 'react-localstorage';
 
 const DEFAULT_SELECTION_KEY = "MetricsPlotView|default";
+const DEFAULT_PLOT_WIDTH = 800;
+const DEFAULT_PLOT_HEIGHT = 400;
 
 class MetricsPlotView extends Component {
   static propTypes = {
@@ -16,7 +19,7 @@ class MetricsPlotView extends Component {
 
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['selectedMetricNames', 'selectedXAxis', 'selectedYAxis']
+    stateFilterKeys: ['selectedMetricNames', 'selectedXAxis', 'selectedYAxis', 'plotWidth', 'plotHeight']
   };
 
   constructor(props) {
@@ -24,7 +27,9 @@ class MetricsPlotView extends Component {
     this.state = {
       selectedMetricNames: [],
       selectedXAxis: xAxisValues[0],
-      selectedYAxis: scaleValues[0]
+      selectedYAxis: scaleValues[0],
+      plotWidth: DEFAULT_PLOT_WIDTH,
+      plotHeight: DEFAULT_PLOT_HEIGHT
     };
   }
 
@@ -82,7 +87,9 @@ class MetricsPlotView extends Component {
       this.setState({
         selectedMetricNames,
         selectedXAxis: defaultSelection.selectedXAxis || '',
-        selectedYAxis: defaultSelection.selectedYAxis || ''
+        selectedYAxis: defaultSelection.selectedYAxis || '',
+        plotWidth: defaultSelection.plotWidth || DEFAULT_PLOT_WIDTH,
+        plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT
       });
     }
   };
@@ -91,9 +98,25 @@ class MetricsPlotView extends Component {
     this._setDefaultSelection();
   }
 
+  _plotWidthChangeHandler = (value) => {
+    this.setState({
+      plotWidth: value
+    });
+    // update local storage to set default width
+    this._updateDefaultSelection({plotWidth: value});
+  };
+
+  _plotHeightChangeHandler = (value) => {
+    this.setState({
+      plotHeight: value
+    });
+    // update local storage to set default height
+    this._updateDefaultSelection({plotHeight: value});
+  };
+
   render() {
     const {metricsResponse, runId} = this.props;
-    const {selectedMetricNames, selectedXAxis, selectedYAxis} = this.state;
+    const {selectedMetricNames, selectedXAxis, selectedYAxis, plotWidth, plotHeight} = this.state;
     let metricsResponseMap = {},
       metricNames = [];
     if (metricsResponse && metricsResponse.length) {
@@ -118,6 +141,8 @@ class MetricsPlotView extends Component {
       };
     });
     const yAxisLayout = selectedYAxis === SCALE_VALUE.LOGARITHMIC ? {type: 'log', autorange: true} : {};
+    const wrapperStyle = { width: 120, margin: 0 };
+
     return (
       <div>
         <div className="metrics-plot-left">
@@ -160,13 +185,24 @@ class MetricsPlotView extends Component {
               )
             })}
           </div>
+          <h4>Plot Size</h4>
+          <div id="plot-size">
+            <div style={wrapperStyle}>
+              <div>Width: {plotWidth}px</div>
+              <Slider test-attr={"plot-width-slider"} min={700} max={1200} value={plotWidth} step={50} onChange={this._plotWidthChangeHandler}/>
+            </div>
+            <div style={wrapperStyle}>
+              <div>Height: {plotHeight}px</div>
+              <Slider test-attr={"plot-height-slider"} min={300} max={600} value={plotHeight} step={50} onChange={this._plotHeightChangeHandler}/>
+            </div>
+          </div>
         </div>
         <div className="metrics-plot-content">
           <Plot
             data={plotData}
             layout={{
-              width: 700,
-              height: 300,
+              width: plotWidth,
+              height: plotHeight,
               title: 'Metrics Plot',
               yaxis: yAxisLayout
             }}

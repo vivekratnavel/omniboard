@@ -6,6 +6,7 @@ import 'react-table/react-table.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-bootstrap-multiselect/css/bootstrap-multiselect.css';
 import './components/RunsTable/runsTable.scss';
+import 'rc-slider/assets/index.css';
 
 import NextApp from './routes';
 

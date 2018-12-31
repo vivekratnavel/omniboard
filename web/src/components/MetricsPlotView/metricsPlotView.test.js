@@ -2,6 +2,7 @@ import React from 'react';
 import { MetricsPlotView } from './metricsPlotView';
 import mockAxios from 'jest-mock-axios';
 import { X_AXIS_VALUE, SCALE_VALUE } from '../../constants/drillDownView.constants';
+import keyCode from 'rc-util/lib/KeyCode';
 import { LocalStorageMock } from '../../../config/jest/localStorageMock';
 
 describe('MetricsPlotView', () => {
@@ -42,12 +43,14 @@ describe('MetricsPlotView', () => {
 
   it('should set default selection correctly', () => {
     /* eslint-disable no-global-assign */
-    localStorage = {getItem: () => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear"}'};
+    localStorage = {getItem: () => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450}'};
     wrapper.instance()._setDefaultSelection();
 
     expect(wrapper.state().selectedMetricNames).toHaveLength(1);
     expect(wrapper.state().selectedXAxis).toEqual('time');
     expect(wrapper.state().selectedYAxis).toEqual('linear');
+    expect(wrapper.state().plotWidth).toEqual(900);
+    expect(wrapper.state().plotHeight).toEqual(450);
 
     localStorage = {getItem: () => '{}'};
     wrapper.instance()._setDefaultSelection();
@@ -55,6 +58,8 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().selectedMetricNames).toHaveLength(0);
     expect(wrapper.state().selectedXAxis).toEqual('');
     expect(wrapper.state().selectedYAxis).toEqual('');
+    expect(wrapper.state().plotWidth).toEqual(800);
+    expect(wrapper.state().plotHeight).toEqual(400);
     // reset localStorage
     localStorage = new LocalStorageMock;
   });
@@ -106,6 +111,26 @@ describe('MetricsPlotView', () => {
       wrapper.find('[test-attr="plot-y-axis-0"]').simulate('change', {target: {value: SCALE_VALUE.LOGARITHMIC}});
 
       expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUE.LOGARITHMIC);
+    });
+
+    it('plot width change correctly', async () => {
+      const sliderWrapper = wrapper.find('[test-attr="plot-width-slider"]');
+      const sliderHandleWrapper = sliderWrapper.find('.rc-slider-handle').at(1);
+      wrapper.instance().setState({plotWidth: 700});
+      sliderWrapper.simulate('focus');
+      sliderHandleWrapper.simulate('keyDown', {keyCode: keyCode.UP});
+
+      expect(wrapper.update().state().plotWidth).toEqual(750);
+    });
+
+    it('plot height change correctly', async () => {
+      const sliderWrapper = wrapper.find('[test-attr="plot-height-slider"]');
+      const sliderHandleWrapper = sliderWrapper.find('.rc-slider-handle').at(1);
+      wrapper.instance().setState({plotHeight: 300});
+      sliderWrapper.simulate('focus');
+      sliderHandleWrapper.simulate('keyDown', {keyCode: keyCode.UP});
+
+      expect(wrapper.update().state().plotHeight).toEqual(350);
     });
   });
 });
