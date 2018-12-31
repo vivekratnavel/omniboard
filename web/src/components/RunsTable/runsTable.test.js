@@ -93,7 +93,7 @@ describe('RunsTable', () => {
           val: () => ['running']
         }
       };
-      queryString = JSON.stringify({'$and': [{'$or': [{'status': 'running'}]}]});
+      queryString = JSON.stringify({'$and': [{'$or': [{'status': {'$eq': 'running'}}]}]});
       wrapper.instance()._handleStatusFilterChange({});
 
       expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
@@ -388,8 +388,8 @@ describe('RunsTable', () => {
 
     it('should add filter', async() => {
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
-      await tick();
       mockAxios.mockResponse({status: 200, data: []});
+      await tick();
       wrapper.find('[test-attr="filter-column-operator-dropdown"]').at(1).prop('onChange')({value: '$eq'});
       wrapper.find('[test-attr="filter-column-value"]').at(1).prop('onChange')({value: 'host1'});
       wrapper.find('#add_filter').at(1).simulate('click');

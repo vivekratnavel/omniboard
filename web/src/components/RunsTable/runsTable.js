@@ -19,6 +19,7 @@ import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
 import Select  from 'react-select';
 import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable';
+import Async from 'react-select/lib/Async';
 import { ConfigColumnModal } from "../ConfigColumnModal/configColumnModal";
 import PropTypes from 'prop-types';
 
@@ -113,7 +114,8 @@ class RunsTable extends Component {
       filterColumnOperator: '$eq',
       filterColumnValue: '',
       columnNameMap: {},
-      asyncValueOptionsKey: 'async-1',
+      filterValueAsyncValueOptionsKey: 'filtervalue-1',
+      filterOperatorAsyncValueOptionsKey: 'filteroperator-1',
       filterColumnValueError: false,
       filterColumnNameError: false,
       currentColumnValueOptions: [],
@@ -138,27 +140,38 @@ class RunsTable extends Component {
     let latestDropdownOptions = [];
     const queryJson = {'$and': []};
     let columnNameMap = {};
+    const statusQueryFilter = operator => status => {
+      if (status === STATUS.PROBABLY_DEAD || status === STATUS.RUNNING) {
+        // Apply condition to filter "probably dead" status
+        // "PROBABLY_DEAD" status is given to runs which are running, but the last heartbeat was at-least 120000ms ago
+        const heartbeatTimeout = new Date() - PROBABLY_DEAD_TIMEOUT;
+        let heartbeat = status === STATUS.PROBABLY_DEAD ? `<${heartbeatTimeout}` : `>${heartbeatTimeout}`;
+        if (operator === '$ne') {
+          // inverse the operator for '$ne'
+          heartbeat = status === STATUS.PROBABLY_DEAD ? `>${heartbeatTimeout}` : `<${heartbeatTimeout}`;
+          return {'$or': [{'status': {[operator]: STATUS.RUNNING}}, {heartbeat}]};
+        }
+        return {'$and': [{'status': STATUS.RUNNING}, {heartbeat}]};
+      }
+      return {'status': {[operator]: status}};
+    };
 
     if (filters && filters.status.length) {
-      const statusFilter = filters.status.map(status => {
-        if (status === STATUS.PROBABLY_DEAD || status === STATUS.RUNNING) {
-          // Apply condition to filter "probably dead" status
-          // "PROBABLY_DEAD" status is given to runs which are running, but the last heartbeat was at-least 120000ms ago
-          const heartbeatTimeout = new Date() - PROBABLY_DEAD_TIMEOUT;
-          const heartbeat = status === STATUS.PROBABLY_DEAD ? `<${heartbeatTimeout}` : `>${heartbeatTimeout}`;
-          return {'$and': [{'status': STATUS.RUNNING}, {heartbeat}]};
-        }
-        return {status};
-      });
+      const statusFilter = filters.status.map(statusQueryFilter('$eq'));
       queryJson.$and.push({'$or': statusFilter});
     }
     if (filters && filters.advanced.length) {
       filters.advanced.forEach(filter => {
         if (filter.operator === '$in') {
-          queryJson.$and.push({'$or': [{[filter.name]: filter.value}]});
+          const orFilters = filter.name === 'status' ? filter.value.map(statusQueryFilter('$eq')) : [{[filter.name]: filter.value}];
+          queryJson.$and.push({'$or': orFilters});
         } else {
           filter.value = isNaN(filter.value) ? filter.value : Number(filter.value);
-          queryJson.$and.push({[filter.name]: {[filter.operator]: filter.value}});
+          if (filter.name === 'status') {
+            queryJson.$and.push(statusQueryFilter(filter.operator)(filter.value));
+          } else {
+            queryJson.$and.push({[filter.name]: {[filter.operator]: filter.value}});
+          }
         }
       });
     }
@@ -756,22 +769,25 @@ class RunsTable extends Component {
     }
   };
 
-  _updateAsyncKey = () => {
+  _updateAsyncKey = keyName => () => {
     // A workaround to loadOptions manually for "Value" dropdown
     // is to change its "key" prop
-    const {asyncValueOptionsKey} = this.state;
-    const asyncKeySplit = asyncValueOptionsKey.split('-');
+    const key = this.state[keyName];
+    const asyncKeySplit = key.split('-');
     // Increment counter
     asyncKeySplit[1] = Number(asyncKeySplit[1]) + 1;
     this.setState({
-      asyncValueOptionsKey: asyncKeySplit.join('-')
+      [keyName]: asyncKeySplit.join('-')
     });
   };
 
   _handleFilterColumnNameChange = ({value}) => {
     this.setState({
       filterColumnName: value
-    }, this._updateAsyncKey)
+    }, () => {
+      this._updateAsyncKey('filterValueAsyncValueOptionsKey')();
+      this._updateAsyncKey('filterOperatorAsyncValueOptionsKey')();
+    });
   };
 
   _handleFilterOperatorChange = ({value}) => {
@@ -782,7 +798,7 @@ class RunsTable extends Component {
     this.setState({
       filterColumnOperator: value,
       filterColumnValue: newFilterColumnValue
-    })
+    });
   };
 
   _handleFilterColumnValueChange = (value) => {
@@ -833,6 +849,10 @@ class RunsTable extends Component {
               }
               return result;
             }, []);
+            // include Probably Dead status for status options
+            if (filterColumnName === 'status') {
+              options.push({label: STATUS.PROBABLY_DEAD, value: STATUS.PROBABLY_DEAD});
+            }
             this.setState({
               currentColumnValueOptions: options
             });
@@ -844,6 +864,12 @@ class RunsTable extends Component {
       } else {
         resolve([]);
       }
+    });
+  };
+
+  _getColumnOperatorOptions = () => {
+    return new Promise(resolve => {
+      resolve(FILTER_OPERATOR_OPTIONS);
     });
   };
 
@@ -865,11 +891,19 @@ class RunsTable extends Component {
     }
   };
 
+  _isOperatorOptionDisabled = option => {
+    const {filterColumnName} = this.state;
+    if (filterColumnName === 'status') {
+      return !(option.value === '$eq' || option.value === '$ne' || option.value === '$in');
+    }
+    return false;
+  };
+
   render() {
     const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
-      errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, asyncValueOptionsKey,
-      filters, currentColumnValueOptions, columnNameMap } = this.state;
+      errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
+      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey } = this.state;
     const {showConfigColumnModal, handleConfigColumnModalClose} = this.props;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
@@ -971,18 +1005,21 @@ class RunsTable extends Component {
                       />
                     </div>
                     <div className="col col-xs-2">
-                      <Select
+                      <Async
                         test-attr="filter-column-operator-dropdown"
+                        key={filterOperatorAsyncValueOptionsKey}
                         placeholder="Operator"
-                        options={FILTER_OPERATOR_OPTIONS}
+                        loadOptions={this._getColumnOperatorOptions}
+                        defaultOptions
                         onChange={this._handleFilterOperatorChange}
                         value={getSelectValue(FILTER_OPERATOR_OPTIONS, filterColumnOperator)}
+                        isOptionDisabled={this._isOperatorOptionDisabled}
                         clearable={false}
                       />
                     </div>
                     <div className="col col-xs-5">
                       <AsyncCreatableSelect
-                        key={asyncValueOptionsKey}
+                        key={filterValueAsyncValueOptionsKey}
                         test-attr="filter-column-value"
                         className={filterColumnValueError ? 'validation-error' : 'filter-value'}
                         placeholder="Enter Value..."
