@@ -3,6 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/omniboard.svg)](https://www.npmjs.com/package/omniboard)
 [![Build Status](https://travis-ci.com/vivekratnavel/omniboard.svg?branch=master)](https://travis-ci.com/vivekratnavel/omniboard)
 [![Coverage Status](https://img.shields.io/coveralls/github/vivekratnavel/omniboard/master.svg)](https://coveralls.io/github/vivekratnavel/omniboard?branch=master)
+[![docker build](https://img.shields.io/docker/build/vivekratnavel/omniboard.svg)](https://hub.docker.com/r/vivekratnavel/omniboard/builds)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
