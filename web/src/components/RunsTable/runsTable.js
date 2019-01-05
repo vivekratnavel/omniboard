@@ -9,7 +9,7 @@ import 'fixed-data-table-2/dist/fixed-data-table.css';
 import { Button, ButtonToolbar, Alert } from 'react-bootstrap';
 import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';
 import { DataListWrapper } from '../Helpers/dataListWrapper';
-import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell, SortTypes, StatusCell } from '../Helpers/cells';
+import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell, SortTypes, StatusCell, IdCell } from '../Helpers/cells';
 import { DrillDownView } from '../DrillDownView/drillDownView';
 import { EXPANDED_ROW_HEIGHT } from '../DrillDownView/drillDownView.scss';
 import { headerText, arrayDiff, reorderArray, capitalize, parseServerError } from '../Helpers/utils';
@@ -29,6 +29,7 @@ const DEFAULT_EXPANDED_ROW_HEIGHT = Number(EXPANDED_ROW_HEIGHT);
 const TAGS_COLUMN_HEADER = 'tags';
 const NOTES_COLUMN_HEADER = 'notes';
 const EXPERIMENT_NAME = 'experiment_name';
+const ID_COLUMN_KEY = '_id';
 
 function getStatusLabel(label) {
   return `<div class="clearfix">
@@ -679,10 +680,13 @@ class RunsTable extends Component {
     if (columnKey === NOTES_COLUMN_HEADER) {
       cell = <EditableCell
         data={rowData}
-        changeHandler={this._handleNotesChange}/>
+        changeHandler={this._handleNotesChange}/>;
     }
     if (columnKey === EXPERIMENT_NAME) {
-      cell = <StatusCell data={rowData}/>
+      cell = <StatusCell data={rowData}/>;
+    }
+    if (columnKey === ID_COLUMN_KEY) {
+      cell = <IdCell data={rowData} handleDataUpdate={this.loadData}/>;
     }
     return <ExpandRowCell callback={this._handleCollapseClick}>{cell}</ExpandRowCell>;
   }

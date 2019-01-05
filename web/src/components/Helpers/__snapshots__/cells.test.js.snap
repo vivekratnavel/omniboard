@@ -55,8 +55,9 @@ exports[`Cells Editable Cell should render correctly 1`] = `
                     className="empty-notes"
                   >
                     Enter Notes 
-                    <span
-                      className="glyphicon glyphicon-pencil"
+                    <Glyphicon
+                      bsClass="glyphicon"
+                      glyph="pencil"
                     />
                   </span>
                 }
@@ -72,9 +73,14 @@ exports[`Cells Editable Cell should render correctly 1`] = `
                     className="empty-notes"
                   >
                     Enter Notes 
-                    <span
-                      className="glyphicon glyphicon-pencil"
-                    />
+                    <Glyphicon
+                      bsClass="glyphicon"
+                      glyph="pencil"
+                    >
+                      <span
+                        className="glyphicon glyphicon-pencil"
+                      />
+                    </Glyphicon>
                   </span>
                 </a>
               </EditableTextArea>
@@ -141,6 +147,119 @@ exports[`Cells Header Cell should render correctly 1`] = `
     ↓
   </a>
 </FixedDataTableCellDefault>
+`;
+
+exports[`Cells Id Cell should render correctly 1`] = `
+<IdCell
+  columnKey="_id"
+  data={
+    DataListWrapper {
+      "_data": Array [
+        Object {
+          "_id": 54,
+        },
+        Object {
+          "_id": 55,
+        },
+      ],
+      "_indexMap": Array [
+        0,
+        1,
+      ],
+    }
+  }
+  handleDataUpdate={[Function]}
+  rowIndex={1}
+>
+  <div>
+    <FixedDataTableCellDefault
+      onMouseEnter={[Function]}
+      onMouseLeave={[Function]}
+    >
+      <div
+        className="fixedDataTableCellLayout_wrap1 public_fixedDataTableCell_wrap1"
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        style={
+          Object {
+            "height": undefined,
+            "width": undefined,
+          }
+        }
+      >
+        <div
+          className="fixedDataTableCellLayout_wrap2 public_fixedDataTableCell_wrap2"
+        >
+          <div
+            className="fixedDataTableCellLayout_wrap3 public_fixedDataTableCell_wrap3"
+          >
+            <div
+              className="public_fixedDataTableCell_cellContent"
+            >
+              55
+               
+            </div>
+          </div>
+        </div>
+      </div>
+    </FixedDataTableCellDefault>
+    <Modal
+      animation={true}
+      autoFocus={true}
+      backdrop={true}
+      bsClass="modal"
+      dialogComponentClass={[Function]}
+      enforceFocus={true}
+      keyboard={true}
+      manager={
+        ModalManager {
+          "add": [Function],
+          "containers": Array [],
+          "data": Array [],
+          "handleContainerOverflow": true,
+          "hideSiblingNodes": true,
+          "isTopModal": [Function],
+          "modals": Array [],
+          "remove": [Function],
+        }
+      }
+      onHide={[Function]}
+      renderBackdrop={[Function]}
+      restoreFocus={true}
+      show={false}
+    >
+      <Modal
+        autoFocus={true}
+        backdrop={true}
+        backdropClassName="modal-backdrop"
+        backdropTransitionTimeout={150}
+        containerClassName="modal-open"
+        dialogTransitionTimeout={300}
+        enforceFocus={true}
+        keyboard={true}
+        manager={
+          ModalManager {
+            "add": [Function],
+            "containers": Array [],
+            "data": Array [],
+            "handleContainerOverflow": true,
+            "hideSiblingNodes": true,
+            "isTopModal": [Function],
+            "modals": Array [],
+            "remove": [Function],
+          }
+        }
+        onEntering={[Function]}
+        onExited={[Function]}
+        onHide={[Function]}
+        renderBackdrop={[Function]}
+        restoreFocus={true}
+        show={false}
+        transition={[Function]}
+      />
+    </Modal>
+  </div>
+</IdCell>
 `;
 
 exports[`Cells Select Cell should render correctly 1`] = `

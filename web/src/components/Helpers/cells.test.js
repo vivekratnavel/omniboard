@@ -1,6 +1,8 @@
 import React from 'react';
-import {TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell} from './cells';
+import {TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell, IdCell} from './cells';
 import { DataListWrapper } from './dataListWrapper';
+import { toast } from "react-toastify";
+import mockAxios from 'jest-mock-axios';
 
 describe('Cells', () => {
   let wrapper = null;
@@ -109,6 +111,70 @@ describe('Cells', () => {
       wrapper.find('.editable-cell').simulate('click', event);
 
       expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Id Cell', () => {
+    const data = new DataListWrapper([0,1], [{_id: 54}, {_id: 55}]);
+    const dataUpdateHandler = jest.fn();
+    beforeEach(() => {
+      wrapper = mount(<IdCell rowIndex={1} handleDataUpdate={dataUpdateHandler} columnKey={'_id'} data={data}/>);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      // cleaning up the mess left behind the previous test
+      mockAxios.reset();
+    });
+
+    it('should render correctly', () => {
+
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should display delete icon when hovered', () => {
+      wrapper.find('FixedDataTableCellDefault').simulate('mouseEnter');
+
+      expect(wrapper.update().find('.delete-icon').exists()).toBeTruthy();
+      wrapper.find('FixedDataTableCellDefault').simulate('mouseLeave');
+
+      expect(wrapper.find('.delete-icon').exists()).toBeFalsy();
+    });
+
+    it('should close confirmation dialog', () => {
+      const event = {
+        stopPropagation: jest.fn()
+      };
+      wrapper.find('FixedDataTableCellDefault').simulate('mouseEnter');
+      wrapper.find('.delete-icon').at(0).simulate('click', event);
+      wrapper.find('[test-attr="close-btn"]').at(1).simulate('click', event);
+
+      expect(event.stopPropagation).toHaveBeenCalledWith();
+    });
+
+    describe('should call delete api and handle', () => {
+      const event = {
+        stopPropagation: jest.fn()
+      };
+      toast.error = jest.fn();
+      beforeEach(() => {
+        wrapper.find('FixedDataTableCellDefault').simulate('mouseEnter');
+        wrapper.find('.delete-icon').at(0).simulate('click', event);
+        wrapper.find('[test-attr="delete-btn"]').at(1).simulate('click', event);
+      });
+
+      it('success', () => {
+        mockAxios.mockResponse({status: 204});
+
+        expect(dataUpdateHandler).toHaveBeenCalledWith();
+      });
+
+      it('error', () => {
+        const errResponse = {status: 500, message:'unknown error'};
+        mockAxios.mockError(errResponse);
+
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+      });
     });
   });
 });

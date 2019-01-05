@@ -3,6 +3,13 @@ import React, {Component} from "react";
 import { Cell } from 'fixed-data-table-2';
 import EditableTextArea from '../XEditable/editableTextArea';
 import CreatableSelect from 'react-select/lib/Creatable';
+import { Glyphicon } from 'react-bootstrap';
+import './cells.scss';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from 'react-bootstrap';
+import {parseServerError} from "./utils";
+import axios from 'axios';
+import { toast } from 'react-toastify';
+
 
 const SortTypes = {
   ASC: 'ASC',
@@ -68,6 +75,91 @@ class TextCell extends React.PureComponent {
   }
 }
 
+class IdCell extends Component {
+  static propTypes = {
+    columnKey: PropTypes.string,
+    data: PropTypes.object.isRequired,
+    rowIndex: PropTypes.number,
+    handleDataUpdate: PropTypes.func.isRequired
+  };
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      showDeleteIcon: false,
+      showModal: false
+    };
+  }
+
+  _mouseEnterHandler = () => {
+    this.setState({
+      showDeleteIcon: true
+    });
+  };
+
+  _mouseLeaveHandler = () => {
+    this.setState({
+      showDeleteIcon: false
+    });
+  };
+
+  _onDeleteClickHandler = (e) => {
+    e.stopPropagation();
+    this.setState({
+      showModal: true
+    });
+  };
+
+  _closeModalHandler = (e) => {
+    e.stopPropagation();
+    this.setState({
+      showModal: false
+    });
+  };
+
+  _deleteHandler = (experimentId) => (e) => {
+    e.stopPropagation();
+    axios.delete('/api/v1/Runs/' + experimentId).then(response => {
+      if (response.status === 204) {
+        // Call callback function to update rows in the table
+        this.props.handleDataUpdate();
+      }
+    }).catch(error => {
+      toast.error(parseServerError(error));
+    });
+  };
+
+  render() {
+    const {data, rowIndex, columnKey, handleDataUpdate, ...props} = this.props;
+    const {showDeleteIcon, showModal} = this.state;
+    const deleteIcon = showDeleteIcon ? <Glyphicon glyph="trash" className="delete-icon" onClick={this._onDeleteClickHandler}/> : null;
+    const experimentId = data.getObjectAt(rowIndex)[columnKey];
+    return (
+      <div>
+      <Cell {...props} onMouseEnter={this._mouseEnterHandler} onMouseLeave={this._mouseLeaveHandler}>
+        {experimentId}
+        &nbsp;
+        {deleteIcon}
+      </Cell>
+      <Modal show={showModal} onHide={this._closeModalHandler}>
+        <ModalHeader closeButton>
+          <ModalTitle>Delete Run</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+          Are you sure you want to delete this run (id: {experimentId})?
+        </ModalBody>
+        <ModalFooter>
+          <Button test-attr="close-btn" onClick={this._closeModalHandler}>Cancel</Button>
+          <Button test-attr="delete-btn" bsStyle="danger" onClick={this._deleteHandler(experimentId)}>
+            <Glyphicon glyph="trash" /> Delete
+          </Button>
+        </ModalFooter>
+      </Modal>
+      </div>
+    );
+  }
+}
+
 class EditableCell extends React.PureComponent {
   static propTypes = {
     changeHandler: PropTypes.func,
@@ -82,7 +174,7 @@ class EditableCell extends React.PureComponent {
 
   render() {
     const {data, rowIndex, columnKey, changeHandler, ...props} = this.props;
-    const defaultText = <span className="empty-notes">Enter Notes <span className="glyphicon glyphicon-pencil"/></span>;
+    const defaultText = <span className="empty-notes">Enter Notes <Glyphicon glyph="pencil" /></span>;
     const value = data.getObjectAt(rowIndex)[columnKey];
     return (
       <Cell {...props}>
@@ -238,4 +330,4 @@ class HeaderCell extends Component {
   }
 }
 
-export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes, ExpandRowCell, StatusCell}
+export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes, ExpandRowCell, StatusCell, IdCell}

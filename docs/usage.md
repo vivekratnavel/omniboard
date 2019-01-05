@@ -59,3 +59,11 @@ and then click on `Source Files` or `Artifacts` from the side menu.
 ![Source Files Viewer](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/source-file-view.png)
 
 You can then choose to either `Download All` files or `Download` each file individually.
+
+## Delete an experiment run
+
+To delete an unwanted experiment run, hover over its `Id` column and click on the delete icon as shown below.
+
+![Delete Run](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/delete-run.png)
+
+Click on `Delete` button in the confirmation dialog to delete the run from the database.
