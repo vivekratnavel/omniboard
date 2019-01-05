@@ -24,7 +24,7 @@ import PropTypes from 'prop-types';
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
-const DEFAULT_ROW_HEIGHT = 100;
+const DEFAULT_ROW_HEIGHT = 70;
 const DEFAULT_EXPANDED_ROW_HEIGHT = Number(EXPANDED_ROW_HEIGHT);
 const TAGS_COLUMN_HEADER = 'tags';
 const NOTES_COLUMN_HEADER = 'notes';
