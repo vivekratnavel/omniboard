@@ -6,10 +6,16 @@ node_js:
 sudo: false
 script:
 - cd web && yarn install && cd ..
+- touch deploy.log
 - npm run test-ci
 after_success:
 - npm i -g coveralls
 - npm run report-coverage
+- echo "Build completed successfully..."
+- tail --lines=50 deploy.log
+after_failure:
+# dump the last 2000 lines of deploy log
+- tail --lines=2000 deploy.log
 branches:
   only:
   - master
@@ -18,7 +24,7 @@ deploy:
   provider: script
   skip_cleanup: true
   script:
-  - npx travis-deploy-once --pro "npx semantic-release"
+  - travis_wait 30 npx travis-deploy-once --pro "npx semantic-release" >> deploy.log 2>&1
 before_install:
 - |
   if [ $TRAVIS_PULL_REQUEST == false ];
