@@ -27,7 +27,7 @@ Omniboard is written with React, Node.js, Express and Bootstrap
 
 ### Experiment Drill Down
 * Show metric graphs
-* Show console output
+* Show console output with support for live reload
 * Show all runtime library dependencies
 * View or download source files
 * View or download artifacts
