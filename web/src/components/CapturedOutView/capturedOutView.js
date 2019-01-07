@@ -82,13 +82,11 @@ class CapturedOutView extends Component {
 
   render() {
     const {capturedOut, lastUpdate} = this.state;
-    // Remove timezone from lastUpdate date string
-    const lastUpdateTime = lastUpdate.split(' ').slice(1,5).join(' ');
     const liveReloadMeta = <div className="clearfix meta">
       <div className="pull-right">
         <div className="clearfix meta-data">
           <div className="pull-left reload-circle"> Live Reload Enabled </div>
-          <div className="pull-left"><Glyphicon glyph="refresh"/> Last Update: {lastUpdateTime}</div>
+          <div className="pull-left"><Glyphicon glyph="refresh"/> Last Update: {lastUpdate}</div>
         </div>
       </div>
     </div>;
