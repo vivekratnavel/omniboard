@@ -33,7 +33,7 @@ exports[`CapturedOutView should load data success 1`] = `
               />
             </Glyphicon>
              Last Update: 
-            Mon Dec 31 2018 16:00:00 GMT-0800 (Pacific Standard Time)
+            Dec 31 2018 16:00:00
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@ exports[`CapturedOutView should render correctly 1`] = `
               />
             </Glyphicon>
              Last Update: 
-            Mon Dec 31 2018 16:00:00 GMT-0800 (Pacific Standard Time)
+            Dec 31 2018 16:00:00
           </div>
         </div>
       </div>

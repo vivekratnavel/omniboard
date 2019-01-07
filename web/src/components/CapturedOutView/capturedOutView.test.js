@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 describe('CapturedOutView', () => {
   let wrapper = null;
   const responseData = {"_id":16,"captured_out":"INFO - hello_config\nProgress: 0/100\nProgress: 1/100\n","heartbeat":"2019-01-07T02:09:09.057Z","status":"RUNNING"};
-  const constantDate = new Date('2019');
+  const constantDate = new Date('2019-01-01 00:00:00 GMT+0000');
   toast.error = jest.fn();
   /*eslint no-global-assign:off*/
   Date = class extends Date {
