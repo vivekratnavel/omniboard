@@ -1,0 +1,25 @@
+.meta {
+  font-size: 0.9em;
+  color: #626466;
+  background-color: white;
+  padding: 5px;
+  margin-top: -5px;
+  position: sticky;
+  top: -17px;
+  position: -webkit-sticky; /* Safari */
+  .meta-data {
+    div {
+      margin-left: 10px;
+    }
+    .reload-circle {
+      &:before {
+        content:"";
+        display: inline-block;
+        background-color: #1eb475;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+    }
+  }
+}

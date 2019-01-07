@@ -12,7 +12,7 @@ import { DataListWrapper } from '../Helpers/dataListWrapper';
 import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell, SortTypes, StatusCell, IdCell } from '../Helpers/cells';
 import { DrillDownView } from '../DrillDownView/drillDownView';
 import { EXPANDED_ROW_HEIGHT } from '../DrillDownView/drillDownView.scss';
-import { headerText, arrayDiff, reorderArray, capitalize, parseServerError } from '../Helpers/utils';
+import {headerText, arrayDiff, reorderArray, capitalize, parseServerError, getRunStatus} from '../Helpers/utils';
 import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
@@ -250,9 +250,7 @@ class RunsTable extends Component {
 
           // Determine if a run is probably dead and assign the status accordingly
           if ('status' in data) {
-            if (data['status'] === STATUS.RUNNING && (new Date() - new Date(data['heartbeat']) > 120000)) {
-              data['status'] = STATUS.PROBABLY_DEAD;
-            }
+            data['status'] = getRunStatus(data['status'], data['heartbeat']);
           }
 
           // Expand omniboard columns
@@ -659,10 +657,11 @@ class RunsTable extends Component {
       return null;
     }
     const runId = this.state.sortedData.getObjectAt(rowIndex)['_id'];
+    const status = this.state.sortedData.getObjectAt(rowIndex)['status'];
     // Local storage key is used for synchronizing state of each drilldown view with local storage
     const localStorageKey = `DrillDownView|${runId}`;
     return (
-      <DrillDownView width={width} height={height} runId={runId} localStorageKey={localStorageKey}/>
+      <DrillDownView width={width} height={height} runId={runId} status={status} localStorageKey={localStorageKey}/>
     );
   };
 

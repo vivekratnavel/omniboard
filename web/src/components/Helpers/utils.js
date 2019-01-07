@@ -1,3 +1,4 @@
+import {PROBABLY_DEAD_TIMEOUT, STATUS} from "../../constants/status.constants";
 
 export const capitalize = (value) => {
   // Capitalize each word
@@ -45,4 +46,8 @@ export const parseServerError = (error) => {
     message = error.message;
   }
   return defaultMessage + message;
+};
+
+export const getRunStatus = (status, heartbeat) => {
+  return status === STATUS.RUNNING && heartbeat && (new Date() - new Date(heartbeat) > PROBABLY_DEAD_TIMEOUT) ? STATUS.PROBABLY_DEAD : status;
 };

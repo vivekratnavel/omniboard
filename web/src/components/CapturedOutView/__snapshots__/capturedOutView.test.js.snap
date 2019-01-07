@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CapturedOutView should load data success 1`] = `
+<CapturedOutView
+  initialOutput="Test output"
+  initialStatus="RUNNING"
+  runId={16}
+>
+  <div>
+    <div
+      className="clearfix meta"
+    >
+      <div
+        className="pull-right"
+      >
+        <div
+          className="clearfix meta-data"
+        >
+          <div
+            className="pull-left reload-circle"
+          >
+             Live Reload Enabled 
+          </div>
+          <div
+            className="pull-left"
+          >
+            <Glyphicon
+              bsClass="glyphicon"
+              glyph="refresh"
+            >
+              <span
+                className="glyphicon glyphicon-refresh"
+              />
+            </Glyphicon>
+             Last Update: 
+            Mon Dec 31 2018 16:00:00 GMT-0800 (Pacific Standard Time)
+          </div>
+        </div>
+      </div>
+    </div>
+    <pre>
+      INFO - hello_config
+      Progress: 0/100
+      Progress: 1/100
+      
+    </pre>
+  </div>
+</CapturedOutView>
+`;
+
+exports[`CapturedOutView should render correctly 1`] = `
+<CapturedOutView
+  initialOutput="Test output"
+  initialStatus="RUNNING"
+  runId={16}
+>
+  <div>
+    <div
+      className="clearfix meta"
+    >
+      <div
+        className="pull-right"
+      >
+        <div
+          className="clearfix meta-data"
+        >
+          <div
+            className="pull-left reload-circle"
+          >
+             Live Reload Enabled 
+          </div>
+          <div
+            className="pull-left"
+          >
+            <Glyphicon
+              bsClass="glyphicon"
+              glyph="refresh"
+            >
+              <span
+                className="glyphicon glyphicon-refresh"
+              />
+            </Glyphicon>
+             Last Update: 
+            Mon Dec 31 2018 16:00:00 GMT-0800 (Pacific Standard Time)
+          </div>
+        </div>
+      </div>
+    </div>
+    <pre>
+      Test output
+    </pre>
+  </div>
+</CapturedOutView>
+`;

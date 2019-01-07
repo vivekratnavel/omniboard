@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
 import { MetricsPlotView } from '../MetricsPlotView/metricsPlotView';
 import { SourceFilesView } from '../SourceFilesView/sourceFilesView';
+import { CapturedOutView } from '../CapturedOutView/capturedOutView';
 
 class JsonView extends React.PureComponent {
   static propTypes = {
@@ -29,8 +30,9 @@ class JsonView extends React.PureComponent {
 class DrillDownView extends Component {
   static propTypes = {
     height: PropTypes.number,
-    runId: PropTypes.number,
-    width: PropTypes.number
+    runId: PropTypes.number.isRequired,
+    width: PropTypes.number,
+    status: PropTypes.string.isRequired
   };
 
   // Filter out state objects that need to be synchronized with local storage
@@ -118,7 +120,7 @@ class DrillDownView extends Component {
 
   render () {
     const {selectedNavTab, isTableLoading, runsResponse, metricsResponse} = this.state;
-    const {width, height, runId} = this.props;
+    const {width, height, runId, status} = this.props;
     const experimentName = runsResponse !== null && 'experiment' in runsResponse ? runsResponse.experiment.name : '';
     // Adjust the width of scrollbar from total width
     const style = {
@@ -153,7 +155,7 @@ class DrillDownView extends Component {
             content = <div id={DRILLDOWN_VIEW.RUN_INFO}><JsonView data={runsResponse.info}/></div>;
             break;
           case DRILLDOWN_VIEW.CAPTURED_OUT:
-            content = <div id={DRILLDOWN_VIEW.CAPTURED_OUT}><pre>{runsResponse.captured_out}</pre></div>;
+            content = <div id={DRILLDOWN_VIEW.CAPTURED_OUT}><CapturedOutView initialOutput={runsResponse.captured_out} initialStatus={status} runId={runId}/></div>;
             break;
           case DRILLDOWN_VIEW.META_INFO:
             content = <div id={DRILLDOWN_VIEW.META_INFO}><JsonView data={runsResponse.meta}/></div>;

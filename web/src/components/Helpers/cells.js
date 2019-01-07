@@ -237,6 +237,7 @@ class SelectCell extends React.PureComponent {
     let selectOptions = [];
     let value = [];
     const isLoadingValue = rowIndex in isLoading ? isLoading[rowIndex] : false;
+    const formatLabel = (label) => `Create tag '${label}'`;
     if (options && options.length) {
       selectOptions = options.map(option => {
         return {
@@ -268,7 +269,7 @@ class SelectCell extends React.PureComponent {
             menuPortalTarget={document.body}
             isLoading={isLoadingValue}
             placeholder="Add Tags..."
-            formatCreateLabel={(label) => `Create tag '${label}'`}
+            formatCreateLabel={formatLabel}
           />
         </div>
       </Cell>
