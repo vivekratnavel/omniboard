@@ -85,7 +85,7 @@ class DrillDownView extends Component {
       axios.all([
         axios.get(`/api/v1/Runs/${runId}`, {
           params: {
-            select: 'captured_out,info,meta,host,experiment,artifacts'
+            select: 'captured_out,info,meta,host,experiment,artifacts,config'
           }
         }),
         axios.get('/api/v1/Metrics', {
@@ -173,6 +173,9 @@ class DrillDownView extends Component {
               <SourceFilesView key={"files-"+runsResponse._id} type="source_files" runId={runsResponse._id} files={experimentFiles}/>
             </div>;
             break;
+          case DRILLDOWN_VIEW.CONFIG:
+            content = <div id={DRILLDOWN_VIEW.CONFIG}><JsonView data={runsResponse.config}/></div>;
+            break;
           default:
         }
       }
@@ -210,6 +213,9 @@ class DrillDownView extends Component {
                 </NavItem>
                 <NavItem eventKey={DRILLDOWN_VIEW.SOURCE_FILES}>
                   Source Files
+                </NavItem>
+                <NavItem eventKey={DRILLDOWN_VIEW.CONFIG}>
+                  Config
                 </NavItem>
               </Nav>
             </div>

@@ -7,7 +7,8 @@ export const DRILLDOWN_VIEW = {
   METRICS: 'metrics',
   CAPTURED_OUT: 'captured_out',
   ARTIFACTS: 'artifacts',
-  SOURCE_FILES: 'source_files'
+  SOURCE_FILES: 'source_files',
+  CONFIG: 'config'
 };
 
 export const X_AXIS_VALUE = {

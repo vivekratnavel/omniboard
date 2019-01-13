@@ -279,6 +279,34 @@ exports[`DrillDownView should render correctly 1`] = `
                   </SafeAnchor>
                 </li>
               </NavItem>
+              <NavItem
+                active={false}
+                activeKey="metrics"
+                disabled={false}
+                eventKey="config"
+                key=".8"
+                onSelect={[Function]}
+              >
+                <li
+                  className=""
+                  role="presentation"
+                >
+                  <SafeAnchor
+                    componentClass="a"
+                    disabled={false}
+                    onClick={[Function]}
+                  >
+                    <a
+                      href="#"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                    >
+                      Config
+                    </a>
+                  </SafeAnchor>
+                </li>
+              </NavItem>
             </ul>
           </Nav>
         </div>
