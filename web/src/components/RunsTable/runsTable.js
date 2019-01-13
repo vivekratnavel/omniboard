@@ -550,34 +550,38 @@ class RunsTable extends Component {
     })
   };
 
+  _getSortedData = (sortIndices, data, columnKey, sortDir) => {
+    sortIndices.sort((indexA, indexB) => {
+      const valueA = data[indexA][columnKey];
+      const valueB = data[indexB][columnKey];
+      let sortVal = 0;
+      if (valueA > valueB) {
+        sortVal = 1;
+      }
+      if (valueA < valueB) {
+        sortVal = -1;
+      }
+      if (sortVal !== 0 && sortDir === SortTypes.DESC) {
+        sortVal = sortVal * -1;
+      }
+      return sortVal;
+    });
+    return new DataListWrapper(sortIndices, data);
+  };
+
   _onSortChange = (columnKey, sortDir) => {
     const {data, defaultSortIndices} = this.state;
     let sortIndices = defaultSortIndices.slice();
     // Expanded rows uses rowId to expand a row. Reset the expanded rows state while sorting
     this._resetExpandedRows();
     if (sortIndices && sortIndices.length) {
-      sortIndices.sort((indexA, indexB) => {
-        const valueA = data[indexA][columnKey];
-        const valueB = data[indexB][columnKey];
-        let sortVal = 0;
-        if (valueA > valueB) {
-          sortVal = 1;
-        }
-        if (valueA < valueB) {
-          sortVal = -1;
-        }
-        if (sortVal !== 0 && sortDir === SortTypes.DESC) {
-          sortVal = sortVal * -1;
-        }
-        return sortVal;
-      });
-      const sortedData = new DataListWrapper(sortIndices, data);
+      const sortedData = this._getSortedData(sortIndices, data, columnKey, sortDir);
       this.setState({
         sortedData,
         sort: {
           [columnKey]: sortDir,
         },
-        sortIndices
+        sortIndices: sortedData.getIndexArray()
       });
     }
   };
@@ -685,7 +689,7 @@ class RunsTable extends Component {
       cell = <StatusCell data={rowData}/>;
     }
     if (columnKey === ID_COLUMN_KEY) {
-      cell = <IdCell data={rowData} handleDataUpdate={this.loadData}/>;
+      cell = <IdCell data={rowData} handleDataUpdate={this._handleDeleteExperimentRun}/>;
     }
     return <ExpandRowCell callback={this._handleCollapseClick}>{cell}</ExpandRowCell>;
   }
@@ -893,6 +897,37 @@ class RunsTable extends Component {
     }
   };
 
+  _handleDeleteExperimentRun = runId => {
+    const {data, sort} = this.state;
+    const index = data.findIndex(item => item._id === runId);
+    const defaultSortIndices = [];
+    if (index > -1) {
+      // Remove element at index
+      data.splice(index, 1);
+      for (let index = 0; index < data.length; index++) {
+        defaultSortIndices.push(index);
+      }
+      // Apply sort if sorting is already enabled
+      if (Object.keys(sort).length) {
+        const sortKey = Object.keys(sort)[0];
+        const sortedData = this._getSortedData(defaultSortIndices.slice(), data, sortKey, sort[sortKey]);
+        this.setState({
+          data,
+          defaultSortIndices,
+          sortedData,
+          sortIndices: sortedData.getIndexArray()
+        });
+      } else {
+        this.setState({
+          data,
+          defaultSortIndices,
+          sortedData: new DataListWrapper(defaultSortIndices, data),
+          sortIndices: defaultSortIndices
+        });
+      }
+    }
+  };
+
   _isOperatorOptionDisabled = option => {
     const {filterColumnName} = this.state;
     if (filterColumnName === 'status') {
@@ -913,6 +948,7 @@ class RunsTable extends Component {
       const _rowData = sortedData.getDataArray().map( row => {
         return Object.keys(row).map( key => {
           let value = '';
+          // value of row[key] could be false when type is boolean
           if (row[key] || typeof row[key] === "boolean") {
             if (typeof row[key] === "object" && key !== TAGS_COLUMN_HEADER) {
               // Convert object to string

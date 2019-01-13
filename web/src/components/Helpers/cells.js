@@ -122,8 +122,14 @@ class IdCell extends Component {
     axios.delete('/api/v1/Runs/' + experimentId).then(response => {
       if (response.status === 204) {
         // Call callback function to update rows in the table
-        this.props.handleDataUpdate();
+        this.props.handleDataUpdate(experimentId);
+        toast.success(`Experiment run ${experimentId} was deleted successfully!`);
+      } else {
+        toast.error('An unknown error occurred!');
       }
+      this.setState({
+        showModal: false
+      });
     }).catch(error => {
       toast.error(parseServerError(error));
     });

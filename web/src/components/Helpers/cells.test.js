@@ -117,8 +117,9 @@ describe('Cells', () => {
   describe('Id Cell', () => {
     const data = new DataListWrapper([0,1], [{_id: 54}, {_id: 55}]);
     const dataUpdateHandler = jest.fn();
+    const rowIndex = 1;
     beforeEach(() => {
-      wrapper = mount(<IdCell rowIndex={1} handleDataUpdate={dataUpdateHandler} columnKey={'_id'} data={data}/>);
+      wrapper = mount(<IdCell rowIndex={rowIndex} handleDataUpdate={dataUpdateHandler} columnKey={'_id'} data={data}/>);
     });
 
     afterEach(() => {
@@ -166,7 +167,13 @@ describe('Cells', () => {
       it('success', () => {
         mockAxios.mockResponse({status: 204});
 
-        expect(dataUpdateHandler).toHaveBeenCalledWith();
+        expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+      });
+
+      it('unknown error', () => {
+        mockAxios.mockResponse({status: 200});
+
+        expect(toast.error).toHaveBeenCalledWith(`An unknown error occurred!`);
       });
 
       it('error', () => {

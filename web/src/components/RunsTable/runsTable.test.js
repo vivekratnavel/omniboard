@@ -5,6 +5,7 @@ import { parseServerError } from '../Helpers/utils';
 import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
 import { toast } from "react-toastify";
 import { LocalStorageMock } from "../../../config/jest/localStorageMock";
+import {SortTypes} from "../Helpers/cells";
 
 describe('RunsTable', () => {
   let wrapper = null;
@@ -261,6 +262,46 @@ describe('RunsTable', () => {
       mockAxios.mockResponse({status: 200});
 
       expect(wrapper.state().sortedData.getObjectAt(rowIndex).notes).toEqual(notes);
+    });
+  });
+
+  describe('should handle delete experiment run', () => {
+    let runId = 222;
+    beforeEach(async () => {
+      mockAxios.mockResponse({status: 200, data: runsResponse});
+      mockAxios.mockResponse({status: 200, data: tagsResponse});
+      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+      await tick();
+    });
+
+    it('when run is present', () => {
+      expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(1);
+      wrapper.instance()._handleDeleteExperimentRun(runId);
+
+      expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(0);
+    });
+
+    it('when run is present and sort enabled', () => {
+      runId = runsResponse[0]._id;
+      wrapper.setState({
+        sort: {
+          _id: SortTypes.DESC
+        }
+      }, () => {
+        wrapper.update().instance()._handleDeleteExperimentRun(runId);
+      });
+
+      expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(0);
+      expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(runsResponse[1]._id);
+    });
+
+    it('when run is not present', () => {
+      runId = 100;
+      const dataLength = wrapper.state().data.length;
+      wrapper.instance()._handleDeleteExperimentRun(runId);
+
+      expect(wrapper.state().data).toHaveLength(dataLength);
     });
   });
 
