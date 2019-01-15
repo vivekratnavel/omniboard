@@ -46,6 +46,8 @@ To connect with mongodb that runs in another docker container:
 docker network create omniboard-network
 # make sure that mongodb container is using the same docker network before running this command
 docker run -it --rm -p 9000:9000 --name omniboard --net=omniboard-network vivekratnavel/omniboard -m MONGODB_CONTAINER:27017:sacred
+# or use the MONGO_URI environment variable
+docker run -it --rm -p 9000:9000 --name omniboard -e MONGO_URI=<mongo_uri> --net=omniboard-network vivekratnavel/omniboard 
 ```
 
 Go to http://localhost:9000 to access omniboard. To debug, use `docker logs <OMNIBOARD_CONTAINER>`
