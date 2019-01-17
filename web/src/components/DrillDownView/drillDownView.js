@@ -14,6 +14,7 @@ import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
 import { MetricsPlotView } from '../MetricsPlotView/metricsPlotView';
 import { SourceFilesView } from '../SourceFilesView/sourceFilesView';
 import { CapturedOutView } from '../CapturedOutView/capturedOutView';
+import {STATUS} from "../../constants/status.constants";
 
 class JsonView extends React.PureComponent {
   static propTypes = {
@@ -85,7 +86,7 @@ class DrillDownView extends Component {
       axios.all([
         axios.get(`/api/v1/Runs/${runId}`, {
           params: {
-            select: 'captured_out,info,meta,host,experiment,artifacts,config'
+            select: 'captured_out,info,meta,host,experiment,artifacts,config,fail_trace,status'
           }
         }),
         axios.get('/api/v1/Metrics', {
@@ -141,6 +142,16 @@ class DrillDownView extends Component {
         }
       });
     }
+
+    const showFailTrace = runsResponse && runsResponse.status === STATUS.FAILED;
+    const failTraceMenuItem = showFailTrace ?
+      <NavItem eventKey={DRILLDOWN_VIEW.FAIL_TRACE}>Fail Trace</NavItem>
+      : null;
+    const failTrace = runsResponse && runsResponse.fail_trace ?
+      runsResponse.fail_trace.reduce((accumulator, current) => accumulator + current + '\n', '')
+      : '';
+    const failTraceDom = <pre>{failTrace}</pre>;
+
     const getTabContent = (key) => {
       let content = '';
       if (runsResponse) {
@@ -156,6 +167,9 @@ class DrillDownView extends Component {
             break;
           case DRILLDOWN_VIEW.CAPTURED_OUT:
             content = <div id={DRILLDOWN_VIEW.CAPTURED_OUT}><CapturedOutView initialOutput={runsResponse.captured_out} initialStatus={status} runId={runId}/></div>;
+            break;
+          case DRILLDOWN_VIEW.FAIL_TRACE:
+            content = <div id={DRILLDOWN_VIEW.FAIL_TRACE}>{failTraceDom}</div>;
             break;
           case DRILLDOWN_VIEW.META_INFO:
             content = <div id={DRILLDOWN_VIEW.META_INFO}><JsonView data={runsResponse.meta}/></div>;
@@ -196,6 +210,7 @@ class DrillDownView extends Component {
                 <NavItem eventKey={DRILLDOWN_VIEW.CAPTURED_OUT}>
                   Captured Out
                 </NavItem>
+                {failTraceMenuItem}
                 <NavItem eventKey={DRILLDOWN_VIEW.EXPERIMENT}>
                   Experiment Details
                 </NavItem>

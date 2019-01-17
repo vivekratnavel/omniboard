@@ -116,7 +116,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="experiment"
-                key=".2"
+                key=".3"
                 onSelect={[Function]}
               >
                 <li
@@ -144,7 +144,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="host_info"
-                key=".3"
+                key=".4"
                 onSelect={[Function]}
               >
                 <li
@@ -172,7 +172,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="run_info"
-                key=".4"
+                key=".5"
                 onSelect={[Function]}
               >
                 <li
@@ -200,7 +200,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="meta_info"
-                key=".5"
+                key=".6"
                 onSelect={[Function]}
               >
                 <li
@@ -228,7 +228,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="artifacts"
-                key=".6"
+                key=".7"
                 onSelect={[Function]}
               >
                 <li
@@ -256,7 +256,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="source_files"
-                key=".7"
+                key=".8"
                 onSelect={[Function]}
               >
                 <li
@@ -284,7 +284,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 activeKey="metrics"
                 disabled={false}
                 eventKey="config"
-                key=".8"
+                key=".9"
                 onSelect={[Function]}
               >
                 <li

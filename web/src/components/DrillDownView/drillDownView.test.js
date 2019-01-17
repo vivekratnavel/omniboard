@@ -5,6 +5,7 @@ import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
 import { toast } from 'react-toastify';
 import { parseServerError } from '../Helpers/utils';
 import * as events from 'dom-helpers/events';
+import {STATUS} from "../../constants/status.constants";
 
 describe('DrillDownView', () => {
   let wrapper = null;
@@ -25,6 +26,23 @@ describe('DrillDownView', () => {
     },
     artifacts: [],
     captured_out: 'captured out',
+    status: STATUS.COMPLETED
+  };
+
+  const runsResponseDataForFailed = {
+    _id: 200,
+    meta: {},
+    info: {},
+    host: {},
+    experiment: {
+      sources: [
+        ["hello_world.py", "SGVsbG8gV29ybGQh"]
+      ]
+    },
+    artifacts: [],
+    captured_out: 'captured out',
+    status: STATUS.FAILED,
+    fail_trace: ["Traceback (most recent call last):\n","  File \"/Users/anaconda3/lib/python3.5/site-packages/sacred/config/captured_function.py\", line 46, in captured_function\n    result = wrapped(*args, **kwargs)\n","  File \"hello.py\", line 55, in my_main\n    svg2png(bytestring=dwg.tostring(), write_to='output.png')\n"]
   };
 
   const metricsResponseData = [
@@ -81,6 +99,16 @@ describe('DrillDownView', () => {
       DRILLDOWN_VIEW.ARTIFACTS,
       DRILLDOWN_VIEW.SOURCE_FILES
     ].forEach(key => switchTabTest(key));
+  });
+
+  it('should switch to fail trace tab for failed run', async () => {
+    mockAxios.mockResponse({status: 200, data: runsResponseDataForFailed});
+    mockAxios.mockResponse({status: 200, data: metricsResponseData});
+
+    await tick();
+    wrapper.setState({selectedNavTab: DRILLDOWN_VIEW.FAIL_TRACE});
+
+    expect(wrapper.find('div.tab-content ProgressWrapper#ddv-progress-wrapper').instance().props.children.props.id).toEqual(DRILLDOWN_VIEW.FAIL_TRACE);
   });
 
   it('should handle errors', async () => {
