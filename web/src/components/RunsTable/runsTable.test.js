@@ -22,7 +22,7 @@ describe('RunsTable', () => {
     configColumnModalCloseHandler = jest.fn();
   toast.error = jest.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     wrapper = mount(
       <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}/>
     );
@@ -35,6 +35,7 @@ describe('RunsTable', () => {
         return dateString ? new RealDate(dateString) : constantDate;
       }
     };
+    await tick();
   });
 
   afterEach(() => {

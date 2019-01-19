@@ -105,6 +105,8 @@ exports[`App component should render 1`] = `
           "sortIndices",
           "sort",
           "columnNameMap",
+          "statusFilterOptions",
+          "filters",
         ]
       }
     />

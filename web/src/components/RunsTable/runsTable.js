@@ -73,7 +73,8 @@ export const FILTER_OPERATOR_LABELS = {
 class RunsTable extends Component {
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort', 'columnNameMap']
+    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort',
+      'columnNameMap', 'statusFilterOptions', 'filters']
   };
 
   static propTypes = {
@@ -601,6 +602,9 @@ class RunsTable extends Component {
   componentDidMount() {
     this.resizeTable();
     window.addEventListener("resize", this.resizeTable);
+    // Wait for LocalStorageMixin to setState
+    // and then fetch data
+    setTimeout(this.loadData, 1);
   }
 
   /**
@@ -608,10 +612,6 @@ class RunsTable extends Component {
    */
   componentWillUnmount() {
     window.removeEventListener("resize", this.resizeTable);
-  }
-
-  componentWillMount() {
-    this.loadData();
   }
 
   _handleTagChange = (rowIndex) => {
