@@ -245,7 +245,7 @@ class RunsTable extends Component {
           }
 
           // Add duration column; duration = heartbeat - start_time
-          if ('heartbeat' in data && 'start_time' in data)
+          if ('heartbeat' in data && data['heartbeat'] && 'start_time' in data)
           data[duration] = ms(Math.abs(new Date(data['heartbeat']) - new Date(data['start_time'])));
 
           // Determine if a run is probably dead and assign the status accordingly
