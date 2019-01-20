@@ -22,5 +22,5 @@ export const SCALE_VALUE = {
   LOGARITHMIC:'logarithmic'
 };
 
-export const xAxisValues = [X_AXIS_VALUE.STEPS, X_AXIS_VALUE.TIME];
-export const scaleValues = [SCALE_VALUE.LINEAR, SCALE_VALUE.LOGARITHMIC];
+export const X_AXIS_VALUES = [X_AXIS_VALUE.STEPS, X_AXIS_VALUE.TIME];
+export const SCALE_VALUES = [SCALE_VALUE.LINEAR, SCALE_VALUE.LOGARITHMIC];

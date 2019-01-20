@@ -157,6 +157,8 @@ describe('Cells', () => {
       const event = {
         stopPropagation: jest.fn()
       };
+      const artifactsResponse = [{"file_id":"5c41711ea9eee738179295aa","name":"result.pickle"},{"file_id":"5c41711ea9eee738179295ac","name":"test.svg"},{"file_id":"5c41711ea9eee738179295ae","name":"output.png"}];
+      const metricsResponse = [{"_id":"5a2179f9fccf1dcc0ee39e63","name":"finetune.train.loss","run_id":54,"steps":[0,1,2],"timestamps":["2017-12-01T15:49:06.412Z","2017-12-01T15:51:27.910Z","2017-12-01T15:53:49.750Z"],"values":[0.9302947769183239,0.5418723183750066,0.505903509070725]},{"_id":"5a217a03fccf1dcc0ee39e74","name":"finetune.val.loss","run_id":54,"steps":[0,1,2,3],"timestamps":["2017-12-01T15:49:16.322Z","2017-12-01T15:51:37.849Z","2017-12-01T15:53:59.725Z"],"values":[0.6144198719169135,0.34360378449377804,0.4291475112023561]}];
       toast.error = jest.fn();
       beforeEach(() => {
         wrapper.find('FixedDataTableCellDefault').simulate('mouseEnter');
@@ -164,23 +166,81 @@ describe('Cells', () => {
         wrapper.find('[test-attr="delete-btn"]').at(1).simulate('click', event);
       });
 
-      it('success', () => {
-        mockAxios.mockResponse({status: 204});
+      describe('success', () => {
+        it('for metrics', async () => {
+          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts":[],"metrics": metricsResponse}});
 
-        expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+          expect(wrapper.state().isDeleteInProgress).toBeTruthy();
+          expect(mockAxios.delete).toHaveBeenCalledTimes(2);
+          mockAxios.mockResponse({status: 204});
+          mockAxios.mockResponse({status: 204});
+          await tick();
+
+          expect(wrapper.state().isDeleteInProgress).toBeFalsy();
+          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+        });
+
+        it('for artifacts', async () => {
+          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": artifactsResponse,"metrics": []}});
+
+          expect(mockAxios.delete).toHaveBeenCalledTimes(3);
+          mockAxios.mockResponse({status: 204});
+          mockAxios.mockResponse({status: 204});
+          mockAxios.mockResponse({status: 204});
+          await tick();
+
+          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+        });
+
+        it('for both artifacts and metrics', async () => {
+          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": artifactsResponse,"metrics": metricsResponse}});
+
+          expect(mockAxios.delete).toHaveBeenCalledTimes(4);
+          mockAxios.mockResponse({status: 204});
+          mockAxios.mockResponse({status: 204});
+          mockAxios.mockResponse({status: 204});
+          mockAxios.mockResponse({status: 204});
+          await tick();
+
+          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+        });
+
+        it('for no artifacts or metrics', async () => {
+          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": [],"metrics": []}});
+
+          expect(mockAxios.delete).toHaveBeenCalledTimes(1);
+          mockAxios.mockResponse({status: 204});
+          await tick();
+
+          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+        });
       });
 
-      it('unknown error', () => {
-        mockAxios.mockResponse({status: 200});
+      it('unknown error', async () => {
+        mockAxios.mockResponse({status: 200, data:{"_id":54,"artifacts":[],"metrics": metricsResponse}});
+        mockAxios.mockResponse({status: 204});
+        mockAxios.mockResponse({status: 400});
+        await tick();
 
         expect(toast.error).toHaveBeenCalledWith(`An unknown error occurred!`);
       });
 
-      it('error', () => {
-        const errResponse = {status: 500, message:'unknown error'};
-        mockAxios.mockError(errResponse);
+      describe('error', () => {
+        it('for get', () => {
+          const errResponse = {status: 500, message:'unknown error'};
+          mockAxios.mockError(errResponse);
 
-        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+          expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+        });
+
+        it('for delete calls', async () => {
+          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": [],"metrics": []}});
+          const errResponse = {status: 500, message:'unknown error'};
+          mockAxios.mockError(errResponse);
+          await tick();
+
+          expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+        });
       });
     });
   });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { MetricsPlotView } from './metricsPlotView';
 import mockAxios from 'jest-mock-axios';
-import { X_AXIS_VALUE, SCALE_VALUE } from '../../constants/drillDownView.constants';
+import {X_AXIS_VALUE, SCALE_VALUE, X_AXIS_VALUES, SCALE_VALUES} from '../../constants/drillDownView.constants';
 import keyCode from 'rc-util/lib/KeyCode';
 import { LocalStorageMock } from '../../../config/jest/localStorageMock';
 
@@ -56,8 +56,8 @@ describe('MetricsPlotView', () => {
     wrapper.instance()._setDefaultSelection();
 
     expect(wrapper.state().selectedMetricNames).toHaveLength(0);
-    expect(wrapper.state().selectedXAxis).toEqual('');
-    expect(wrapper.state().selectedYAxis).toEqual('');
+    expect(wrapper.state().selectedXAxis).toEqual(X_AXIS_VALUES[0]);
+    expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUES[0]);
     expect(wrapper.state().plotWidth).toEqual(800);
     expect(wrapper.state().plotHeight).toEqual(400);
     // reset localStorage

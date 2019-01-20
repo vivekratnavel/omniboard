@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { SCALE_VALUE, scaleValues, xAxisValues } from '../../constants/drillDownView.constants';
+import { SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES } from '../../constants/drillDownView.constants';
 import { capitalize } from '../Helpers/utils';
 import Plot from 'react-plotly.js';
 import PropTypes from 'prop-types'
@@ -26,8 +26,8 @@ class MetricsPlotView extends Component {
     super(props);
     this.state = {
       selectedMetricNames: [],
-      selectedXAxis: xAxisValues[0],
-      selectedYAxis: scaleValues[0],
+      selectedXAxis: X_AXIS_VALUES[0],
+      selectedYAxis: SCALE_VALUES[0],
       plotWidth: DEFAULT_PLOT_WIDTH,
       plotHeight: DEFAULT_PLOT_HEIGHT
     };
@@ -86,8 +86,8 @@ class MetricsPlotView extends Component {
       const selectedMetricNames = defaultSelection.selectedMetricNames ? defaultSelection.selectedMetricNames.filter(name => metricNames.includes(name)) : [];
       this.setState({
         selectedMetricNames,
-        selectedXAxis: defaultSelection.selectedXAxis || '',
-        selectedYAxis: defaultSelection.selectedYAxis || '',
+        selectedXAxis: defaultSelection.selectedXAxis || X_AXIS_VALUES[0],
+        selectedYAxis: defaultSelection.selectedYAxis || SCALE_VALUES[0],
         plotWidth: defaultSelection.plotWidth || DEFAULT_PLOT_WIDTH,
         plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT
       });
@@ -161,7 +161,7 @@ class MetricsPlotView extends Component {
           </div>
           <h4>X-Axis Type</h4>
           <div id="plot-x-axis-types">
-            {xAxisValues.map( (value, i) => {
+            {X_AXIS_VALUES.map( (value, i) => {
               return (
                 <div key={"XAxisPlot" + runId + i} className="radio">
                   <label>
@@ -174,7 +174,7 @@ class MetricsPlotView extends Component {
           </div>
           <h4>Y-Axis Type</h4>
           <div id="plot-y-axis-types">
-            {scaleValues.map( (value, i) => {
+            {SCALE_VALUES.map( (value, i) => {
               return (
                 <div key={"YAxisPlot" + runId + i} className="radio">
                   <label>

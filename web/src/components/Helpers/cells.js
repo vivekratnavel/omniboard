@@ -87,7 +87,8 @@ class IdCell extends Component {
     super(props);
     this.state = {
       showDeleteIcon: false,
-      showModal: false
+      showModal: false,
+      isDeleteInProgress: false
     };
   }
 
@@ -119,27 +120,89 @@ class IdCell extends Component {
 
   _deleteHandler = (experimentId) => (e) => {
     e.stopPropagation();
-    axios.delete('/api/v1/Runs/' + experimentId).then(response => {
-      if (response.status === 204) {
-        // Call callback function to update rows in the table
-        this.props.handleDataUpdate(experimentId);
-        toast.success(`Experiment run ${experimentId} was deleted successfully!`);
-      } else {
-        toast.error('An unknown error occurred!');
-      }
+    if (experimentId && !isNaN(experimentId)) {
       this.setState({
-        showModal: false
+        isDeleteInProgress: true
       });
-    }).catch(error => {
-      toast.error(parseServerError(error));
-    });
+      axios.get('/api/v1/Runs/' + experimentId, {
+        params: {
+          select: 'artifacts,metrics',
+          populate: 'metrics'
+        }
+      }).then(response => {
+        const runsResponse = response.data;
+        const deleteApis = [];
+        if(runsResponse.metrics && runsResponse.metrics.length) {
+          deleteApis.push(
+            axios.delete('/api/v1/Metrics/', {
+            params: {
+              query: JSON.stringify({
+                run_id: experimentId
+              })
+            }
+          }));
+        }
+        if (runsResponse.artifacts && runsResponse.artifacts.length) {
+          const chunksQuery = runsResponse.artifacts.map(file => {
+            return {files_id: file.file_id}
+          });
+          const filesQuery = runsResponse.artifacts.map(file => {
+            return {_id: file.file_id}
+          });
+          deleteApis.push(
+            axios.delete('/api/v1/Fs.chunks/', {
+              params: {
+                query: JSON.stringify({
+                  $or: chunksQuery
+                })
+              }
+            }));
+          deleteApis.push(
+            axios.delete('/api/v1/Fs.files/', {
+              params: {
+                query: JSON.stringify({
+                  $or: filesQuery
+                })
+              }
+            }));
+        }
+        deleteApis.push(
+          axios.delete('/api/v1/Runs/' + experimentId)
+        );
+
+        axios.all(deleteApis).then(axios.spread((...deleteResponses) => {
+          if (deleteResponses.every(response => response.status === 204)) {
+            // Call callback function to update rows in the table
+            this.props.handleDataUpdate(experimentId);
+            toast.success(`Experiment run ${experimentId} was deleted successfully!`);
+          } else {
+            toast.error('An unknown error occurred!');
+          }
+          this.setState({
+            isDeleteInProgress: false,
+            showModal: false
+          });
+        })).catch(error => {
+          toast.error(parseServerError(error));
+          this.setState({
+            isDeleteInProgress: false
+          });
+        });
+      }).catch(error => {
+        toast.error(parseServerError(error));
+        this.setState({
+          isDeleteInProgress: false
+        });
+      });
+    }
   };
 
   render() {
     const {data, rowIndex, columnKey, handleDataUpdate, ...props} = this.props;
-    const {showDeleteIcon, showModal} = this.state;
+    const {showDeleteIcon, showModal, isDeleteInProgress} = this.state;
     const deleteIcon = showDeleteIcon ? <Glyphicon glyph="trash" className="delete-icon" onClick={this._onDeleteClickHandler}/> : null;
     const experimentId = data.getObjectAt(rowIndex)[columnKey];
+    const deleteGlyph = isDeleteInProgress ? <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/> : <Glyphicon glyph="trash" />;
     return (
       <div>
       <Cell {...props} onMouseEnter={this._mouseEnterHandler} onMouseLeave={this._mouseLeaveHandler}>
@@ -156,8 +219,8 @@ class IdCell extends Component {
         </ModalBody>
         <ModalFooter>
           <Button test-attr="close-btn" onClick={this._closeModalHandler}>Cancel</Button>
-          <Button test-attr="delete-btn" bsStyle="danger" onClick={this._deleteHandler(experimentId)}>
-            <Glyphicon glyph="trash" /> Delete
+          <Button test-attr="delete-btn" bsStyle="danger" disabled={isDeleteInProgress} onClick={this._deleteHandler(experimentId)}>
+            {deleteGlyph} Delete
           </Button>
         </ModalFooter>
       </Modal>
