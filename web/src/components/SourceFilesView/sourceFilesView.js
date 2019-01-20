@@ -52,12 +52,7 @@ class SourceFilesView extends Component {
         }
       }).then(response => {
         const sourceFiles = response.data.reduce( (files, file) => {
-          var dataChunk;
-          if (file.chunk.length == 1) {
-            dataChunk = file.chunk[0].data;
-          } else {
-            dataChunk = "";
-          }
+          const dataChunk = file.chunk.length ? file.chunk[0].data : '';
 
           files[file._id] = {
             id: file._id,
