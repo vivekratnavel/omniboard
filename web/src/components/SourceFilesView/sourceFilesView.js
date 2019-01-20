@@ -52,13 +52,13 @@ class SourceFilesView extends Component {
         }
       }).then(response => {
         const sourceFiles = response.data.reduce( (files, file) => {
-          const fileName = file.filename.split("/").splice(-1)[0];
-          files[fileName] = {
+          const dataChunk = file.chunk.length ? file.chunk[0].data : '';
+
+          files[file._id] = {
             id: file._id,
             uploadDate: file.uploadDate,
-            filename: fileName,
             filepath: file.filename,
-            data: file.chunk[0].data
+            data: dataChunk
           };
           return files;
         }, {});
@@ -102,9 +102,9 @@ class SourceFilesView extends Component {
       this.setState({
         isZipInProgress: true
       });
-      Object.keys(sourceFiles).forEach(fileName => {
-        if (sourceFiles[fileName].data) {
-          zip.file(fileName, sourceFiles[fileName].data, {base64: true});
+      Object.values(sourceFiles).forEach(file => {
+        if (file.data) {
+          zip.file(file.filepath, file.data, {base64: true});
         }
       });
       zip.generateAsync({type: "blob"})
@@ -150,7 +150,7 @@ class SourceFilesView extends Component {
                   {file.name}
                   <div className="accordion__arrow" role="presentation" />
                 </h5>
-                <div>{sourceFiles[file.name] && sourceFiles[file.name].filepath}</div>
+                <div>{sourceFiles[file.file_id] && sourceFiles[file.file_id].filepath}</div>
               </AccordionItemTitle>
               <AccordionItemBody>
                 <div className="clearfix">

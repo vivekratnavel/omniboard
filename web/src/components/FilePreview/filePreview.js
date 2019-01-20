@@ -31,14 +31,14 @@ class FilePreview extends PureComponent {
 
     if (imageExtensions.includes(extension) && fileId) {
       let imgSource = `/api/v1/files/${fileId}`;
-      if (extension === 'svg' && sourceFiles[fileName]) {
-        imgSource = `data:image/svg+xml;base64,${sourceFiles[fileName].data}`;
+      if (extension === 'svg' && sourceFiles[fileId]) {
+        imgSource = `data:image/svg+xml;base64,${sourceFiles[fileId].data}`;
       }
       return (<img src={imgSource} />);
     }
     return (
         <SyntaxHighlighter language={getLanguageFromFileName(fileName)} style={tomorrow}>
-          {sourceFiles[fileName] && atob(sourceFiles[fileName].data)}
+          {sourceFiles[fileId] && atob(sourceFiles[fileId].data)}
         </SyntaxHighlighter>
         );
   }

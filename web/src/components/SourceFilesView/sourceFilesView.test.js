@@ -9,7 +9,7 @@ describe('SourceFilesView', () => {
   let wrapper = null;
   const files = [
     {
-      name: "hello_world.py",
+      name: "/src/hello_world.py",
       file_id: "5a1bd242ca100c1a210b0d3a"
     }
   ];
@@ -81,7 +81,7 @@ describe('SourceFilesView', () => {
     it('when source exists', async () => {
       mockAxios.mockResponse({status: 200, data: responseData});
       await tick();
-      wrapper.update().find('[test-attr="down-btn-hello_world.py"]').simulate('click');
+      wrapper.update().find('[test-attr="down-btn-/src/hello_world.py"]').simulate('click');
       mockAxios.mockResponse({status: 200, data: responseData[0].chunk[0].data});
       await tick();
 
@@ -91,7 +91,7 @@ describe('SourceFilesView', () => {
     it('display error when source does not exist', async () => {
       mockAxios.mockResponse({status: 200, data: []});
       await tick();
-      wrapper.update().find('[test-attr="down-btn-hello_world.py"]').simulate('click');
+      wrapper.update().find('[test-attr="down-btn-/src/hello_world.py"]').simulate('click');
       const err = {status: 500, message: 'internal server error'};
       mockAxios.mockError(err);
       await tick();
