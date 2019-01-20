@@ -38,7 +38,7 @@ class FilePreview extends PureComponent {
     }
     return (
         <SyntaxHighlighter language={getLanguageFromFileName(fileName)} style={tomorrow}>
-          {sourceFiles[fileName] && atob(sourceFiles[fileName].data)}
+          {sourceFiles[fileId] && atob(sourceFiles[fileId].data)}
         </SyntaxHighlighter>
         );
   }
