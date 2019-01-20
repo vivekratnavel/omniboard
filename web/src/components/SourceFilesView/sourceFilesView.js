@@ -55,9 +55,6 @@ class SourceFilesView extends Component {
           var dataChunk;
           if (file.chunk.length == 1) {
             dataChunk = file.chunk[0].data;
-          } else if (file.chunk.length > 1) {
-            // Does this ever happen?
-            dataChunk = "";
           } else {
             dataChunk = "";
           }
