@@ -57,7 +57,7 @@ exports[`SourceFilesView should render correctly 1`] = `
           disabled={false}
           expanded={false}
           hideBodyClassName=""
-          key="hello_world.py"
+          key="/src/hello_world.py"
         >
           <AccordionItemTitleWrapper
             className="accordion__title accordion__title--animated"
@@ -66,7 +66,7 @@ exports[`SourceFilesView should render correctly 1`] = `
             <h5
               className="u-position-relative"
             >
-              hello_world.py
+              /src/hello_world.py
               <div
                 className="accordion__arrow"
                 role="presentation"
@@ -97,7 +97,7 @@ exports[`SourceFilesView should render correctly 1`] = `
                   bsStyle="default"
                   disabled={false}
                   onClick={[Function]}
-                  test-attr="down-btn-hello_world.py"
+                  test-attr="down-btn-/src/hello_world.py"
                 >
                   <i
                     className="glyphicon glyphicon-download-alt"
@@ -108,7 +108,7 @@ exports[`SourceFilesView should render correctly 1`] = `
             </div>
             <FilePreview
               fileId="5a1bd242ca100c1a210b0d3a"
-              fileName="hello_world.py"
+              fileName="/src/hello_world.py"
               sourceFiles={Object {}}
             />
           </AccordionItemBodyWrapper>
@@ -176,7 +176,7 @@ exports[`SourceFilesView should render correctly 2`] = `
           disabled={false}
           expanded={false}
           hideBodyClassName=""
-          key="hello_world.py"
+          key="/src/hello_world.py"
         >
           <AccordionItemTitleWrapper
             className="accordion__title accordion__title--animated"
@@ -185,7 +185,7 @@ exports[`SourceFilesView should render correctly 2`] = `
             <h5
               className="u-position-relative"
             >
-              hello_world.py
+              /src/hello_world.py
               <div
                 className="accordion__arrow"
                 role="presentation"
@@ -206,7 +206,6 @@ exports[`SourceFilesView should render correctly 2`] = `
                 className="pull-left upload-date"
               >
                 Upload Date: 
-                2017-11-27T08:52:18.562Z
               </div>
               <div
                 className="pull-right"
@@ -219,7 +218,7 @@ exports[`SourceFilesView should render correctly 2`] = `
                   bsStyle="default"
                   disabled={false}
                   onClick={[Function]}
-                  test-attr="down-btn-hello_world.py"
+                  test-attr="down-btn-/src/hello_world.py"
                 >
                   <i
                     className="glyphicon glyphicon-download-alt"
@@ -230,19 +229,17 @@ exports[`SourceFilesView should render correctly 2`] = `
             </div>
             <FilePreview
               fileId="5a1bd242ca100c1a210b0d3a"
-              fileName="hello_world.py"
+              fileName="/src/hello_world.py"
               sourceFiles={
                 Object {
-                  "hello_world.py": Object {
+                  "5a1bd242ca100c1a210b0d3a": Object {
                     "data": "SGVsbG8gV29ybGQh",
-                    "filename": "hello_world.py",
                     "filepath": "/src/hello_world.py",
                     "id": "5a1bd242ca100c1a210b0d3a",
                     "uploadDate": "2017-11-27T08:52:18.562Z",
                   },
-                  "hello_world_2.py": Object {
+                  "5a1bd242ca100c1a210b0d3b": Object {
                     "data": "",
-                    "filename": "hello_world_2.py",
                     "filepath": "/src/hello_world_2.py",
                     "id": "5a1bd242ca100c1a210b0d3b",
                     "uploadDate": "2017-11-27T08:53:18.562Z",
