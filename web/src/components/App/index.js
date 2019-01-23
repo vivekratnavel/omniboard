@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
-import { Navbar, Nav, MenuItem, NavDropdown, Glyphicon } from 'react-bootstrap';
+import { Navbar, Nav, MenuItem, NavDropdown, Glyphicon, NavItem } from 'react-bootstrap';
 import RunsTable from '../RunsTable/runsTable';
+import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
+import { parseServerError } from "../Helpers/utils";
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
 
@@ -9,7 +12,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showConfigColumnModal: false
+      showConfigColumnModal: false,
+      dbName: ''
     }
   }
 
@@ -30,18 +34,33 @@ class App extends Component {
     });
   };
 
+  componentDidMount() {
+    axios.get('/api/v1/database').then(dbResponse => {
+      if (dbResponse && dbResponse.data && dbResponse.data.name) {
+        this.setState({
+          dbName: dbResponse.data.name
+        })
+      }
+    }).catch(error => {
+      toast.error(parseServerError(error));
+    });
+  }
+
   render() {
-    const {showConfigColumnModal} = this.state;
+    const {showConfigColumnModal, dbName} = this.state;
     const localStorageKey = 'RunsTable|1';
     return (
       <div className="App">
         <Navbar inverse fluid>
           <Navbar.Header>
             <Navbar.Brand>
-              <a href="/">Omniboard</a>
+              <a href="#">Omniboard</a>
             </Navbar.Brand>
           </Navbar.Header>
           <Navbar.Collapse>
+            <Nav pullLeft>
+              <NavItem>({dbName})</NavItem>
+            </Nav>
             <Nav pullRight>
               <NavDropdown eventKey={1} title={<Glyphicon glyph="cog" />} id="settings">
                 <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this._resetCache}>

@@ -1,11 +1,21 @@
 import React from 'react';
 import App from './index';
+import mockAxios from 'jest-mock-axios';
+import { toast } from "react-toastify";
+import {parseServerError} from "../Helpers/utils";
 
 describe('App component', () => {
   let wrapper = null;
+  toast.error = jest.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     wrapper = shallow(<App/>);
+    await tick();
+  });
+
+  afterEach(() => {
+    mockAxios.reset();
+    jest.clearAllMocks();
   });
 
   it('should render', () => {
@@ -31,4 +41,19 @@ describe('App component', () => {
     expect(wrapper.state().showConfigColumnModal).toBeFalsy();
   });
 
+  describe('should fetch database name on mount', () => {
+    it('and handle success', async () => {
+      expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/database');
+      mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
+
+      expect(wrapper.update().state().dbName).toEqual('test_db');
+    });
+
+    it('and handle error', () => {
+      const error = {status: 500, message: 'Unknown error'};
+      mockAxios.mockError(error);
+
+      expect(toast.error).toHaveBeenCalledWith(parseServerError(error));
+    });
+  });
 });

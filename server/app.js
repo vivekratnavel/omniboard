@@ -60,6 +60,14 @@ router.get('/api/v1/files/:id', function(req, res) {
   });
 });
 
+router.get('/api/v1/database', function(req, res) {
+  if (database && database.name) {
+    res.json({name: database.name});
+  } else {
+    res.status(500).json({message: 'An unknown error occurred'})
+  }
+});
+
 if (process.env.NODE_ENV === 'production') {
   // Serve any static files
   app.use(express.static(path.join(__dirname, '/../web/build')));
