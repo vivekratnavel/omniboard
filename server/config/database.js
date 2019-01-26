@@ -23,6 +23,8 @@ if ('m' in argv) {
   // Parse mongodb connection url passed as an arg
   // Ex: --mu mongodb://user:pwd@host/sacred?authSource=admin
   mongodbURI = `${argv['mu']}`;
+} else if (process.env.MONGO_URI) {
+  mongodbURI = process.env.MONGO_URI;
 } else {
   mongodbURI = `${defaultURI}/${defaultDatabase}`;
 }
