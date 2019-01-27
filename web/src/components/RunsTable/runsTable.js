@@ -136,11 +136,9 @@ class RunsTable extends Component {
     .split('.')
     .reduce((o, p) => o && o.hasOwnProperty(p) ? o[p] : defaultValue, object);
 
-  loadData = () => {
-    const {filters, columnOrder, dropdownOptions, columnWidths} = this.state;
-    let latestDropdownOptions = [];
+  buildQueryJson() {
+    const {filters} = this.state;
     const queryJson = {'$and': []};
-    let columnNameMap = {};
     const statusQueryFilter = operator => status => {
       if (status === STATUS.PROBABLY_DEAD || status === STATUS.RUNNING) {
         // Apply condition to filter "probably dead" status
@@ -176,7 +174,20 @@ class RunsTable extends Component {
         }
       });
     }
-    const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : {};
+    return queryJson;
+  }
+
+  query2string(queryJson) {
+    return queryJson.$and.length ? JSON.stringify(queryJson) : {};
+  }
+
+  loadData = () => {
+    const queryJson = this.buildQueryJson();
+    const queryString = this.query2string(queryJson);
+    const {columnOrder, dropdownOptions, columnWidths} = this.state;
+    let columnNameMap = {};
+    let latestDropdownOptions = [];
+
     this.setState({
       isTableLoading: true,
       isError: false
@@ -478,6 +489,54 @@ class RunsTable extends Component {
     });
   }
 
+  /* eslint-disable no-console */
+
+  updateRunningRuns() {
+    const queryJson = this.buildQueryJson();
+
+    const heartbeatTimeout = new Date() - PROBABLY_DEAD_TIMEOUT;
+    let heartbeat = `>${heartbeatTimeout}`;
+    const runningFilter = {'$and': [{'status': STATUS.RUNNING}, {heartbeat}]};
+    queryJson.$and.push(runningFilter);
+    const queryString = this.query2string(queryJson);
+    axios.all([
+      axios.get('/api/v1/Runs', {
+        params: {
+          select: '_id,heartbeat,artifacts,stop_time,' +
+          'result,start_time,resources,format,status,omniboard,metrics,meta',
+          sort: '-_id',
+          query: queryString,
+          populate: 'metrics'
+        }
+      }),
+      axios.get('/api/v1/Runs', {
+        params: {
+          distinct: 'omniboard.tags'
+        }
+      }),
+      axios.get('/api/v1/Omniboard.Columns'),
+      axios.get('/api/v1/Omniboard.Config.Columns')
+    ])
+    .then(axios.spread((runsResponse, tags, metricColumns, configColumns) => {
+      let runsResponseData = runsResponse.data;
+      if (runsResponseData && runsResponseData.length) {
+        const _defaultSortIndices = [];
+        runsResponseData = runsResponseData.map(data => {
+          const {sortedData} = this.state;
+          console.log(sortedData);
+          const newData = new DataListWrapper(sortedData.getIndexArray(), sortedData.getDataArray());
+          var rowIndex = 0;
+          newData.setObjectAt(rowIndex, Object.assign({}, newData.getObjectAt(rowIndex), {'heartbeat': data['heartbeat']}));
+          this.setState({
+            sortedData: newData
+          })
+        
+        });
+      }
+
+    }))
+  }
+
   createDropdownOption = (key, selected = true) => {
     return {
       label: headerText(key),
@@ -605,6 +664,7 @@ class RunsTable extends Component {
     // Wait for LocalStorageMixin to setState
     // and then fetch data
     setTimeout(this.loadData, 1);
+    this.interval = setInterval(() => this.updateRunningRuns(), 1000); 
   }
 
   /**
