@@ -4,7 +4,6 @@ import Multiselect from 'react-bootstrap-multiselect';
 import { Table, Column } from 'fixed-data-table-2';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
-import ms from 'ms';
 import 'fixed-data-table-2/dist/fixed-data-table.css';
 import { Button, ButtonToolbar, Alert } from 'react-bootstrap';
 import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';
@@ -30,6 +29,7 @@ const TAGS_COLUMN_HEADER = 'tags';
 const NOTES_COLUMN_HEADER = 'notes';
 const EXPERIMENT_NAME = 'experiment_name';
 const ID_COLUMN_KEY = '_id';
+const DURATION_COLUMN_KEY = 'duration';
 
 function getStatusLabel(label) {
   return `<div class="clearfix">
@@ -203,7 +203,6 @@ class RunsTable extends Component {
       let runsResponseData = runsResponse.data;
       const metricColumnsData = metricColumns.data;
       const configColumnsData = configColumns.data;
-      const duration = 'duration';
       if (runsResponseData && runsResponseData.length) {
         const _defaultSortIndices = [];
         runsResponseData = runsResponseData.map(data => {
@@ -247,7 +246,7 @@ class RunsTable extends Component {
 
           // Add duration column; duration = heartbeat - start_time
           if ('heartbeat' in data && data['heartbeat'] && 'start_time' in data)
-          data[duration] = ms(Math.abs(new Date(data['heartbeat']) - new Date(data['start_time'])));
+          data[DURATION_COLUMN_KEY] = Math.abs(new Date(data['heartbeat']) - new Date(data['start_time']));
 
           // Determine if a run is probably dead and assign the status accordingly
           if ('status' in data) {
@@ -548,13 +547,15 @@ class RunsTable extends Component {
   _resetExpandedRows = () => {
     this.setState({
       expandedRows: new Set()
-    })
+    });
   };
 
   _getSortedData = (sortIndices, data, columnKey, sortDir) => {
     sortIndices.sort((indexA, indexB) => {
-      const valueA = data[indexA][columnKey];
-      const valueB = data[indexB][columnKey];
+      const dataA = data[indexA][columnKey];
+      const dataB = data[indexB][columnKey];
+      const valueA = columnKey === DURATION_COLUMN_KEY ? Number(dataA) || 0 : dataA;
+      const valueB = columnKey === DURATION_COLUMN_KEY ? Number(dataB) || 0 : dataB;
       let sortVal = 0;
       if (valueA > valueB) {
         sortVal = 1;
@@ -820,7 +821,7 @@ class RunsTable extends Component {
     return dropdownOptions.reduce((options, option) => {
       // Exclude duration and metric columns from dropdown options
       // since filter cannot be applied directly on those fields
-      if (option.value !== 'duration') {
+      if (option.value !== DURATION_COLUMN_KEY) {
         const newValue = option.value in columnNameMap ? columnNameMap[option.value] : option.value;
         if (newValue.indexOf('omniboard.columns.') === -1) {
           options.push(Object.assign({}, option, {value: newValue}));
@@ -837,7 +838,7 @@ class RunsTable extends Component {
     return new Promise(resolve => {
       // Get suggestions for columns of types other than Date or Number
       // Since Date type Number type doesn't support regex
-      if (filterColumnName.length && !['_id', 'start_time', 'stop_time', 'heartbeat', 'duration'].includes(filterColumnName)) {
+      if (filterColumnName.length && !['_id', 'start_time', 'stop_time', 'heartbeat', DURATION_COLUMN_KEY].includes(filterColumnName)) {
         const operator = inputValue && !isNaN(inputValue) ? "$eq" : "$regex";
         const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
         const queryJson = {[filterColumnName]: { [operator]: value}};

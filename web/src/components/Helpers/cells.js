@@ -9,6 +9,7 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '
 import {parseServerError} from "./utils";
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import ms from 'ms';
 
 
 const SortTypes = {
@@ -67,9 +68,11 @@ class TextCell extends React.PureComponent {
 
   render() {
     const {data, rowIndex, columnKey, ...props} = this.props;
+    const dataValue = data.getObjectAt(rowIndex)[columnKey];
+    const value = columnKey === 'duration' && dataValue ? ms(dataValue) : dataValue;
     return (
       <Cell {...props}>
-        {data.getObjectAt(rowIndex)[columnKey]}
+        {value}
       </Cell>
     );
   }
