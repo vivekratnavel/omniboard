@@ -76,8 +76,7 @@ describe('RunsTable', () => {
           select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
             'result,start_time,resources,format,status,omniboard,metrics,meta',
           sort: '-_id',
-          query: queryString,
-          populate: 'metrics'
+          query: queryString
         }
       }]
     };
