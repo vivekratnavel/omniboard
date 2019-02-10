@@ -1,3 +1,6 @@
+/* eslint-disable no-unreachable */
+/* eslint-disable no-console */
+
 import React, { Component } from 'react';
 import axios from 'axios';
 import Multiselect from 'react-bootstrap-multiselect';
@@ -86,6 +89,8 @@ class RunsTable extends Component {
   showHideColumnsDomNode = null;
   statusFilterDomNode = null;
   tableDom = null;
+
+  columnNameMap = {}
   
   constructor(props) {
     super(props);
@@ -180,13 +185,185 @@ class RunsTable extends Component {
   query2string(queryJson) {
     return queryJson.$and.length ? JSON.stringify(queryJson) : {};
   }
+  
+
+  parseResponseData(runsResponseData, configColumnsData, columnNameMap) {
+    runsResponseData = runsResponseData.map(data => {
+      if ('config' in data) {
+        const config = data['config'];
+        // Expand each key of config column as individual columns
+        delete data['config'];
+        data = {...data, ...config};
+        const configNameMap = this._getColumnNameMap(config, 'config');
+        columnNameMap = {...columnNameMap, ...configNameMap};
+
+        // Include config columns
+        if (configColumnsData.length) {
+          const configColumnsObject = {};
+          const configColumnNameMap = {};
+          configColumnsData.forEach(column => {
+            const columnName = column.name;
+            const configPath = column.config_path;
+            configColumnsObject[columnName] = this._resolveObjectPath(config, configPath, '');
+            configColumnNameMap[columnName] = `config.${configPath}`;
+          });
+          data = {...data, ...configColumnsObject};
+          columnNameMap = {...columnNameMap, ...configColumnNameMap};
+        }
+      }
+
+      if ('experiment' in data) {
+        const experiment = data['experiment'];
+        delete data['experiment'];
+        data = {...data, 'experiment_name': experiment['name']};
+        columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
+      }
+
+      if ('host' in data) {
+        const host = data['host'];
+        delete data['host'];
+        data = {...data, 'hostname': host['hostname']};
+        const hostMap = this._getColumnNameMap(host, 'host');
+        columnNameMap = {...columnNameMap, ...hostMap};
+      }
+
+      // Add duration column; duration = heartbeat - start_time
+      if ('heartbeat' in data && data['heartbeat'] && 'start_time' in data)
+      data['duration'] = ms(Math.abs(new Date(data['heartbeat']) - new Date(data['start_time'])));
+
+      // Determine if a run is probably dead and assign the status accordingly
+      if ('status' in data) {
+        data['status'] = getRunStatus(data['status'], data['heartbeat']);
+      }
+
+      // Expand omniboard columns
+      if ('omniboard' in data) {
+        const omniboard = data['omniboard'];
+        delete data['omniboard'];
+        data = {...data, ...omniboard};
+        const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
+        columnNameMap = {...columnNameMap, ...omniboardMap};
+      }
+
+      // Add notes from comment if none has been saved in omniboard
+      if (!('notes' in data)) {
+        if ('meta' in data) {
+          const meta = data['meta'];
+          delete data['meta'];
+          if ('comment' in meta) {
+            const comment = meta['comment'];
+            data = {...data, 'notes': comment}
+          }
+        }
+      }
+
+      // Delete meta if not deleted already
+      if ('meta' in data) {
+        delete data['meta'];
+      }
+
+
+      return data;
+    });
+
+    return runsResponseData;
+  }
+
+
+  parseMetricsData (metricColumnsData, data, columnNameMap) {
+    // Include metric columns
+    if (metricColumnsData.length) {
+      const metricColumnsObject = {};
+      const metricColumnNameMap = {};
+      metricColumnsData.forEach(column => {
+        let value = 0;
+        const metric = data['metrics'].find(metric => metric.name === column.metric_name);
+        if (metric && metric.values) {
+          const sortedValues = metric.values.sort((a,b) => a-b);
+          const extrema = column.extrema;
+          if (extrema === 'min') {
+            value = sortedValues[0];
+          } else if (extrema === 'max') {
+            value = sortedValues[sortedValues.length - 1];
+          }
+        }
+        metricColumnsObject[column.name] = value;
+        metricColumnNameMap[column.name] = `omniboard.columns.${column.name}`;
+      });
+      data = {...data, ...metricColumnsObject};
+      columnNameMap = {...columnNameMap, ...metricColumnNameMap};
+    }
+  }
+  
+  updateTableColumns(dropdownOptions, latestColumnOrder, columnOrder, columnWidths) {
+    // Handle addition/deletion of metric/config columns
+    const dropdownOptionValues = dropdownOptions.map(option => option.value);
+    const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
+    const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
+
+    let newColumnOrder = columnOrder.slice();
+    let newDropdownOptions = dropdownOptions.slice();
+    let newColumnWidths = Object.assign({}, columnWidths);
+
+    if (columnsToAdd.length) {
+      newColumnOrder = newColumnOrder.concat(columnsToAdd);
+      const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
+      newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
+      const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
+        return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
+      }, {});
+      newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
+    }
+
+    this.setState({
+      columnOrder: newColumnOrder,
+      columnWidths: newColumnWidths,
+      dropdownOptions: newDropdownOptions
+    });
+
+    if (columnsToDelete.length) {
+      columnsToDelete.map(this._handleColumnDelete);
+    }
+  }
+
+  initializeTable(latestColumnOrder, latestDropdownOptions) {
+    // Set columns array and dropdown options only the first time data is fetched
+    reorderArray(latestColumnOrder, 'status', 'tags');
+    reorderArray(latestColumnOrder, 'tags', 'notes');
+    reorderArray(latestColumnOrder, 'heartbeat', 'duration');
+    reorderArray(latestColumnOrder, '_id', 'experiment_name');
+    reorderArray(latestColumnOrder, 'experiment_name', 'hostname');
+    const columnWidths = {};
+    latestColumnOrder.forEach(key => {
+      latestDropdownOptions.push(this.createDropdownOption(key));
+      let columnWidth = DEFAULT_COLUMN_WIDTH;
+      if (key === TAGS_COLUMN_HEADER || key === NOTES_COLUMN_HEADER) {
+        columnWidth = 250;
+      }
+      if (key === '_id') {
+        columnWidth = 70;
+      }
+      columnWidths[key] = columnWidth;
+    });
+    // Set state only for the first load.
+    // Local storage is used to synchronize state for subsequent page reloads
+    if (this.state.columnOrder.length === 0) {
+      this.setState({
+        columnOrder: latestColumnOrder,
+        columnWidths,
+        dropdownOptions: latestDropdownOptions
+      });
+    }
+    this.showHideColumnsDomNode.syncData();
+  }
 
   loadData = () => {
+    const _defaultSortIndices = [];
     const queryJson = this.buildQueryJson();
     const queryString = this.query2string(queryJson);
     const {columnOrder, dropdownOptions, columnWidths} = this.state;
-    let columnNameMap = {};
     let latestDropdownOptions = [];
+    let columnNameMap = {};
 
     this.setState({
       isTableLoading: true,
@@ -211,221 +388,61 @@ class RunsTable extends Component {
       axios.get('/api/v1/Omniboard.Config.Columns')
     ])
     .then(axios.spread((runsResponse, tags, metricColumns, configColumns) => {
-      let runsResponseData = runsResponse.data;
-      const metricColumnsData = metricColumns.data;
-      const configColumnsData = configColumns.data;
-      const duration = 'duration';
-      if (runsResponseData && runsResponseData.length) {
-        const _defaultSortIndices = [];
-        runsResponseData = runsResponseData.map(data => {
-          if ('config' in data) {
-            const config = data['config'];
-            // Expand each key of config column as individual columns
-            delete data['config'];
-            data = {...data, ...config};
-            const configNameMap = this._getColumnNameMap(config, 'config');
-            columnNameMap = {...columnNameMap, ...configNameMap};
-
-            // Include config columns
-            if (configColumnsData.length) {
-              const configColumnsObject = {};
-              const configColumnNameMap = {};
-              configColumnsData.forEach(column => {
-                const columnName = column.name;
-                const configPath = column.config_path;
-                configColumnsObject[columnName] = this._resolveObjectPath(config, configPath, '');
-                configColumnNameMap[columnName] = `config.${configPath}`;
-              });
-              data = {...data, ...configColumnsObject};
-              columnNameMap = {...columnNameMap, ...configColumnNameMap};
-            }
-          }
-
-          if ('experiment' in data) {
-            const experiment = data['experiment'];
-            delete data['experiment'];
-            data = {...data, 'experiment_name': experiment['name']};
-            columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
-          }
-
-          if ('host' in data) {
-            const host = data['host'];
-            delete data['host'];
-            data = {...data, 'hostname': host['hostname']};
-            const hostMap = this._getColumnNameMap(host, 'host');
-            columnNameMap = {...columnNameMap, ...hostMap};
-          }
-
-          // Add duration column; duration = heartbeat - start_time
-          if ('heartbeat' in data && data['heartbeat'] && 'start_time' in data)
-          data[duration] = ms(Math.abs(new Date(data['heartbeat']) - new Date(data['start_time'])));
-
-          // Determine if a run is probably dead and assign the status accordingly
-          if ('status' in data) {
-            data['status'] = getRunStatus(data['status'], data['heartbeat']);
-          }
-
-          // Expand omniboard columns
-          if ('omniboard' in data) {
-            const omniboard = data['omniboard'];
-            delete data['omniboard'];
-            data = {...data, ...omniboard};
-            const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
-            columnNameMap = {...columnNameMap, ...omniboardMap};
-          }
-
-          // Add notes from comment if none has been saved in omniboard
-          if (!('notes' in data)) {
-            if ('meta' in data) {
-              const meta = data['meta'];
-              delete data['meta'];
-              if ('comment' in meta) {
-                const comment = meta['comment'];
-                data = {...data, 'notes': comment}
-              }
-            }
-          }
-
-          // Delete meta if not deleted already
-          if ('meta' in data) {
-            delete data['meta'];
-          }
-
-          // Include metric columns
-          if (metricColumnsData.length) {
-            const metricColumnsObject = {};
-            const metricColumnNameMap = {};
-            metricColumnsData.forEach(column => {
-              let value = 0;
-              const metric = data['metrics'].find(metric => metric.name === column.metric_name);
-              if (metric && metric.values) {
-                const sortedValues = metric.values.sort((a,b) => a-b);
-                const extrema = column.extrema;
-                if (extrema === 'min') {
-                  value = sortedValues[0];
-                } else if (extrema === 'max') {
-                  value = sortedValues[sortedValues.length - 1];
-                }
-              }
-              metricColumnsObject[column.name] = value;
-              metricColumnNameMap[column.name] = `omniboard.columns.${column.name}`;
-            });
-            data = {...data, ...metricColumnsObject};
-            columnNameMap = {...columnNameMap, ...metricColumnNameMap};
-          }
-
-          return data;
-        });
-
-        let latestColumnOrder = runsResponseData.reduce((columns, row) => {
-          columns = Array.from(columns);
-          return new Set([...columns, ...Object.keys(row)]);
-        }, new Set());
-
-        if (!latestColumnOrder.has('tags')) {
-          latestColumnOrder.add('tags');
-        }
-        if (!latestColumnOrder.has('notes')) {
-          latestColumnOrder.add('notes');
-        }
-        // Remove metrics from it being displayed as a column
-        latestColumnOrder.delete('metrics');
-
-        // Remove artifacts from it being displayed as a column
-        latestColumnOrder.delete('artifacts');
-
-        latestColumnOrder = [...latestColumnOrder];
-
-        // Set columns array and dropdown options only the first time data is fetched
-        if (this.state.data === null) {
-          reorderArray(latestColumnOrder, 'status', 'tags');
-          reorderArray(latestColumnOrder, 'tags', 'notes');
-          reorderArray(latestColumnOrder, 'heartbeat', 'duration');
-          reorderArray(latestColumnOrder, '_id', 'experiment_name');
-          reorderArray(latestColumnOrder, 'experiment_name', 'hostname');
-          const columnWidths = {};
-          latestColumnOrder.forEach(key => {
-            latestDropdownOptions.push(this.createDropdownOption(key));
-            let columnWidth = DEFAULT_COLUMN_WIDTH;
-            if (key === TAGS_COLUMN_HEADER || key === NOTES_COLUMN_HEADER) {
-              columnWidth = 250;
-            }
-            if (key === '_id') {
-              columnWidth = 70;
-            }
-            columnWidths[key] = columnWidth;
-          });
-          // Set state only for the first load.
-          // Local storage is used to synchronize state for subsequent page reloads
-          if (this.state.columnOrder.length === 0) {
-            this.setState({
-              columnOrder: latestColumnOrder,
-              columnWidths,
-              dropdownOptions: latestDropdownOptions
-            });
-          }
-          this.showHideColumnsDomNode.syncData();
-        } else {
-          // Handle addition/deletion of metric/config columns
-          const dropdownOptionValues = dropdownOptions.map(option => option.value);
-          const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
-          const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
-
-          let newColumnOrder = columnOrder.slice();
-          let newDropdownOptions = dropdownOptions.slice();
-          let newColumnWidths = Object.assign({}, columnWidths);
-
-          if (columnsToAdd.length) {
-            newColumnOrder = newColumnOrder.concat(columnsToAdd);
-            const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
-            newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
-            const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
-              return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
-            }, {});
-            newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
-          }
-
-          this.setState({
-            columnOrder: newColumnOrder,
-            columnWidths: newColumnWidths,
-            dropdownOptions: newDropdownOptions
-          });
-
-          if (columnsToDelete.length) {
-            columnsToDelete.map(this._handleColumnDelete);
-          }
-        }
-
-        for (let index = 0; index < runsResponseData.length; index++) {
-          _defaultSortIndices.push(index);
-        }
-        const defaultSortIndices = _defaultSortIndices.length ? _defaultSortIndices : this.state.defaultSortIndices;
-        const sortIndices = this.state.sortIndices.length ? this.state.sortIndices : defaultSortIndices;
-        const sortedData = new DataListWrapper(sortIndices, runsResponseData);
-        this.setState({
-          data: runsResponseData,
-          defaultSortIndices: _defaultSortIndices,
-          columnNameMap
-        }, () => {
-          // Apply sort if sorting is already enabled
-          if (Object.keys(this.state.sort).length) {
-            const sortKey = Object.keys(this.state.sort)[0];
-            this._onSortChange(sortKey, this.state.sort[sortKey]);
-          } else {
-            this.setState({sortedData});
-          }
-        });
-      } else {
-        // If response is empty, set empty array for table data
-        this.setState({
+      if (!runsResponse.data || !runsResponse.data.length) {
+        return {
           data: [],
           defaultSortIndices: [],
           sortedData: new DataListWrapper()
-        })
+        };
       }
+      console.log(runsResponse.data)
+      var runsResponseData = this.parseResponseData(runsResponse.data, configColumns.data, columnNameMap)
+
+      let latestColumnOrder = runsResponseData.reduce((columns, row) => {
+        const configColumnsData = configColumns.data;
+        columns = Array.from(columns);
+        return new Set([...columns, ...Object.keys(row)]);
+      }, new Set());
+
+      if (!latestColumnOrder.has('tags')) {
+        latestColumnOrder.add('tags');
+      }
+      if (!latestColumnOrder.has('notes')) {
+        latestColumnOrder.add('notes');
+      }
+      // Remove metrics from it being displayed as a column
+      latestColumnOrder.delete('metrics');
+
+      // Remove artifacts from it being displayed as a column
+      latestColumnOrder.delete('artifacts');
+
+      latestColumnOrder = [...latestColumnOrder];
+
+      if (this.state.data == 0) {
+        this.initializeTable(latestColumnOrder, latestDropdownOptions);
+      } else {
+        this.updateTableColumns(dropdownOptions, latestColumnOrder, columnOrder, columnWidths)
+      }
+      for (let index = 0; index < runsResponseData.length; index++) {
+        _defaultSortIndices.push(index);
+      }
+      const defaultSortIndices = _defaultSortIndices.length ? _defaultSortIndices : this.state.defaultSortIndices;
+      const sortIndices = this.state.sortIndices.length ? this.state.sortIndices : defaultSortIndices;
+      const sortedData = new DataListWrapper(sortIndices, runsResponseData);
       this.setState({
+        data: runsResponseData,
+        defaultSortIndices: _defaultSortIndices,
+        columnNameMap,
         isTableLoading: false,
         tags: tags.data
+      }, () => {
+        // Apply sort if sorting is already enabled
+        if (Object.keys(this.state.sort).length) {
+          const sortKey = Object.keys(this.state.sort)[0];
+          this._onSortChange(sortKey, this.state.sort[sortKey]);
+        } else {
+          this.setState({sortedData});
+        }
       })
     }))
     .catch(error => {
@@ -489,9 +506,8 @@ class RunsTable extends Component {
     });
   }
 
-  /* eslint-disable no-console */
-
   updateRunningRuns() {
+    const {columnOrder, dropdownOptions, columnWidths, columnNameMap} = this.state;
     const queryJson = this.buildQueryJson();
 
     const heartbeatTimeout = new Date() - PROBABLY_DEAD_TIMEOUT;
@@ -518,21 +534,12 @@ class RunsTable extends Component {
       axios.get('/api/v1/Omniboard.Config.Columns')
     ])
     .then(axios.spread((runsResponse, tags, metricColumns, configColumns) => {
-      let runsResponseData = runsResponse.data;
-      if (runsResponseData && runsResponseData.length) {
-        const _defaultSortIndices = [];
-        runsResponseData = runsResponseData.map(data => {
-          const {sortedData} = this.state;
-          console.log(sortedData);
-          const newData = new DataListWrapper(sortedData.getIndexArray(), sortedData.getDataArray());
-          var rowIndex = 0;
-          newData.setObjectAt(rowIndex, Object.assign({}, newData.getObjectAt(rowIndex), {'heartbeat': data['heartbeat']}));
-          this.setState({
-            sortedData: newData
-          })
-        
-        });
-      }
+      var runsResponseData = this.parseResponseData(runsResponse.data, configColumns.data, columnNameMap)
+      const sortIndices = this.state.sortIndices.length ? this.state.sortIndices : this.state.defaultSortIndices;
+      const sortedData = new DataListWrapper(sortIndices, runsResponseData);
+      this.setState({
+        data: runsResponseData
+      });
 
     }))
   }
