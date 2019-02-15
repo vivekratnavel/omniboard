@@ -208,7 +208,7 @@ class RunsTable extends Component {
 >>>>>>> fix(web/RunsTable): Change loadData request order: First request omniboard.Columns to decide which m
       const metricColumnsData = metricColumns.data;
 
-      const run_query_params  ={
+      const runQueryParams  ={
         select: '_id,heartbeat,experiment,command,artifacts,host,stop_time,config,' +
                 'result,start_time,resources,format,status,omniboard,metrics,meta',
         sort: '-_id',
@@ -216,21 +216,18 @@ class RunsTable extends Component {
       };
 
       if (metricColumnsData.length){
-        const metric_column_names = [];
-        metricColumnsData.forEach(column => {
-          metric_column_names.push(column.metric_name);
-        });
-        run_query_params.populate = {
+        const metricColumnNames = metricColumnsData.map(column => column.metric_name);
+        runQueryParams.populate = {
           path: 'metrics',
           match: {
-            name: { $in : metric_column_names }
+            name: { $in : metricColumnNames }
           }
         };
       }
 
       axios.all([
         axios.get('/api/v1/Runs', {
-            params: run_query_params
+            params: runQueryParams
         }),
         axios.get('/api/v1/Runs', {
             params: {
