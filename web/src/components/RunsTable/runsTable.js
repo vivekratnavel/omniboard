@@ -225,7 +225,7 @@ class RunsTable extends Component {
         };
       }
 
-      axios.all([
+      return axios.all([
         axios.get('/api/v1/Runs', {
             params: runQueryParams
         }),
@@ -234,8 +234,10 @@ class RunsTable extends Component {
               distinct: 'omniboard.tags'
             }
         }),
-        axios.get('/api/v1/Omniboard.Config.Columns')
-      ]).then(axios.spread((runsResponse, tags, configColumns) => {
+        axios.get('/api/v1/Omniboard.Config.Columns'),
+        Promise.resolve(metricColumnsData),
+      ]);
+    }).then(axios.spread((runsResponse, tags, configColumns, metricColumnsData) => {
         let runsResponseData = runsResponse.data;
 
         const configColumnsData = configColumns.data;
@@ -481,14 +483,6 @@ class RunsTable extends Component {
           errorMessage
         })
       });
-    }).catch(error => {
-      const errorMessage = parseServerError(error);
-      this.setState({
-        isTableLoading: false,
-        isError: true,
-        errorMessage
-      });
-    });
   };
 
   updateTags(id, tagValues, rowIndex) {
