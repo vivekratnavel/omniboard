@@ -1,4 +1,4 @@
-import database from './config/database';
+import {databaseConn, gfs} from './config/database';
 import express from 'express';
 import * as path from 'path';
 import morgan from 'morgan';
@@ -11,6 +11,7 @@ import OmniboardColumnsModel from './models/omniboard.columns';
 import OmniboardConfigColumnsModel from './models/omniboard.config.columns';
 import FilesModel from './models/fs.files';
 import ChunksModel from './models/fs.chunks';
+import archiver from 'archiver';
 
 const app = express();
 const router = express.Router();
@@ -60,9 +61,109 @@ router.get('/api/v1/files/:id', function(req, res) {
   });
 });
 
+router.get('/api/v1/files/download/:id/:fileName', function(req, res) {
+  // Read file as stream from Mongo GridFS
+  const readStream = gfs.createReadStream({
+    _id: req.params.id
+  });
+  //error handling, e.g. file does not exist
+  readStream.on('error', function (err) {
+    console.error('An error occurred: ', err);
+    throw err;
+  });
+
+  const fileName = req.params.fileName;
+  res.contentType(fileName);
+  res.set({
+    'Content-Disposition': 'attachment; filename=' + fileName
+  });
+
+  // Pipe the file stream to http response
+  readStream.pipe(res);
+});
+
+router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res) {
+  const FILE_TYPE = {
+    SOURCE_FILES: 'source_files',
+    ARTIFACTS: 'artifacts'
+  };
+  const allowedTypes = [
+    FILE_TYPE.SOURCE_FILES,
+    FILE_TYPE.ARTIFACTS
+  ];
+  const fileType = req.params.fileType;
+  const runId = req.params.runId;
+  if (!allowedTypes.includes(fileType)) {
+    res.status(400).json({message: 'Error: Invalid input for fileType.'});
+  } else {
+    RunsModel.findById(req.params.runId).exec(function(err, result) {
+      if (err) throw (err);
+      let files = [];
+      if (fileType === FILE_TYPE.SOURCE_FILES) {
+        if (result && result.experiment && result.experiment.sources) {
+          files = result.experiment.sources.map(source => {
+            return {
+              name: source[0],
+              file_id: source[1]
+            }
+          });
+        } else {
+          res.status(500).json({message: 'Error: Unable to fetch source files for runId: ' + runId});
+        }
+      } else {
+        // fileType: artifacts
+        files = result.artifacts;
+      }
+      const archive = archiver('zip', {
+        zlib: { level: 5 } // Sets the compression level.
+      });
+      const fileName = `${fileType}-${runId}.zip`; // ex: source-files-1.zip
+      const dirName = `${fileType}-${runId}`; // ex: source-files-1
+      archive.on('error', function(err) {
+        console.error('An error occurred: ', err);
+        res.status(500);
+        throw err;
+      });
+      files.forEach(function(file) {
+        const readStream = gfs.createReadStream({
+          _id: file.file_id
+        });
+        //error handling, e.g. file does not exist
+        readStream.on('error', function (err) {
+          console.error('An error occurred: ', err);
+          res.status(500);
+          throw err;
+        });
+        // add file to archive
+        archive.append(readStream, {name: file.name, prefix: dirName});
+      });
+      archive.finalize();
+      res.set({
+        'Content-Disposition': 'attachment; filename=' + fileName
+      });
+      archive.pipe(res);
+    });
+  }
+});
+
+router.get('/api/v1/files/preview/:fileId', function(req, res) {
+  // Read file as stream from Mongo GridFS
+  const readStream = gfs.createReadStream({
+    _id: req.params.fileId
+  });
+  //error handling, e.g. file does not exist
+  readStream.on('error', function (err) {
+    console.error('An error occurred: ', err);
+    throw err;
+  });
+
+  // Pipe the file stream to http response
+  readStream.pipe(res);
+});
+
 router.get('/api/v1/database', function(req, res) {
-  if (database && database.name) {
-    res.json({name: database.name});
+  if (databaseConn && databaseConn.name) {
+    res.json({name: databaseConn.name});
   } else {
     res.status(500).json({message: 'An unknown error occurred'})
   }

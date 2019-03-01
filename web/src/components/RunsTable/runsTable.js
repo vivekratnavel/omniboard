@@ -184,7 +184,7 @@ class RunsTable extends Component {
     axios.all([
       axios.get('/api/v1/Runs', {
         params: {
-          select: '_id,heartbeat,experiment,command,artifacts,host,stop_time,config,' +
+          select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
           'result,start_time,resources,format,status,omniboard,metrics,meta',
           sort: '-_id',
           query: queryString,
@@ -318,9 +318,6 @@ class RunsTable extends Component {
         }
         // Remove metrics from it being displayed as a column
         latestColumnOrder.delete('metrics');
-
-        // Remove artifacts from it being displayed as a column
-        latestColumnOrder.delete('artifacts');
 
         latestColumnOrder = [...latestColumnOrder];
 

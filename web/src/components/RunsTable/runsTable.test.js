@@ -73,7 +73,7 @@ describe('RunsTable', () => {
     const getAPIArguments = (queryString) => {
       return ['/api/v1/Runs', {
         params: {
-          select: '_id,heartbeat,experiment,command,artifacts,host,stop_time,config,' +
+          select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
             'result,start_time,resources,format,status,omniboard,metrics,meta',
           sort: '-_id',
           query: queryString,

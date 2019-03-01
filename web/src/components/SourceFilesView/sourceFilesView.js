@@ -4,7 +4,9 @@ import { Alert, Button } from 'react-bootstrap';
 import './sourceFilesView.scss';
 import axios from 'axios';
 import { ProgressWrapper } from '../Helpers/hoc';
-import { parseServerError } from '../Helpers/utils';
+import {concatArrayBuffers, getFileExtension, parseServerError} from '../Helpers/utils';
+import ReactList from 'react-list';
+import { imageExtensions } from "../FilePreview/imageExtensions";
 import {
   Accordion,
   AccordionItem,
@@ -12,14 +14,18 @@ import {
   AccordionItemBody,
 } from 'react-accessible-accordion';
 import saveAs from 'file-saver';
-import JSZip from 'jszip';
 import { FilePreview } from '../FilePreview/filePreview';
+
+const MIN_ACCORDION_HEIGHT = 51;
+
+// File preview limit set to 5MB in bytes
+const FILE_PREVIEW_LIMIT = 5242880;
 
 class SourceFilesView extends Component {
   static propTypes = {
-    files: PropTypes.array,
-    type: PropTypes.string,
-    runId: PropTypes.number
+    files: PropTypes.array.isRequired,
+    type: PropTypes.string.isRequired,
+    runId: PropTypes.number.isRequired
   };
 
   constructor(props) {
@@ -28,7 +34,9 @@ class SourceFilesView extends Component {
       sourceFiles: {},
       isLoadingSourceFiles: false,
       error: '',
-      isZipInProgress: false
+      isZipInProgress: false,
+      isAccordionDataLoading: false,
+      accordionError: ''
     }
   }
 
@@ -47,18 +55,16 @@ class SourceFilesView extends Component {
       });
       axios.get('/api/v1/Fs.files', {
         params: {
-          query,
-          populate: 'chunk'
+          query
         }
       }).then(response => {
         const sourceFiles = response.data.reduce( (files, file) => {
-          const dataChunk = file.chunk.length ? file.chunk[0].data : '';
-
           files[file._id] = {
             id: file._id,
             uploadDate: file.uploadDate,
             filepath: file.filename,
-            data: dataChunk
+            fileLength: file.length,
+            chunkSize: file.chunkSize
           };
           return files;
         }, {});
@@ -80,7 +86,7 @@ class SourceFilesView extends Component {
   _downloadFile = (fileId, fileName) => {
     return (event) => {
       axios({
-        url: '/api/v1/files/' + fileId,
+        url: `/api/v1/files/download/${fileId}/${fileName}`,
         method: 'GET',
         responseType: 'blob'
       }).then(response => {
@@ -97,23 +103,26 @@ class SourceFilesView extends Component {
   _downloadAllFiles = (event) => {
     const {sourceFiles} = this.state;
     const {type, runId} = this.props;
-    const zip = new JSZip();
     if (Object.keys(sourceFiles).length) {
       this.setState({
         isZipInProgress: true
       });
-      Object.values(sourceFiles).forEach(file => {
-        if (file.data) {
-          zip.file(file.filepath, file.data, {base64: true});
-        }
-      });
-      zip.generateAsync({type: "blob"})
-        .then(content => {
-          saveAs(content, `${type}-${runId}.zip`);
-          this.setState({
-            isZipInProgress: false
-          });
+      axios({
+        url: `/api/v1/files/downloadAll/${runId}/${type}`,
+        method: 'GET',
+        responseType: 'blob'
+      }).then(response => {
+        this.setState({
+          isZipInProgress: false
         });
+        saveAs(new Blob([response.data]), `${type}-${runId}.zip`);
+      }).catch(error => {
+        const message = parseServerError(error);
+        this.setState({
+          isZipInProgress: false,
+          error: message
+        });
+      });
     } else {
       this.setState({
         error: `Error: No files are available to download`
@@ -125,9 +134,96 @@ class SourceFilesView extends Component {
     this._fetchSourceFiles();
   }
 
+  _handleAccordionItemChange = (fileId) => {
+    const {sourceFiles} = this.state;
+    const {files} = this.props;
+    const fileInfo = files.find(file => file.file_id === fileId);
+    const fileName = fileInfo.name || '';
+    this.setState({
+      accordionError: ''
+    });
+    if (sourceFiles[fileId] && !sourceFiles[fileId].data && sourceFiles[fileId].fileLength <= FILE_PREVIEW_LIMIT
+        && !imageExtensions.includes(getFileExtension(fileName))) {
+      // fetch contents of artifact/source file
+      this.setState({
+        isAccordionDataLoading: true
+      });
+
+      fetch(`api/v1/files/preview/${fileId}`)
+        .then(response => {
+          // Response body is a ReadableStream
+          const reader = response.body.getReader();
+          // result is concatenated Array Buffer
+          let result = null;
+          const onStreamDone = () => {
+            // convert array buffer to string
+            const resultText = new TextDecoder().decode(result);
+            const updatedFileInfo = Object.assign({}, sourceFiles[fileId], {data: resultText});
+            const updatedSourceFiles = Object.assign({}, this.state.sourceFiles, {[fileId]: updatedFileInfo});
+            this.setState({
+              sourceFiles: updatedSourceFiles,
+              isAccordionDataLoading: false
+            });
+          };
+          reader.read().then(function processText({ done, value }) {
+            // Result objects contain two properties:
+            // done  - true if the stream has already given you all its data.
+            // value - some data. Always undefined when done is true.
+            if (done) {
+              onStreamDone();
+              return;
+            }
+            // Concatenate array buffer
+            result = concatArrayBuffers(result, value);
+
+            // Read some more, and call this function again
+            return reader.read().then(processText);
+          });
+        }).catch(error => {
+          this.setState({
+            isAccordionDataLoading: false,
+            accordionError: parseServerError(error)
+          });
+        });
+    }
+  };
+
+  _itemSizeEstimator = (index, cache) => {
+    return MIN_ACCORDION_HEIGHT;
+  };
+
+  _renderAccordionItem = (index) => {
+    const {files} = this.props;
+    const {sourceFiles, accordionError, isAccordionDataLoading} = this.state;
+    const file = files[index];
+    return (
+    <AccordionItem key={file.file_id} uuid={file.file_id} test-attr={"acc-item-"+index}>
+      <AccordionItemTitle className="accordion__title accordion__title--animated">
+        <h5 className="u-position-relative">
+          {file.name}
+          <div className="accordion__arrow" role="presentation" />
+        </h5>
+        <div>{sourceFiles[file.file_id] && sourceFiles[file.file_id].filepath}</div>
+      </AccordionItemTitle>
+      <AccordionItemBody>
+        <div className="clearfix">
+          <div className="pull-left upload-date">Upload Date: {sourceFiles[file.file_id] && sourceFiles[file.file_id].uploadDate}</div>
+          <div className="pull-right">
+            <Button test-attr={"down-btn-"+file.name} bsStyle="default" bsSize="xsmall" onClick={this._downloadFile(file.file_id, file.name)}>
+              <i className='glyphicon glyphicon-download-alt'/> Download
+            </Button>
+          </div>
+        </div>
+        <FilePreview fileName={file.name} fileId={file.file_id} sourceFiles={sourceFiles}
+           isLoading={isAccordionDataLoading} errorMessage={accordionError}/>
+      </AccordionItemBody>
+    </AccordionItem>
+    );
+  };
+
   render() {
     const {files, type} = this.props;
-    const {isLoadingSourceFiles, isZipInProgress, error, sourceFiles} = this.state;
+    const {isLoadingSourceFiles, isZipInProgress, error} = this.state;
 
     const errorAlert = error ? <Alert bsStyle="danger">{error}</Alert> : '';
     const warningText = `Oops! There are no ${type} available for this run.`;
@@ -138,33 +234,20 @@ class SourceFilesView extends Component {
             <Button test-attr="down-all-btn" bsStyle="info" bsSize="small" onClick={this._downloadAllFiles} disabled={isZipInProgress}>
               {isZipInProgress ? <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/> : <i className='glyphicon glyphicon-download-alt'/>}
               &nbsp;
-              {isZipInProgress ? "Preparing..." : "Download All"}
+              {isZipInProgress ? "Archiving..." : "Download All"}
             </Button>
           </div>
         </div>
-        <Accordion accordion={false}>
-          {files.map(file =>
-            <AccordionItem key={file.name}>
-              <AccordionItemTitle className="accordion__title accordion__title--animated">
-                <h5 className="u-position-relative">
-                  {file.name}
-                  <div className="accordion__arrow" role="presentation" />
-                </h5>
-                <div>{sourceFiles[file.file_id] && sourceFiles[file.file_id].filepath}</div>
-              </AccordionItemTitle>
-              <AccordionItemBody>
-                <div className="clearfix">
-                  <div className="pull-left upload-date">Upload Date: {sourceFiles[file.name] && sourceFiles[file.name].uploadDate}</div>
-                  <div className="pull-right">
-                    <Button test-attr={"down-btn-"+file.name} bsStyle="default" bsSize="xsmall" onClick={this._downloadFile(file.file_id, file.name)}>
-                      <i className='glyphicon glyphicon-download-alt'/> Download
-                    </Button>
-                  </div>
-                </div>
-                <FilePreview fileName={file.name} fileId={file.file_id} sourceFiles={sourceFiles}/>
-              </AccordionItemBody>
-            </AccordionItem>
-          )}
+        <Accordion accordion={true} onChange={this._handleAccordionItemChange}>
+          <ReactList
+            itemRenderer={this._renderAccordionItem}
+            length={files.length}
+            type='variable'
+            minSize={20}
+            pageSize={10}
+            threshold={300}
+            itemSizeEstimator={this._itemSizeEstimator}
+          />
         </Accordion>
       </div>
     </ProgressWrapper>;
@@ -178,4 +261,4 @@ class SourceFilesView extends Component {
   }
 }
 
-export {SourceFilesView};
+export {SourceFilesView, FILE_PREVIEW_LIMIT};

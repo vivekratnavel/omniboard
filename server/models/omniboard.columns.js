@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import db from '../config/database';
+import {databaseConn} from '../config/database';
 
 const Schema = mongoose.Schema;
 mongoose.Promise = Promise;
@@ -12,4 +12,4 @@ export const OmniboardColumnsSchema = new Schema({
   strict: false
 });
 
-export default db.model('omniboard.columns', OmniboardColumnsSchema);
+export default databaseConn.model('omniboard.columns', OmniboardColumnsSchema);

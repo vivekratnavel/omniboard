@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import db from '../config/database';
+import {databaseConn} from '../config/database';
 
 const Schema = mongoose.Schema;
 mongoose.Promise = Promise;
@@ -17,4 +17,4 @@ FilesSchema.virtual('chunk', {
   foreignField: 'files_id'
 });
 
-export default db.model('fs.files', FilesSchema);
+export default databaseConn.model('fs.files', FilesSchema);

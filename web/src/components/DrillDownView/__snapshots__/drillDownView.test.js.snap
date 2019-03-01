@@ -9,6 +9,7 @@ exports[`DrillDownView should render correctly 1`] = `
       "selectedNavTab",
     ]
   }
+  status="COMPLETED"
   width={600}
 >
   <div

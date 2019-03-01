@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import yargs from 'yargs';
+import Grid from 'gridfs-stream';
 
 const argv = yargs.argv;
 
@@ -32,6 +33,7 @@ if ('m' in argv) {
 const mongoOptions = { auto_reconnect: true, useNewUrlParser: true };
 const reconnectTries = 2;
 let counter = 0;
+let gfs = null;
 const createConnection = function(mongodbURI, mongoOptions) {
   const db = mongoose.createConnection(mongodbURI, mongoOptions);
 
@@ -66,9 +68,11 @@ const createConnection = function(mongodbURI, mongoOptions) {
 
   db.once('open', function() {
     console.log(`Connection to ${mongodbURI} established successfully!`);
+    gfs = Grid(db.db, mongoose.mongo);
   });
 
   return db;
 };
+const databaseConn = createConnection(mongodbURI, mongoOptions);
 
-export default createConnection(mongodbURI, mongoOptions);
+export {databaseConn, gfs};

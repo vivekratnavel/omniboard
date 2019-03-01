@@ -55,7 +55,7 @@ describe('DrillDownView', () => {
 
   beforeEach(() => {
     wrapper = mount(
-      <DrillDownView height={500} runId={200} width={600}/>
+      <DrillDownView height={500} runId={200} width={600} status={STATUS.COMPLETED}/>
     );
   });
 
@@ -172,13 +172,13 @@ describe('DrillDownView', () => {
     wrapper.unmount();
     mockAxios.reset();
     wrapper = mount(
-      <DrillDownView height={500} width={600}/>
+      <DrillDownView height={500} width={600} runId={0} status={STATUS.COMPLETED}/>
     );
 
     expect(mockAxios.get).not.toHaveBeenCalled();
     wrapper.unmount();
     wrapper = mount(
-      <DrillDownView height={500} runId={1} width={600}/>
+      <DrillDownView height={500} runId={1} width={600} status={STATUS.COMPLETED}/>
     );
 
     expect(mockAxios.get).toHaveBeenCalledTimes(2);

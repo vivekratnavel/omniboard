@@ -3,10 +3,11 @@ import { SourceFilesView } from './sourceFilesView';
 import mockAxios from 'jest-mock-axios';
 import { parseServerError } from '../Helpers/utils';
 import saveAs from 'file-saver';
-import { mockFile, mockGenerateAsync } from '../../../__mocks__/jszip';
 
 describe('SourceFilesView', () => {
   let wrapper = null;
+  const type = 'artifacts';
+  const runId = 1;
   const files = [
     {
       name: "/src/hello_world.py",
@@ -20,15 +21,7 @@ describe('SourceFilesView', () => {
       "md5": "6ef452da81287e70540ee3cf0bffd13e",
       "length": 1646,
       "chunkSize": 261120,
-      "filename": "/src/hello_world.py",
-      "chunk": [
-        {
-          "_id": "5a1bd242ca100c1a210b0d3b",
-          "data": "SGVsbG8gV29ybGQh",
-          "n": 0,
-          "files_id": "5a1bd242ca100c1a210b0d3a"
-        }
-      ]
+      "filename": "/src/hello_world.py"
     },
     {
       "_id": "5a1bd242ca100c1a210b0d3b",
@@ -36,21 +29,13 @@ describe('SourceFilesView', () => {
       "md5": "6ef452da81287e70540ee3cf9bffd13e",
       "length": 0,
       "chunkSize": 0,
-      "filename": "/src/hello_world_2.py",
-      "chunk": [
-        {
-          "_id": "5a1bd242ca100c1a210b0d3c",
-          "data": "",
-          "n": 0,
-          "files_id": "5a1bd242ca100c1a210b0d3b"
-        }
-      ]
+      "filename": "/src/hello_world_2.py"
     }
   ];
 
   beforeEach(() => {
-    wrapper = shallow(
-      <SourceFilesView files={files} runId={1} type="artifacts"/>
+    wrapper = mount(
+      <SourceFilesView files={files} runId={runId} type={type}/>
     );
   });
 
@@ -79,19 +64,21 @@ describe('SourceFilesView', () => {
 
   describe('should download file', async () => {
     it('when source exists', async () => {
+      const data = '}qXresultqX\fHello world!qs.';
       mockAxios.mockResponse({status: 200, data: responseData});
       await tick();
-      wrapper.update().find('[test-attr="down-btn-/src/hello_world.py"]').simulate('click');
-      mockAxios.mockResponse({status: 200, data: responseData[0].chunk[0].data});
+      wrapper.update().find('[test-attr="acc-item-0"]').at(1).simulate('click');
+      wrapper.update().find('[test-attr="down-btn-/src/hello_world.py"]').at(1).simulate('click');
+      mockAxios.mockResponse({status: 200, data});
       await tick();
 
-      expect(saveAs).toHaveBeenCalledWith(new Blob([responseData[0].chunk[0].data]), files[0].name);
+      expect(saveAs).toHaveBeenCalledWith(new Blob([data]), files[0].name);
     });
 
     it('display error when source does not exist', async () => {
       mockAxios.mockResponse({status: 200, data: []});
       await tick();
-      wrapper.update().find('[test-attr="down-btn-/src/hello_world.py"]').simulate('click');
+      wrapper.update().find('[test-attr="down-btn-/src/hello_world.py"]').at(1).simulate('click');
       const err = {status: 500, message: 'internal server error'};
       mockAxios.mockError(err);
       await tick();
@@ -103,28 +90,46 @@ describe('SourceFilesView', () => {
 
   describe('should download all files', async () => {
     it('when source exists', async () => {
+      const data = '}qXresultqX\fHello world!qs.';
       mockAxios.mockResponse({status: 200, data: responseData});
       await tick();
-      wrapper.update().find('[test-attr="down-all-btn"]').simulate('click');
+      wrapper.update().find('[test-attr="down-all-btn"]').at(1).simulate('click');
 
       expect(wrapper.state().isZipInProgress).toBeTruthy();
+      mockAxios.mockResponse({status: 200, data});
       await tick();
 
-      expect(mockFile).toHaveBeenCalledWith(files[0].name, responseData[0].chunk[0].data, {"base64": true});
-      expect(mockGenerateAsync).toHaveBeenCalledWith({"type": "blob"});
       expect(wrapper.state().isZipInProgress).toBeFalsy();
-      // "test" comes from mock implementation of the module in __mocks__/jszip.js
-      expect(saveAs).toHaveBeenCalledWith('test', 'artifacts-1.zip');
+      expect(saveAs).toHaveBeenCalledWith(new Blob([data]), `${type}-${runId}.zip`);
     });
 
     it('display error when source does not exist', async () => {
       mockAxios.mockResponse({status: 200, data: []});
       await tick();
-      wrapper.update().find('[test-attr="down-all-btn"]').simulate('click');
+      wrapper.update().find('[test-attr="down-all-btn"]').at(1).simulate('click');
       await tick();
 
       expect(saveAs).not.toHaveBeenCalled();
       expect(wrapper.state().error).toEqual("Error: No files are available to download");
+    });
+  });
+
+  describe('should handle accordion change', async () => {
+    it('and handle error', async () => {
+      const fileId = responseData[0]._id;
+      const error = {message: 'errorMessage'};
+      mockAxios.mockResponse({status: 200, data: responseData});
+      await tick();
+      fetch.mockReject(error);
+      wrapper.instance()._handleAccordionItemChange(fileId);
+
+      expect(fetch.mock.calls).toHaveLength(1);
+      expect(fetch.mock.calls[0][0]).toEqual(`api/v1/files/preview/${fileId}`);
+
+      await tick();
+
+      expect(wrapper.update().state().isAccordionDataLoading).toBeFalsy();
+      expect(wrapper.state().accordionError).toEqual(parseServerError(error));
     });
   });
 

@@ -5,6 +5,10 @@ import PropTypes from 'prop-types'
 import SyntaxHighlighter, { registerLanguage } from "react-syntax-highlighter/prism-light";
 import json from 'react-syntax-highlighter/languages/prism/json';
 import python from 'react-syntax-highlighter/languages/prism/python';
+import { Alert } from 'react-bootstrap';
+import { ProgressWrapper } from "../Helpers/hoc";
+import { FILE_PREVIEW_LIMIT } from '../SourceFilesView/sourceFilesView';
+import { getFileExtension } from "../Helpers/utils";
 
 registerLanguage('json', json);
 registerLanguage('python', python);
@@ -20,27 +24,44 @@ const getLanguageFromFileName = (fileName) => {
 
 class FilePreview extends PureComponent {
   static propTypes = {
-    fileName: PropTypes.string,
-    sourceFiles: PropTypes.object,
-    fileId: PropTypes.string
+    fileName: PropTypes.string.isRequired,
+    sourceFiles: PropTypes.object.isRequired,
+    fileId: PropTypes.string.isRequired,
+    isLoading: PropTypes.bool.isRequired,
+    errorMessage: PropTypes.string
   };
 
   render() {
-    const {fileName, sourceFiles, fileId} = this.props;
-    const extension = fileName.split('.').splice(-1)[0];
-
-    if (imageExtensions.includes(extension) && fileId) {
-      let imgSource = `/api/v1/files/${fileId}`;
-      if (extension === 'svg' && sourceFiles[fileId]) {
-        imgSource = `data:image/svg+xml;base64,${sourceFiles[fileId].data}`;
+    const {fileName, sourceFiles, fileId, errorMessage, isLoading} = this.props;
+    const extension = getFileExtension(fileName);
+    const fileInfo = sourceFiles[fileId];
+    const isFileTooLarge = fileInfo && fileInfo.fileLength && fileInfo.fileLength > FILE_PREVIEW_LIMIT;
+    const warningMessage = `File is too large to be previewed. Only files less than ${FILE_PREVIEW_LIMIT/1024/1024}MB can be previewed.`;
+    const formattedFilePreview = () => {
+      if (isFileTooLarge) {
+        return (<Alert bsStyle="warning">{warningMessage}</Alert>);
       }
-      return (<img src={imgSource} />);
-    }
+      if (imageExtensions.includes(extension) && fileId) {
+        let imgSource = `/api/v1/files/download/${fileId}/${fileName}`;
+        return(<img src={imgSource} alt='image'/>);
+      } else if (fileInfo && fileInfo.data) {
+        return (<SyntaxHighlighter language={getLanguageFromFileName(fileName)} style={tomorrow}>{fileInfo.data}</SyntaxHighlighter>);
+      }
+      return null;
+    };
     return (
-        <SyntaxHighlighter language={getLanguageFromFileName(fileName)} style={tomorrow}>
-          {sourceFiles[fileId] && atob(sourceFiles[fileId].data)}
-        </SyntaxHighlighter>
-        );
+      <div>
+        <ProgressWrapper loading={isLoading}>
+        {
+          errorMessage
+          ?
+          <Alert bsStyle="danger">{errorMessage}</Alert>
+          :
+          formattedFilePreview()
+        }
+        </ProgressWrapper>
+      </div>
+    );
   }
 }
 

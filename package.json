@@ -19,11 +19,13 @@
     "url": "https://github.com/vivekratnavel/omniboard.git"
   },
   "dependencies": {
+    "archiver": "^3.0.0",
     "body-parser": "~1.18.2",
     "cross-env": "^5.2.0",
     "express": "~4.15.5",
     "express-paginate": "^0.3.0",
     "express-restify-mongoose": "^4.3.0",
+    "gridfs-stream": "^1.1.1",
     "method-override": "^2.3.10",
     "mongodb": "^3.0.1",
     "mongoose": "^5.3.3",
@@ -32,6 +34,7 @@
   },
   "scripts": {
     "start": "babel-node server",
+    "debug": "nodemon --ignore './web/' server --exec babel-node --inspect",
     "server": "nodemon --ignore './web/' server --exec babel-node",
     "client": "cd web && npm run start",
     "clean:server": "rm -rf ./dist/*",
