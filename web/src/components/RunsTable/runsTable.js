@@ -86,7 +86,7 @@ class RunsTable extends Component {
   showHideColumnsDomNode = null;
   statusFilterDomNode = null;
   tableDom = null;
-  
+
   constructor(props) {
     super(props);
     this.state = {
@@ -181,31 +181,9 @@ class RunsTable extends Component {
       isTableLoading: true,
       isError: false
     });
-<<<<<<< HEAD
-    axios.all([
-      axios.get('/api/v1/Runs', {
-        params: {
-          select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
-          'result,start_time,resources,format,status,omniboard,metrics,meta',
-          sort: '-_id',
-          query: queryString
-        }
-      }),
-      axios.get('/api/v1/Runs', {
-        params: {
-          distinct: 'omniboard.tags'
-        }
-      }),
-      axios.get('/api/v1/Omniboard.Columns'),
-      axios.get('/api/v1/Omniboard.Config.Columns')
-    ])
-    .then(axios.spread((runsResponse, tags, metricColumns, configColumns) => {
-      let runsResponseData = runsResponse.data;
-=======
 
     // First retrieve metric columns as to decide which metrics need to be populated.
     axios.get('/api/v1/Omniboard.Columns').then((metricColumns) => {
->>>>>>> fix(web/RunsTable): Change loadData request order: First request omniboard.Columns to decide which m
       const metricColumnsData = metricColumns.data;
 
       const runQueryParams  ={
@@ -312,36 +290,9 @@ class RunsTable extends Component {
               }
             }
 
-<<<<<<< HEAD
-        if (!latestColumnOrder.has('tags')) {
-          latestColumnOrder.add('tags');
-        }
-        if (!latestColumnOrder.has('notes')) {
-          latestColumnOrder.add('notes');
-        }
-        // Remove metrics from it being displayed as a column
-        latestColumnOrder.delete('metrics');
-
-        latestColumnOrder = [...latestColumnOrder];
-
-        // Set columns array and dropdown options only the first time data is fetched
-        if (this.state.data === null) {
-          reorderArray(latestColumnOrder, 'status', 'tags');
-          reorderArray(latestColumnOrder, 'tags', 'notes');
-          reorderArray(latestColumnOrder, 'heartbeat', 'duration');
-          reorderArray(latestColumnOrder, '_id', 'experiment_name');
-          reorderArray(latestColumnOrder, 'experiment_name', 'hostname');
-          const columnWidths = {};
-          latestColumnOrder.forEach(key => {
-            latestDropdownOptions.push(this.createDropdownOption(key));
-            let columnWidth = DEFAULT_COLUMN_WIDTH;
-            if (key === TAGS_COLUMN_HEADER || key === NOTES_COLUMN_HEADER) {
-              columnWidth = 250;
-=======
             // Delete meta if not deleted already
             if ('meta' in data) {
               delete data['meta'];
->>>>>>> fix(web/RunsTable): Change loadData request order: First request omniboard.Columns to decide which m
             }
 
             // Include metric columns
