@@ -2,7 +2,21 @@
 
 exports[`Cells Editable Cell should render correctly 1`] = `
 <EditableCell
-  changeHandler={[Function]}
+  changeHandler={
+    [MockFunction] {
+      "calls": Array [
+        Array [
+          1,
+        ],
+      ],
+      "results": Array [
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+      ],
+    }
+  }
   columnKey="col_1"
   data={
     DataListWrapper {
@@ -95,7 +109,7 @@ exports[`Cells Editable Cell should render correctly 1`] = `
 
 exports[`Cells Expand Row Cell should render correctly 1`] = `
 <ExpandRowCell
-  callback={[Function]}
+  callback={[MockFunction]}
   rowIndex={1}
 >
   <FixedDataTableCellDefault
@@ -168,7 +182,7 @@ exports[`Cells Id Cell should render correctly 1`] = `
       ],
     }
   }
-  handleDataUpdate={[Function]}
+  handleDataUpdate={[MockFunction]}
   rowIndex={1}
 >
   <div>
@@ -304,7 +318,21 @@ exports[`Cells Select Cell should render correctly 1`] = `
     ]
   }
   rowIndex={0}
-  tagChangeHandler={[Function]}
+  tagChangeHandler={
+    [MockFunction] {
+      "calls": Array [
+        Array [
+          0,
+        ],
+      ],
+      "results": Array [
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+      ],
+    }
+  }
 >
   <FixedDataTableCellDefault>
     <div
@@ -2035,7 +2063,42 @@ exports[`Cells Select Cell should render select without options and data 1`] = `
   }
   options={Array []}
   rowIndex={0}
-  tagChangeHandler={[Function]}
+  tagChangeHandler={
+    [MockFunction] {
+      "calls": Array [
+        Array [
+          0,
+        ],
+        Array [
+          0,
+        ],
+        Array [
+          0,
+        ],
+        Array [
+          0,
+        ],
+      ],
+      "results": Array [
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+      ],
+    }
+  }
 >
   <FixedDataTableCellDefault>
     <div

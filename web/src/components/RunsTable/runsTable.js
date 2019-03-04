@@ -177,47 +177,51 @@ class RunsTable extends Component {
       });
     }
     const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : {};
+    let metricColumnsData = [];
+    let runQueryParams = {};
     this.setState({
       isTableLoading: true,
       isError: false
     });
 
     // First retrieve metric columns as to decide which metrics need to be populated.
-    axios.get('/api/v1/Omniboard.Columns').then((metricColumns) => {
-      const metricColumnsData = metricColumns.data;
+    axios.get('/api/v1/Omniboard.Columns').then(metricColumns => {
+      metricColumnsData = metricColumns.data;
 
-      const runQueryParams  ={
-        select: '_id,heartbeat,experiment,command,artifacts,host,stop_time,config,' +
+      runQueryParams = {
+        select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
                 'result,start_time,resources,format,status,omniboard,metrics,meta',
         sort: '-_id',
         query: queryString
       };
 
-      if (metricColumnsData.length){
+      if (metricColumnsData.length) {
         const metricColumnNames = metricColumnsData.map(column => column.metric_name);
+        const distinctMetricColumnNames = [...new Set(metricColumnNames)];
         runQueryParams.populate = {
           path: 'metrics',
           match: {
-            name: { $in : metricColumnNames }
+            name: { $in : distinctMetricColumnNames }
           }
         };
       }
+      return Promise.resolve(true);
+    }).then(resolved => {
+      // The value of resolved is not used because
+      // it breaks all unit tests and makes it impossible to write unit tests.
+      axios.all([
+        axios.get('/api/v1/Runs', {
+          params: runQueryParams
+        }),
+        axios.get('/api/v1/Runs', {
+          params: {
+            distinct: 'omniboard.tags'
+          }
+        }),
+        axios.get('/api/v1/Omniboard.Config.Columns')
+      ]).then(axios.spread((runsResponse, tags, configColumns) => {
 
-      return axios.all([
-        axios.get('/api/v1/Runs', {
-            params: runQueryParams
-        }),
-        axios.get('/api/v1/Runs', {
-            params: {
-              distinct: 'omniboard.tags'
-            }
-        }),
-        axios.get('/api/v1/Omniboard.Config.Columns'),
-        Promise.resolve(metricColumnsData),
-      ]);
-    }).then(axios.spread((runsResponse, tags, configColumns, metricColumnsData) => {
         let runsResponseData = runsResponse.data;
-
         const configColumnsData = configColumns.data;
         if (runsResponseData && runsResponseData.length) {
           const _defaultSortIndices = [];
@@ -322,7 +326,7 @@ class RunsTable extends Component {
           let latestColumnOrder = runsResponseData.reduce((columns, row) => {
             columns = Array.from(columns);
             return new Set([...columns, ...Object.keys(row)]);
-            }, new Set());
+          }, new Set());
           if (!latestColumnOrder.has('tags')) {
             latestColumnOrder.add('tags');
           }
@@ -331,9 +335,6 @@ class RunsTable extends Component {
           }
           // Remove metrics from it being displayed as a column
           latestColumnOrder.delete('metrics');
-
-          // Remove artifacts from it being displayed as a column
-          latestColumnOrder.delete('artifacts');
 
           latestColumnOrder = [...latestColumnOrder];
 
@@ -380,7 +381,7 @@ class RunsTable extends Component {
               newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
               const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
                 return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
-                }, {});
+              }, {});
               newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
             }
 
@@ -420,20 +421,28 @@ class RunsTable extends Component {
             data: [],
             defaultSortIndices: [],
             sortedData: new DataListWrapper()
-          })
+          });
         }
         this.setState({
           isTableLoading: false,
           tags: tags.data
-        })
+        });
       })).catch(error => {
         const errorMessage = parseServerError(error);
         this.setState({
           isTableLoading: false,
           isError: true,
           errorMessage
-        })
+        });
       });
+    }).catch(error => {
+      const errorMessage = parseServerError(error);
+      this.setState({
+        isTableLoading: false,
+        isError: true,
+        errorMessage
+      });
+    });
   };
 
   updateTags(id, tagValues, rowIndex) {
@@ -603,7 +612,7 @@ class RunsTable extends Component {
     // Set the table width and height to occupy full viewport
     this.setState({
       tableWidth: window.innerWidth ? window.innerWidth : tableWidth,
-      tableHeight: window.innerHeight ? window.innerHeight - this.tableWrapperDomNode.offsetTop : tableHeight
+      tableHeight: window.innerHeight && this.tableWrapperDomNode ? window.innerHeight - this.tableWrapperDomNode.offsetTop : tableHeight
     });
   };
 

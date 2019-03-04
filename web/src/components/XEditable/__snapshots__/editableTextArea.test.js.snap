@@ -6,7 +6,7 @@ exports[`EditableTextArea should render correctly 1`] = `
   cols={50}
   id="text_area_id"
   name="text-area-name"
-  onUpdate={[Function]}
+  onUpdate={[MockFunction]}
   rows={50}
   value="test note"
 >
@@ -29,7 +29,7 @@ exports[`EditableTextArea should render correctly 2`] = `
   cols={50}
   id="text_area_id"
   name="text-area-name"
-  onUpdate={[Function]}
+  onUpdate={[MockFunction]}
   rows={50}
   value="test note"
 >

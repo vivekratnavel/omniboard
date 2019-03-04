@@ -21,7 +21,7 @@ exports[`MetricColumnModal should render correctly 1`] = `
       "remove": [Function],
     }
   }
-  onHide={[Function]}
+  onHide={[MockFunction]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   show={true}
@@ -87,7 +87,7 @@ exports[`MetricColumnModal should render correctly 1`] = `
       bsClass="btn"
       bsStyle="default"
       disabled={false}
-      onClick={[Function]}
+      onClick={[MockFunction]}
       test-attr="close-btn"
     >
       Close
@@ -130,7 +130,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
       "remove": [Function],
     }
   }
-  onHide={[Function]}
+  onHide={[MockFunction]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   show={true}
@@ -405,7 +405,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
       bsClass="btn"
       bsStyle="default"
       disabled={false}
-      onClick={[Function]}
+      onClick={[MockFunction]}
       test-attr="close-btn"
     >
       Close

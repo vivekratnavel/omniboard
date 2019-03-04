@@ -40,9 +40,9 @@ exports[`CapturedOutView should load data success 1`] = `
     </div>
     <pre>
       INFO - hello_config
-      Progress: 0/100
-      Progress: 1/100
-      
+Progress: 0/100
+Progress: 1/100
+
     </pre>
   </div>
 </CapturedOutView>
