@@ -287,12 +287,13 @@ class RunsTable extends Component {
               let value = 0;
               const metric = data['metrics'].find(metric => metric.name === column.metric_name);
               if (metric && metric.values) {
-                const sortedValues = metric.values.sort((a,b) => a-b);
                 const extrema = column.extrema;
                 if (extrema === 'min') {
-                  value = sortedValues[0];
+                  value = metric.values.reduce((a, b) => (a < b) ? a : b);
                 } else if (extrema === 'max') {
-                  value = sortedValues[sortedValues.length - 1];
+                  value = metric.values.reduce((a, b) => (a > b) ? a : b);
+                } else if (extrema === 'last') {
+                  value = metric.values[metric.values.length - 1];
                 }
               }
               metricColumnsObject[column.name] = value;

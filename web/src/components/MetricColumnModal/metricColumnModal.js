@@ -299,6 +299,9 @@ class MetricColumnModal extends PureComponent {
     }, {
       label: 'max',
       value: 'max'
+    },{
+      label: 'last',
+      value: 'last'
     }];
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
