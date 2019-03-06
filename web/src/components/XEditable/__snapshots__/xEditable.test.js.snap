@@ -7,7 +7,7 @@ exports[`XEditable should render correctly 1`] = `
   <div>
     <form
       className="form-inline editableform"
-      onSubmit={[Function]}
+      onSubmit={[MockFunction]}
     >
       <div
         className="control-group form-group"
@@ -26,7 +26,7 @@ exports[`XEditable should render correctly 1`] = `
           >
             <button
               className="btn btn-primary btn-sm editable-submit"
-              onClick={[Function]}
+              onClick={[MockFunction]}
               type="submit"
             >
               <i
@@ -35,7 +35,7 @@ exports[`XEditable should render correctly 1`] = `
             </button>
             <button
               className="btn btn-default btn-sm editable-cancel"
-              onClick={[Function]}
+              onClick={[MockFunction]}
               type="button"
             >
               <i
