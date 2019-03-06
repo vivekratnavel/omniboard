@@ -16,6 +16,8 @@ describe('App component', () => {
   afterEach(() => {
     mockAxios.reset();
     jest.clearAllMocks();
+    // reset localStorage
+    localStorage.clear();
   });
 
   it('should render', () => {
@@ -23,13 +25,20 @@ describe('App component', () => {
   });
 
   it('should reset cache', () => {
+    // mock location.reload method
+    Object.defineProperty(window.location, 'reload', {
+      configurable: true,
+    });
+    window.location.reload = jest.fn();
+
     const value = 'testValue';
     localStorage.setItem('test', value);
 
-    expect(localStorage.getAllItems()['test']).toEqual(value);
+    expect(localStorage.__STORE__['test']).toEqual(value);
     wrapper.find('[test-attr="reset-cache-button"]').simulate('click');
 
-    expect(Object.keys(localStorage.getAllItems())).toHaveLength(0);
+    expect(Object.keys(localStorage.__STORE__)).toHaveLength(0);
+    expect(window.location.reload).toHaveBeenCalledTimes(1);
   });
 
   it('should show/hide ManageConfigColumns modal', () => {

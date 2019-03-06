@@ -3,7 +3,6 @@ import { MetricsPlotView } from './metricsPlotView';
 import mockAxios from 'jest-mock-axios';
 import {X_AXIS_VALUE, SCALE_VALUE, X_AXIS_VALUES, SCALE_VALUES} from '../../constants/drillDownView.constants';
 import keyCode from 'rc-util/lib/KeyCode';
-import { LocalStorageMock } from '../../../config/jest/localStorageMock';
 
 describe('MetricsPlotView', () => {
   let wrapper = null;
@@ -42,8 +41,7 @@ describe('MetricsPlotView', () => {
   });
 
   it('should set default selection correctly', () => {
-    /* eslint-disable no-global-assign */
-    localStorage = {getItem: () => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450}'};
+    localStorage.getItem.mockImplementationOnce(() => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450}');
     wrapper.instance()._setDefaultSelection();
 
     expect(wrapper.state().selectedMetricNames).toHaveLength(1);
@@ -52,7 +50,7 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().plotWidth).toEqual(900);
     expect(wrapper.state().plotHeight).toEqual(450);
 
-    localStorage = {getItem: () => '{}'};
+    localStorage.getItem.mockImplementationOnce(() => '{}');
     wrapper.instance()._setDefaultSelection();
 
     expect(wrapper.state().selectedMetricNames).toHaveLength(0);
@@ -61,7 +59,7 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().plotWidth).toEqual(800);
     expect(wrapper.state().plotHeight).toEqual(400);
     // reset localStorage
-    localStorage = new LocalStorageMock;
+    localStorage.clear();
   });
 
   it('should show alert when no metrics are available', () => {
