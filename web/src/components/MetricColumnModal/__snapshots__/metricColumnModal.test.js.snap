@@ -247,6 +247,10 @@ exports[`MetricColumnModal should render correctly 2`] = `
                       "label": "max",
                       "value": "max",
                     },
+                    Object {
+                      "label": "last",
+                      "value": "last",
+                    },
                   ]
                 }
                 placeholder="Extrema"
@@ -350,6 +354,10 @@ exports[`MetricColumnModal should render correctly 2`] = `
                     Object {
                       "label": "max",
                       "value": "max",
+                    },
+                    Object {
+                      "label": "last",
+                      "value": "last",
                     },
                   ]
                 }
