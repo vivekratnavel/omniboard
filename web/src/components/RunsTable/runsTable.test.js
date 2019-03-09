@@ -610,18 +610,18 @@ describe('RunsTable', () => {
       });
       wrapper.instance()._handleAddFilterClick();
       wrapper.setState({
-        filterColumnName: '_id',
-        filterColumnOperator: '$lt',
-        filterColumnValue: '11',
+        filterColumnName: 'bool',
+        filterColumnOperator: '$eq',
+        filterColumnValue: 'true',
       });
       wrapper.instance()._handleAddFilterClick();
 
       expect(wrapper.update().state().filters.advanced).toHaveLength(2);
-      expect(wrapper.state().filters.advanced[0].value).toEqual(7);
+      expect(wrapper.state().filters.advanced[0].value).toEqual('7');
       wrapper.update().find('.tags-container').find('.item').at(0).find('.is-delete').simulate('click');
 
       expect(wrapper.update().state().filters.advanced).toHaveLength(1);
-      expect(wrapper.state().filters.advanced[0].value).toEqual(11);
+      expect(wrapper.state().filters.advanced[0].value).toEqual('true');
     });
   });
 });

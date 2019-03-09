@@ -161,17 +161,26 @@ class RunsTable extends Component {
       const statusFilter = filters.status.map(statusQueryFilter('$eq'));
       queryJson.$and.push({'$or': statusFilter});
     }
+
+    // Process advanced filters
     if (filters && filters.advanced.length) {
       filters.advanced.forEach(filter => {
         if (filter.operator === '$in') {
           const orFilters = filter.name === 'status' ? filter.value.map(statusQueryFilter('$eq')) : [{[filter.name]: filter.value}];
           queryJson.$and.push({'$or': orFilters});
         } else {
-          filter.value = isNaN(filter.value) ? filter.value : Number(filter.value);
-          if (filter.name === 'status') {
-            queryJson.$and.push(statusQueryFilter(filter.operator)(filter.value));
+          // Check if the value is a number or boolean and convert type accordingly
+          let value = filter.value;
+          if (isNaN(value)) {
+            // check if value is boolean
+            value = value === 'true' || (value === 'false' ? false : value);
           } else {
-            queryJson.$and.push({[filter.name]: {[filter.operator]: filter.value}});
+            value = Number(value);
+          }
+          if (filter.name === 'status') {
+            queryJson.$and.push(statusQueryFilter(filter.operator)(value));
+          } else {
+            queryJson.$and.push({[filter.name]: {[filter.operator]: value}});
           }
         }
       });
