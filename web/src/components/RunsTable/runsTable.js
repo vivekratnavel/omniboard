@@ -1016,6 +1016,7 @@ class RunsTable extends Component {
     };
     const getFilterValueLabel = value => Array.isArray(value) ? value.join(',') : value;
     const filterColumnNameOptions = this._getColumnNameOptions();
+    const isFixed = columnKey => columnKey === '_id';
     return (
       <div>
         <div className="table-header">
@@ -1163,6 +1164,7 @@ class RunsTable extends Component {
                     columnKey={columnKey}
                     key={i}
                     isReorderable={true}
+                    fixed={isFixed(columnKey)}
                     header={
                       <HeaderCell
                         test-attr={"header-" + columnKey}
