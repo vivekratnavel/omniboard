@@ -1,5 +1,28 @@
 .table-header {
-  padding: 20px;
+  padding: 20px 20px 3px;
+}
+
+.status-bar {
+  font-size: 0.9em;
+  color: #626466;
+  padding: 0 20px 5px;
+  .label-text {
+    font-weight: 400;
+  }
+  .date-text {
+    font-weight: 500;
+  }
+  .switch-container {
+    top: 3px;
+  }
+  .reload-button {
+    padding: 2px 3px 0;
+    font-size: 11px;
+    margin-top: -4px;
+  }
+  .reload-text {
+    margin-top: -2px;
+  }
 }
 
 .empty-notes {

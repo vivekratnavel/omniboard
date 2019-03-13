@@ -5,7 +5,7 @@ import { Table, Column } from 'fixed-data-table-2';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
 import 'fixed-data-table-2/dist/fixed-data-table.css';
-import { Button, ButtonToolbar, Alert } from 'react-bootstrap';
+import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
 import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';
 import { DataListWrapper } from '../Helpers/dataListWrapper';
 import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell, SortTypes, StatusCell, IdCell } from '../Helpers/cells';
@@ -18,8 +18,10 @@ import { toast } from 'react-toastify';
 import Select  from 'react-select';
 import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable';
 import Async from 'react-select/lib/Async';
-import { ConfigColumnModal } from "../ConfigColumnModal/configColumnModal";
+import { ConfigColumnModal } from '../ConfigColumnModal/configColumnModal';
 import PropTypes from 'prop-types';
+import Switch from 'react-switch';
+import moment from 'moment';
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -30,6 +32,8 @@ const NOTES_COLUMN_HEADER = 'notes';
 const EXPERIMENT_NAME = 'experiment_name';
 const ID_COLUMN_KEY = '_id';
 const DURATION_COLUMN_KEY = 'duration';
+// 30 seconds
+const POLLING_INTERVAL = 30000;
 
 function getStatusLabel(label) {
   return `<div class="clearfix">
@@ -86,6 +90,7 @@ class RunsTable extends Component {
   showHideColumnsDomNode = null;
   statusFilterDomNode = null;
   tableDom = null;
+  interval = null;
 
   constructor(props) {
     super(props);
@@ -121,8 +126,10 @@ class RunsTable extends Component {
       filterColumnNameError: false,
       currentColumnValueOptions: [],
       isError: false,
-      errorMessage: ''
-    };
+      errorMessage: '',
+      autoReload: true,
+      lastUpdateTime: new Date()
+    }
   }
 
   _getColumnNameMap = (configs, rootName) => {
@@ -135,6 +142,31 @@ class RunsTable extends Component {
   _resolveObjectPath = (object, path, defaultValue) => path
     .split('.')
     .reduce((o, p) => o && o.hasOwnProperty(p) ? o[p] : defaultValue, object);
+
+  initPolling = () => {
+    this.loadData();
+    this.interval = setTimeout(this.initPolling, POLLING_INTERVAL);
+  };
+
+  _startPolling = () => {
+    this._stopPolling();
+    this.interval = setTimeout(this.initPolling, POLLING_INTERVAL);
+  };
+
+  _stopPolling = () => {
+    clearTimeout(this.interval);
+  };
+
+  _handleAutoReloadChange = checked => {
+    if (checked) {
+      this._startPolling();
+    } else {
+      this._stopPolling();
+    }
+    this.setState({
+      autoReload: checked
+    });
+  };
 
   loadData = () => {
     const {filters, columnOrder, dropdownOptions, columnWidths} = this.state;
@@ -435,7 +467,8 @@ class RunsTable extends Component {
         }
         this.setState({
           isTableLoading: false,
-          tags: tags.data
+          tags: tags.data,
+          lastUpdateTime: new Date()
         });
       })).catch(error => {
         const errorMessage = parseServerError(error);
@@ -635,6 +668,7 @@ class RunsTable extends Component {
     // Wait for LocalStorageMixin to setState
     // and then fetch data
     setTimeout(this.loadData, 1);
+    this.interval = setTimeout(this.initPolling, POLLING_INTERVAL);
   }
 
   /**
@@ -970,7 +1004,7 @@ class RunsTable extends Component {
     const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
-      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey } = this.state;
+      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoReload, lastUpdateTime } = this.state;
     const {showConfigColumnModal, handleConfigColumnModalClose} = this.props;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
@@ -1130,6 +1164,23 @@ class RunsTable extends Component {
               <div className="clearfix"/>
             </div>
           </div>
+        </div>
+        <div className="status-bar pull-right">
+          <label>
+            <span className="label-text">Auto Reload</span>
+            &nbsp;
+            <Switch onChange={this._handleAutoReloadChange} checked={autoReload}
+                    width={32} height={16} className="switch-container" onColor="#33bd33"/>
+            &nbsp;
+          </label>
+          <span>Last Update:
+            <span className="date-text"> {moment(lastUpdateTime).format('MMMM Do, hh:mm:ss A')}</span>
+          </span>
+          &nbsp;
+          <Button bsStyle="success" className="reload-button" onClick={this.loadData}>
+            <Glyphicon glyph="repeat"/>
+            <span className="reload-text"> Reload</span>
+          </Button>
         </div>
         <div className="table-wrapper" ref={el => this.tableWrapperDomNode = el}>
           {
