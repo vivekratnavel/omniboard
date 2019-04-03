@@ -1,5 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Cells Date Cell should render correctly 1`] = `
+<DateCell
+  columnKey="start_time"
+  data={
+    DataListWrapper {
+      "_data": Array [
+        Object {
+          "start_time": "2019-04-01T23:59:59",
+        },
+      ],
+      "_indexMap": Array [
+        0,
+      ],
+    }
+  }
+  rowIndex={0}
+>
+  <FixedDataTableCellDefault
+    test-attr="date-cell"
+  >
+    <div
+      className="fixedDataTableCellLayout_wrap1 public_fixedDataTableCell_wrap1"
+      style={
+        Object {
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      test-attr="date-cell"
+    >
+      <div
+        className="fixedDataTableCellLayout_wrap2 public_fixedDataTableCell_wrap2"
+      >
+        <div
+          className="fixedDataTableCellLayout_wrap3 public_fixedDataTableCell_wrap3"
+        >
+          <div
+            className="public_fixedDataTableCell_cellContent"
+          >
+            2019-04-01T23:59:59
+          </div>
+        </div>
+      </div>
+    </div>
+  </FixedDataTableCellDefault>
+</DateCell>
+`;
+
 exports[`Cells Editable Cell should render correctly 1`] = `
 <EditableCell
   changeHandler={

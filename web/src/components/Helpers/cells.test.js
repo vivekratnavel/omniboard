@@ -1,5 +1,5 @@
-import React from 'react';
-import {TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell, IdCell} from './cells';
+import React from 'reactn';
+import { TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell, IdCell, DateCell } from './cells';
 import { DataListWrapper } from './dataListWrapper';
 import { toast } from "react-toastify";
 import mockAxios from 'jest-mock-axios';
@@ -8,6 +8,10 @@ describe('Cells', () => {
   let wrapper = null;
   /* eslint-disable no-console */
   console.error = jest.fn();
+
+  beforeEach(() => {
+    // resetGlobal();
+  });
 
   describe('Header Cell', () => {
     const sortHandler = jest.fn();
@@ -90,6 +94,37 @@ describe('Cells', () => {
       wrapper.find('.fixedDataTableCellLayout_wrap1').simulate('click');
 
       expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Date Cell', () => {
+    const data = new DataListWrapper([0], [{start_time: '2019-04-01T23:59:59'}]);
+    beforeEach(() => {
+      wrapper = mount(<DateCell rowIndex={0} columnKey="start_time" data={data}/>);
+    });
+
+    afterEach(() => {
+      React.resetGlobal();
+    });
+
+    it('should render correctly', () => {
+
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should convert to correct timezone', async () => {
+      wrapper.instance().setGlobal({
+        settings: {
+          timezone: {
+            value: 'America/Los_Angeles'
+          }
+        }
+      });
+
+      wrapper.unmount();
+      wrapper = mount(<DateCell rowIndex={0} columnKey="start_time" data={data}/>);
+
+      expect(wrapper.update().find('[test-attr="date-cell"]').at(1).text()).toEqual('2019-04-01T16:59:59');
     });
   });
 

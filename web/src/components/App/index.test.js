@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'reactn';
 import App from './index';
 import mockAxios from 'jest-mock-axios';
 import { toast } from "react-toastify";
@@ -50,19 +50,46 @@ describe('App component', () => {
     expect(wrapper.state().showConfigColumnModal).toBeFalsy();
   });
 
-  describe('should fetch database name on mount', () => {
+  it('should show/hide Settings modal', () => {
+    wrapper.find('[test-attr="settings-button"]').simulate('click');
+
+    expect(wrapper.state().showSettingsModal).toBeTruthy();
+    wrapper.instance()._handleSettingsModalClose();
+
+    expect(wrapper.state().showSettingsModal).toBeFalsy();
+  });
+
+  describe('should fetch database name on mount', async () => {
     it('and handle success', async () => {
       expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/database');
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
+      mockAxios.mockResponse({status: 200, data: [{name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1}]});
+      await tick();
 
       expect(wrapper.update().state().dbName).toEqual('test_db');
     });
 
-    it('and handle error', () => {
+    it('and handle error', async () => {
       const error = {status: 500, message: 'Unknown error'};
       mockAxios.mockError(error);
+      mockAxios.mockError(error);
+      await tick();
 
       expect(toast.error).toHaveBeenCalledWith(parseServerError(error));
     });
+  });
+
+  it('should write default settings for the first time', async () => {
+    const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1};
+    mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
+    mockAxios.mockResponse({status: 200, data: []});
+    await tick();
+
+    expect(mockAxios.post).toHaveBeenCalledTimes(1);
+    mockAxios.mockResponse({status: 201, data: [setting]});
+
+    await tick();
+
+    expect(wrapper.update().instance().global.settings.timezone).toEqual(setting);
   });
 });
