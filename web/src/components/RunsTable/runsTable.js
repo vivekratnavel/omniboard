@@ -8,10 +8,11 @@ import 'fixed-data-table-2/dist/fixed-data-table.css';
 import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
 import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';
 import { DataListWrapper } from '../Helpers/dataListWrapper';
-import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell, SortTypes, StatusCell, IdCell } from '../Helpers/cells';
+import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell,
+  SortTypes, StatusCell, IdCell, DateCell } from '../Helpers/cells';
 import { DrillDownView } from '../DrillDownView/drillDownView';
 import { EXPANDED_ROW_HEIGHT } from '../DrillDownView/drillDownView.scss';
-import {headerText, arrayDiff, reorderArray, capitalize, parseServerError, getRunStatus} from '../Helpers/utils';
+import { headerText, arrayDiff, reorderArray, capitalize, parseServerError, getRunStatus } from '../Helpers/utils';
 import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
@@ -32,6 +33,9 @@ const NOTES_COLUMN_HEADER = 'notes';
 const EXPERIMENT_NAME = 'experiment_name';
 const ID_COLUMN_KEY = '_id';
 const DURATION_COLUMN_KEY = 'duration';
+const START_TIME_KEY = 'start_time';
+const STOP_TIME_KEY = 'stop_time';
+const HEARTBEAT_KEY = 'heartbeat';
 // 30 seconds
 const POLLING_INTERVAL = 30000;
 
@@ -306,12 +310,12 @@ class RunsTable extends Component {
             }
 
             // Add duration column; duration = heartbeat - start_time
-            if ('heartbeat' in data && data['heartbeat'] && 'start_time' in data)
-              data[DURATION_COLUMN_KEY] = Math.abs(new Date(data['heartbeat']) - new Date(data['start_time']));
+            if (HEARTBEAT_KEY in data && data[HEARTBEAT_KEY] && START_TIME_KEY in data)
+              data[DURATION_COLUMN_KEY] = Math.abs(new Date(data[HEARTBEAT_KEY]) - new Date(data[START_TIME_KEY]));
 
             // Determine if a run is probably dead and assign the status accordingly
             if ('status' in data) {
-              data['status'] = getRunStatus(data['status'], data['heartbeat']);
+              data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY]);
             }
 
             // Expand omniboard columns
@@ -384,9 +388,9 @@ class RunsTable extends Component {
           if (this.state.data === null) {
             reorderArray(latestColumnOrder, 'status', 'tags');
             reorderArray(latestColumnOrder, 'tags', 'notes');
-            reorderArray(latestColumnOrder, 'heartbeat', 'duration');
-            reorderArray(latestColumnOrder, '_id', 'experiment_name');
-            reorderArray(latestColumnOrder, 'experiment_name', 'hostname');
+            reorderArray(latestColumnOrder, HEARTBEAT_KEY, 'duration');
+            reorderArray(latestColumnOrder, ID_COLUMN_KEY, EXPERIMENT_NAME);
+            reorderArray(latestColumnOrder, EXPERIMENT_NAME, 'hostname');
             const columnWidths = {};
             latestColumnOrder.forEach(key => {
               latestDropdownOptions.push(this.createDropdownOption(key));
@@ -755,6 +759,9 @@ class RunsTable extends Component {
     if (columnKey === ID_COLUMN_KEY) {
       cell = <IdCell data={rowData} handleDataUpdate={this._handleDeleteExperimentRun}/>;
     }
+    if ([START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY].includes(columnKey)) {
+      cell = <DateCell data={rowData}/>
+    }
     return <ExpandRowCell callback={this._handleCollapseClick}>{cell}</ExpandRowCell>;
   }
 
@@ -901,7 +908,7 @@ class RunsTable extends Component {
     return new Promise(resolve => {
       // Get suggestions for columns of types other than Date or Number
       // Since Date type Number type doesn't support regex
-      if (filterColumnName.length && !['_id', 'start_time', 'stop_time', 'heartbeat', DURATION_COLUMN_KEY].includes(filterColumnName)) {
+      if (filterColumnName.length && ![ID_COLUMN_KEY, START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY, DURATION_COLUMN_KEY].includes(filterColumnName)) {
         const operator = inputValue && !isNaN(inputValue) ? "$eq" : "$regex";
         const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
         const queryJson = {[filterColumnName]: { [operator]: value}};

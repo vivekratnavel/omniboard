@@ -60,6 +60,21 @@ and then click on `Source Files` or `Artifacts` from the side menu.
 
 You can then choose to either `Download All` files or `Download` each file individually.
 
+## Change Timezone
+
+All the timestamps are stored in UTC timezone in database and Omniboard 
+will try to guess the user timezone and set it as default timezone for 
+`start_time`, `stop_time` and `heartbeat` columns. 
+
+To change the default timezone:
+- Click the `Cog` icon on the top right corner and select `Settings` from the menu
+
+  ![Settings Menu](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/settings-menu.png)
+ 
+- Select the desired timezone and save the settings
+
+  ![Settings Timezone](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/settings-timezone.png)
+
 ## Delete an experiment run
 
 To delete an unwanted experiment run, hover over its `Id` column and click on the delete icon as shown below.

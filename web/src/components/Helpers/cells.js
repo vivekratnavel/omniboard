@@ -1,15 +1,17 @@
 import PropTypes from 'prop-types'
-import React, {Component} from "react";
+import React, {Component} from "reactn";
 import { Cell } from 'fixed-data-table-2';
 import EditableTextArea from '../XEditable/editableTextArea';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { Glyphicon } from 'react-bootstrap';
 import './cells.scss';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from 'react-bootstrap';
-import {parseServerError} from "./utils";
+import { parseServerError } from "./utils";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import ms from 'ms';
+import moment from 'moment-timezone';
+import { SERVER_TIMEZONE, SETTING_TIMEZONE } from '../App/index';
 
 
 const SortTypes = {
@@ -73,6 +75,29 @@ class TextCell extends React.PureComponent {
     return (
       <Cell {...props}>
         {value}
+      </Cell>
+    );
+  }
+}
+
+class DateCell extends React.PureComponent {
+  static propTypes = {
+    columnKey: PropTypes.string,
+    data: PropTypes.object,
+    rowIndex: PropTypes.number
+  };
+
+  render() {
+    const {data, rowIndex, columnKey, ...props} = this.props;
+    let dateValue = data.getObjectAt(rowIndex)[columnKey];
+    if (this.global.settings && this.global.settings[SETTING_TIMEZONE]) {
+      const userTimezone = this.global.settings[SETTING_TIMEZONE].value;
+      dateValue = moment(moment.tz(moment.tz(dateValue, SERVER_TIMEZONE), userTimezone).toArray())
+        .format('YYYY-MM-DDTHH:mm:ss');
+    }
+    return (
+      <Cell test-attr="date-cell" {...props}>
+        {dateValue}
       </Cell>
     );
   }
@@ -403,4 +428,4 @@ class HeaderCell extends Component {
   }
 }
 
-export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes, ExpandRowCell, StatusCell, IdCell}
+export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes, ExpandRowCell, StatusCell, IdCell, DateCell}

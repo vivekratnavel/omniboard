@@ -77,6 +77,21 @@ exports[`App component should render 1`] = `
           >
             +/- Config Columns
           </MenuItem>
+          <MenuItem
+            bsClass="dropdown"
+            disabled={false}
+            divider={false}
+            eventKey={1.3}
+            header={false}
+            onClick={[Function]}
+            test-attr="settings-button"
+          >
+            <Glyphicon
+              bsClass="glyphicon"
+              glyph="wrench"
+            />
+              Settings
+          </MenuItem>
         </NavDropdown>
       </Nav>
     </NavbarCollapse>
@@ -126,5 +141,9 @@ exports[`App component should render 1`] = `
       }
     />
   </div>
+  <SettingsModal
+    handleClose={[Function]}
+    show={false}
+  />
 </div>
 `;
