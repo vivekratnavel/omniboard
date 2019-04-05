@@ -3,6 +3,7 @@ import { SettingsModal } from './settingsModal';
 import mockAxios from 'jest-mock-axios';
 import { toast } from 'react-toastify';
 import { parseServerError } from "../Helpers/utils";
+import * as appConstants from "../../appConstants/app.constants";
 
 describe('SettingsModal', () => {
   let wrapper = null;
@@ -19,6 +20,7 @@ describe('SettingsModal', () => {
     // cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
+    React.resetGlobal();
   });
 
   it('should render correctly', () => {
@@ -41,32 +43,44 @@ describe('SettingsModal', () => {
 
   describe('should handle', () => {
     const newTimezone = 'America/Los_Angeles';
+    const newRefreshInterval = '60';
     beforeEach(() => {
       wrapper.setState({
         settings: {
-          timezone: {
-            value: 'Atlantic/Reykjavik',
+          [appConstants.SETTING_TIMEZONE]: {
+            value: appConstants.SERVER_TIMEZONE,
             id: 1
+          },
+          [appConstants.AUTO_REFRESH_INTERVAL]: {
+            value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+            id: 2
           }
         },
         initialSettings: {
-          timezone: {
-            value: 'Atlantic/Reykjavik',
+          [appConstants.SETTING_TIMEZONE]: {
+            value: appConstants.SERVER_TIMEZONE,
             id: 1
+          },
+          [appConstants.AUTO_REFRESH_INTERVAL]: {
+            value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+            id: 2
           }
-        }
+        },
       });
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: newTimezone});
+      wrapper.find('[test-attr="auto-refresh-interval"]').simulate('change', {target: {value: newRefreshInterval}});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
     });
 
     it('setting change', () => {
       expect(wrapper.update().state().settings.timezone.value).toEqual(newTimezone);
+      expect(wrapper.update().state().settings[appConstants.AUTO_REFRESH_INTERVAL].value).toEqual(newRefreshInterval);
     });
 
     it('save success', async () => {
       expect(wrapper.state().isInProgress).toBeTruthy();
       wrapper.instance().setGlobal = jest.fn();
+      mockAxios.mockResponse({status: 200});
       mockAxios.mockResponse({status: 200});
 
       await tick();
@@ -74,9 +88,13 @@ describe('SettingsModal', () => {
       expect(wrapper.state().isInProgress).toBeFalsy();
       expect(wrapper.instance().setGlobal).toHaveBeenCalledWith({
         settings: {
+          auto_refresh_interval: {
+            id: 2,
+            value: newRefreshInterval
+          },
           timezone: {
-            value: newTimezone,
-            id: 1
+            id: 1,
+            value: newTimezone
           }
         }
       });
@@ -96,15 +114,28 @@ describe('SettingsModal', () => {
     it('save error - bad format', async () => {
       const err = {status: 400, response: {data: {message: 'cannot save'}}};
       mockAxios.mockResponse(err);
+      mockAxios.mockResponse(err);
 
       await tick();
 
       expect(wrapper.state().error).toEqual(parseServerError(err));
     });
 
+    it('save error - validation error', async () => {
+      mockAxios.mockResponse({status: 400});
+      mockAxios.mockResponse({status: 400});
+      wrapper.find('[test-attr="auto-refresh-interval"]').simulate('change', {target: {value: '3'}});
+      wrapper.find('[test-attr="apply-btn"]').simulate('click');
+
+      expect(wrapper.state().error).toEqual('Auto Refresh Interval must be a Number >= 5');
+    });
+
     it('save when form is not dirty', async () => {
       mockAxios.mockResponse({status: 400});
+      mockAxios.mockResponse({status: 400});
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: 'Atlantic/Reykjavik'});
+      wrapper.find('[test-attr="auto-refresh-interval"]')
+        .simulate('change', {target: {value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL}});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
 
       expect(wrapper.state().error).toEqual('There are no changes to be applied');
@@ -114,15 +145,23 @@ describe('SettingsModal', () => {
   it('should initialize state when modal dialog is reopened', () => {
     wrapper.setState({
       settings: {
-        timezone: {
-          value: 'Atlantic/Reykjavik',
+        [appConstants.SETTING_TIMEZONE]: {
+          value: appConstants.SERVER_TIMEZONE,
           id: 1
+        },
+        [appConstants.AUTO_REFRESH_INTERVAL]: {
+          value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+          id: 2
         }
       },
       initialSettings: {
-        timezone: {
-          value: 'Atlantic/Reykjavik',
+        [appConstants.SETTING_TIMEZONE]: {
+          value: appConstants.SERVER_TIMEZONE,
           id: 1
+        },
+        [appConstants.AUTO_REFRESH_INTERVAL]: {
+          value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+          id: 2
         }
       }
     });

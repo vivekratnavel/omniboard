@@ -1,11 +1,11 @@
 import React from 'react';
 import { DrillDownView } from './drillDownView';
 import mockAxios from 'jest-mock-axios';
-import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
+import { DRILLDOWN_VIEW } from '../../appConstants/drillDownView.constants';
 import { toast } from 'react-toastify';
 import { parseServerError } from '../Helpers/utils';
 import * as events from 'dom-helpers/events';
-import {STATUS} from "../../constants/status.constants";
+import {STATUS} from "../../appConstants/status.constants";
 
 describe('DrillDownView', () => {
   let wrapper = null;

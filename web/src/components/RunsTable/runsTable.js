@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component } from 'reactn';
 import axios from 'axios';
 import Multiselect from 'react-bootstrap-multiselect';
 import { Table, Column } from 'fixed-data-table-2';
@@ -13,7 +13,7 @@ import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, Header
 import { DrillDownView } from '../DrillDownView/drillDownView';
 import { EXPANDED_ROW_HEIGHT } from '../DrillDownView/drillDownView.scss';
 import { headerText, arrayDiff, reorderArray, capitalize, parseServerError, getRunStatus } from '../Helpers/utils';
-import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
+import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../appConstants/status.constants';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
 import Select  from 'react-select';
@@ -23,6 +23,7 @@ import { ConfigColumnModal } from '../ConfigColumnModal/configColumnModal';
 import PropTypes from 'prop-types';
 import Switch from 'react-switch';
 import moment from 'moment';
+import { AUTO_REFRESH_INTERVAL } from "../../appConstants/app.constants";
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -36,8 +37,6 @@ const DURATION_COLUMN_KEY = 'duration';
 const START_TIME_KEY = 'start_time';
 const STOP_TIME_KEY = 'stop_time';
 const HEARTBEAT_KEY = 'heartbeat';
-// 30 seconds
-const POLLING_INTERVAL = 30000;
 
 function getStatusLabel(label) {
   return `<div class="clearfix">
@@ -131,7 +130,7 @@ class RunsTable extends Component {
       currentColumnValueOptions: [],
       isError: false,
       errorMessage: '',
-      autoReload: true,
+      autoRefresh: true,
       lastUpdateTime: new Date()
     }
   }
@@ -149,26 +148,26 @@ class RunsTable extends Component {
 
   initPolling = () => {
     this.loadData();
-    this.interval = setTimeout(this.initPolling, POLLING_INTERVAL);
+    this.interval = setTimeout(this.initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _startPolling = () => {
     this._stopPolling();
-    this.interval = setTimeout(this.initPolling, POLLING_INTERVAL);
+    this.interval = setTimeout(this.initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _stopPolling = () => {
     clearTimeout(this.interval);
   };
 
-  _handleAutoReloadChange = checked => {
+  _handleAutoRefreshChange = checked => {
     if (checked) {
       this._startPolling();
     } else {
       this._stopPolling();
     }
     this.setState({
-      autoReload: checked
+      autoRefresh: checked
     });
   };
 
@@ -672,7 +671,7 @@ class RunsTable extends Component {
     // Wait for LocalStorageMixin to setState
     // and then fetch data
     setTimeout(this.loadData, 1);
-    this.interval = setTimeout(this.initPolling, POLLING_INTERVAL);
+    this.interval = setTimeout(this.initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   }
 
   /**
@@ -1011,7 +1010,7 @@ class RunsTable extends Component {
     const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
-      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoReload, lastUpdateTime } = this.state;
+      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh, lastUpdateTime } = this.state;
     const {showConfigColumnModal, handleConfigColumnModalClose} = this.props;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
@@ -1174,9 +1173,9 @@ class RunsTable extends Component {
         </div>
         <div className="status-bar pull-right">
           <label>
-            <span className="label-text">Auto Reload</span>
+            <span className="label-text">Auto Refresh</span>
             &nbsp;
-            <Switch onChange={this._handleAutoReloadChange} checked={autoReload}
+            <Switch onChange={this._handleAutoRefreshChange} checked={autoRefresh}
                     width={32} height={16} className="switch-container" onColor="#33bd33"/>
             &nbsp;
           </label>

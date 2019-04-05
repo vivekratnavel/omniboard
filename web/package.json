@@ -106,6 +106,9 @@
       "jest-canvas-mock",
       "jest-localstorage-mock"
     ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/config/jest/momentMock.js"
+    ],
     "testMatch": [
       "<rootDir>/src/**/__tests__/**/*.{js,jsx,mjs}",
       "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,mjs}"

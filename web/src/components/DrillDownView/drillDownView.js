@@ -10,11 +10,11 @@ import reactMixin from 'react-mixin';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { parseServerError } from '../Helpers/utils';
 import { toast } from 'react-toastify';
-import { DRILLDOWN_VIEW } from '../../constants/drillDownView.constants';
+import { DRILLDOWN_VIEW } from '../../appConstants/drillDownView.constants';
 import { MetricsPlotView } from '../MetricsPlotView/metricsPlotView';
 import { SourceFilesView } from '../SourceFilesView/sourceFilesView';
 import { CapturedOutView } from '../CapturedOutView/capturedOutView';
-import {STATUS} from "../../constants/status.constants";
+import {STATUS} from "../../appConstants/status.constants";
 
 class JsonView extends React.PureComponent {
   static propTypes = {

@@ -3,6 +3,7 @@ import App from './index';
 import mockAxios from 'jest-mock-axios';
 import { toast } from "react-toastify";
 import {parseServerError} from "../Helpers/utils";
+import * as appConstants from "../../appConstants/app.constants";
 
 describe('App component', () => {
   let wrapper = null;
@@ -18,6 +19,7 @@ describe('App component', () => {
     jest.clearAllMocks();
     // reset localStorage
     localStorage.clear();
+    React.resetGlobal();
   });
 
   it('should render', () => {
@@ -79,17 +81,42 @@ describe('App component', () => {
     });
   });
 
-  it('should write default settings for the first time', async () => {
-    const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1};
-    mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
-    mockAxios.mockResponse({status: 200, data: []});
-    await tick();
+  describe('should write default settings for the first time', async () => {
+    it('when none of the settings are present', async () => {
+      const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1};
+      const autoRefreshSetting = {name: 'auto_refresh_interval', value: 30, _id: 2};
+      mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
+      mockAxios.mockResponse({status: 200, data: []});
+      await tick();
 
-    expect(mockAxios.post).toHaveBeenCalledTimes(1);
-    mockAxios.mockResponse({status: 201, data: [setting]});
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
+      mockAxios.mockResponse({status: 201, data: setting});
+      mockAxios.mockResponse({status: 201, data: autoRefreshSetting});
 
-    await tick();
+      await tick();
 
-    expect(wrapper.update().instance().global.settings.timezone).toEqual(setting);
+      expect(wrapper.update().instance().global.settings[appConstants.SETTING_TIMEZONE]).toEqual(setting);
+      expect(wrapper.update().instance().global.settings[appConstants.AUTO_REFRESH_INTERVAL]).toEqual(autoRefreshSetting);
+    });
+
+    it('when only auto refresh setting is present', async () => {
+      const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 2};
+      const autoRefreshSetting = {
+          name: appConstants.AUTO_REFRESH_INTERVAL,
+          value: 60,
+          _id: 1
+        };
+      mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
+      mockAxios.mockResponse({status: 200, data: [autoRefreshSetting]});
+      await tick();
+
+      expect(mockAxios.post).toHaveBeenCalledTimes(1);
+      mockAxios.mockResponse({status: 201, data: setting});
+
+      await tick();
+
+      expect(wrapper.update().instance().global.settings[appConstants.SETTING_TIMEZONE]).toEqual(setting);
+      expect(wrapper.update().instance().global.settings[appConstants.AUTO_REFRESH_INTERVAL]).toEqual(autoRefreshSetting);
+    });
   });
 });

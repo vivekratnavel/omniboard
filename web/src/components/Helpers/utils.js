@@ -1,4 +1,4 @@
-import {PROBABLY_DEAD_TIMEOUT, STATUS} from "../../constants/status.constants";
+import {PROBABLY_DEAD_TIMEOUT, STATUS} from "../../appConstants/status.constants";
 
 export const capitalize = (value) => {
   // Capitalize each word
