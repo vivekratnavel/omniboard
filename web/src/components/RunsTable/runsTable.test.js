@@ -1,10 +1,11 @@
-import React from 'react';
+import React from 'reactn';
 import RunsTable, { FILTER_OPERATOR_LABELS } from './runsTable';
 import mockAxios from 'jest-mock-axios';
 import { parseServerError } from '../Helpers/utils';
-import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../constants/status.constants';
+import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../appConstants/status.constants';
 import { toast } from "react-toastify";
-import {SortTypes} from "../Helpers/cells";
+import { SortTypes } from "../Helpers/cells";
+import * as appConstants from '../../appConstants/app.constants';
 
 describe('RunsTable', () => {
   let wrapper = null;
@@ -19,9 +20,25 @@ describe('RunsTable', () => {
     RealDate = Date,
     constantDate = new Date(2018),
     configColumnModalCloseHandler = jest.fn();
+  /* eslint-disable global-assign */
   toast.error = jest.fn();
+  /* eslint-disable no-console */
+  console.warn = jest.fn();
 
   beforeEach(async () => {
+    // Set an initial global state directly:
+    React.setGlobal({
+      settings: {
+        [appConstants.SETTING_TIMEZONE]: {
+          value: 'America/Los_Angeles'
+        },
+        [appConstants.AUTO_REFRESH_INTERVAL]: {
+          value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL
+        }
+      }
+    });
+
+    await tick();
     wrapper = mount(
       <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}/>
     );
@@ -45,6 +62,7 @@ describe('RunsTable', () => {
     // reset localStorage
     /* eslint-disable no-global-assign */
     localStorage.clear();
+    React.resetGlobal();
   });
 
   it('should render', async () => {

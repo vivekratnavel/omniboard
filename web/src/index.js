@@ -9,12 +9,16 @@ import './components/RunsTable/runsTable.scss';
 import 'rc-slider/assets/index.css';
 
 import NextApp from './routes';
+import {SETTING_TIMEZONE, AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL} from "./appConstants/app.constants";
 
 // Set an initial global state directly:
 setGlobal({
   settings: {
-    timezone: {
+    [SETTING_TIMEZONE]: {
       value: ''
+    },
+    [AUTO_REFRESH_INTERVAL]: {
+      value: DEFAULT_AUTO_REFRESH_INTERVAL
     }
   }
 });

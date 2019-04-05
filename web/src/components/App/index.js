@@ -9,9 +9,7 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
 import { SettingsModal } from "../SettingsModal/settingsModal";
 import moment from 'moment-timezone';
-
-export const SERVER_TIMEZONE = 'Atlantic/Reykjavik';
-export const SETTING_TIMEZONE = 'timezone';
+import {SETTING_TIMEZONE, AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL} from "../../appConstants/app.constants";
 
 class App extends Component {
   constructor(props) {
@@ -74,6 +72,17 @@ class App extends Component {
     });
   };
 
+  _initializeSetting = (setting, value) => {
+    axios.post('/api/v1/Omniboard.Settings', {
+      name: setting,
+      value
+    }).then(response => {
+      if (response.status === 201) {
+        this._updateGlobalSettings([response.data]);
+      }
+    });
+  };
+
   _fetchData = () => {
     axios.all([
       axios.get('/api/v1/database'),
@@ -84,20 +93,22 @@ class App extends Component {
           dbName: dbResponse.data.name
         });
       }
+      // Write default settings to the database for the first time
+      // Guess the client timezone and set it as default
+      const userTimezone = moment.tz.guess();
       if (settingsResponse && settingsResponse.data && settingsResponse.data.length) {
-        this._updateGlobalSettings(settingsResponse.data);
-      } else {
-        // Write default settings to the database for the first time
-        // Guess the client timezone and set it as default
-        const userTimezone = moment.tz.guess();
-        axios.post('/api/v1/Omniboard.Settings', {
-          name: SETTING_TIMEZONE,
-          value: userTimezone
-        }).then(response => {
-          if (response.status === 201) {
-            this._updateGlobalSettings(response.data);
-          }
-        });
+        const settingsResponseData = settingsResponse.data;
+        this._updateGlobalSettings(settingsResponseData);
+        if (!settingsResponseData.some(setting => setting.name === SETTING_TIMEZONE)) {
+          this._initializeSetting(SETTING_TIMEZONE, userTimezone);
+        }
+        if (!settingsResponseData.some(setting => setting.name === AUTO_REFRESH_INTERVAL)) {
+          this._initializeSetting(AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL);
+        }
+      } else if (settingsResponse && settingsResponse.status === 200) {
+        // if empty response, then initialize all settings
+        this._initializeSetting(SETTING_TIMEZONE, userTimezone);
+        this._initializeSetting(AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL);
       }
     })).catch(error => {
       toast.error(parseServerError(error));

@@ -1,7 +1,7 @@
 import React from 'react';
 import { CapturedOutView, MAX_ERROR_COUNT } from './capturedOutView';
 import mockAxios from 'jest-mock-axios';
-import { STATUS } from '../../constants/status.constants';
+import { STATUS } from '../../appConstants/status.constants';
 import { toast } from "react-toastify";
 
 describe('CapturedOutView', () => {

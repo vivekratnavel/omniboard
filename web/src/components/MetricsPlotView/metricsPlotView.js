@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES } from '../../constants/drillDownView.constants';
+import { SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES } from '../../appConstants/drillDownView.constants';
 import { capitalize } from '../Helpers/utils';
 import Plot from 'react-plotly.js';
 import PropTypes from 'prop-types'

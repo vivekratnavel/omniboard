@@ -1,7 +1,7 @@
 import React from 'react';
 import { MetricsPlotView } from './metricsPlotView';
 import mockAxios from 'jest-mock-axios';
-import {X_AXIS_VALUE, SCALE_VALUE, X_AXIS_VALUES, SCALE_VALUES} from '../../constants/drillDownView.constants';
+import {X_AXIS_VALUE, SCALE_VALUE, X_AXIS_VALUES, SCALE_VALUES} from '../../appConstants/drillDownView.constants';
 import keyCode from 'rc-util/lib/KeyCode';
 
 describe('MetricsPlotView', () => {

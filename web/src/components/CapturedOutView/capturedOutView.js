@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {getRunStatus, parseServerError} from '../Helpers/utils';
 import PropTypes from 'prop-types'
-import { STATUS } from '../../constants/status.constants';
+import { STATUS } from '../../appConstants/status.constants';
 import { Glyphicon } from 'react-bootstrap';
 import './capturedOutView.scss';
 import axios from 'axios';

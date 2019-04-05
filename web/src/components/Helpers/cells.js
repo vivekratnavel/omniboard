@@ -11,7 +11,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import ms from 'ms';
 import moment from 'moment-timezone';
-import { SERVER_TIMEZONE, SETTING_TIMEZONE } from '../App/index';
+import * as appConstants from "../../appConstants/app.constants";
 
 
 const SortTypes = {
@@ -90,10 +90,9 @@ class DateCell extends React.PureComponent {
   render() {
     const {data, rowIndex, columnKey, ...props} = this.props;
     let dateValue = data.getObjectAt(rowIndex)[columnKey];
-    if (this.global.settings && this.global.settings[SETTING_TIMEZONE]) {
-      const userTimezone = this.global.settings[SETTING_TIMEZONE].value;
-      dateValue = moment(moment.tz(moment.tz(dateValue, SERVER_TIMEZONE), userTimezone).toArray())
-        .format('YYYY-MM-DDTHH:mm:ss');
+    if (this.global.settings && this.global.settings[appConstants.SETTING_TIMEZONE]) {
+      const userTimezone = this.global.settings[appConstants.SETTING_TIMEZONE].value;
+      dateValue = moment.tz(moment.tz(dateValue, appConstants.SERVER_TIMEZONE), userTimezone).format('YYYY-MM-DDTHH:mm:ss');
     }
     return (
       <Cell test-attr="date-cell" {...props}>
