@@ -4088,9 +4088,9 @@ findup@^0.1.5:
     colors "~0.6.0-1"
     commander "~2.1.0"
 
-fixed-data-table-2@^0.8.9:
-  version "0.8.14"
-  resolved "https://registry.yarnpkg.com/fixed-data-table-2/-/fixed-data-table-2-0.8.14.tgz#665ccb2040cd0b8cb38a235d70631899c82f3c9e"
+fixed-data-table-2@^0.8.21:
+  version "0.8.21"
+  resolved "https://registry.yarnpkg.com/fixed-data-table-2/-/fixed-data-table-2-0.8.21.tgz#cf3f62d203b3b8f6ad5ee38a504464e27f4b1514"
   dependencies:
     create-react-class "^15.5.2"
     prop-types "^15.5.8"

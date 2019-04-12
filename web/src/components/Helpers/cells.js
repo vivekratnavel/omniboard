@@ -90,7 +90,7 @@ class DateCell extends React.PureComponent {
   render() {
     const {data, rowIndex, columnKey, ...props} = this.props;
     let dateValue = data.getObjectAt(rowIndex)[columnKey];
-    if (this.global.settings && this.global.settings[appConstants.SETTING_TIMEZONE]) {
+    if (this.global.settings && this.global.settings[appConstants.SETTING_TIMEZONE] && dateValue) {
       const userTimezone = this.global.settings[appConstants.SETTING_TIMEZONE].value;
       dateValue = moment.tz(moment.tz(dateValue, appConstants.SERVER_TIMEZONE), userTimezone).format('YYYY-MM-DDTHH:mm:ss');
     }

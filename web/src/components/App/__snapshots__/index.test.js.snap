@@ -137,6 +137,7 @@ exports[`App component should render 1`] = `
           "columnNameMap",
           "statusFilterOptions",
           "filters",
+          "autoRefresh",
         ]
       }
     />
