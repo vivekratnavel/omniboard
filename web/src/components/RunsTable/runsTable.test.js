@@ -19,7 +19,8 @@ describe('RunsTable', () => {
     ],
     RealDate = Date,
     constantDate = new Date(2018),
-    configColumnModalCloseHandler = jest.fn();
+    configColumnModalCloseHandler = jest.fn(),
+    settingsModalCloseHandler = jest.fn();
   /* eslint-disable global-assign */
   toast.error = jest.fn();
   /* eslint-disable no-console */
@@ -40,7 +41,9 @@ describe('RunsTable', () => {
 
     await tick();
     wrapper = mount(
-      <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}/>
+      <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}
+                 showSettingsModal={false}
+                 handleSettingsModalClose={settingsModalCloseHandler}/>
     );
     // runsTable deletes certain keys in this data and it produces unexpected results
     // That's why assigning data everytime in "beforeEach" block

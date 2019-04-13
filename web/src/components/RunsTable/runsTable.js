@@ -25,6 +25,7 @@ import Switch from 'react-switch';
 import moment from 'moment';
 import classNames from 'classnames';
 import { AUTO_REFRESH_INTERVAL } from "../../appConstants/app.constants";
+import {SettingsModal} from "../SettingsModal/settingsModal";
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -97,7 +98,9 @@ class RunsTable extends Component {
 
   static propTypes = {
     showConfigColumnModal: PropTypes.bool.isRequired,
-    handleConfigColumnModalClose: PropTypes.func.isRequired
+    handleConfigColumnModalClose: PropTypes.func.isRequired,
+    showSettingsModal: PropTypes.bool.isRequired,
+    handleSettingsModalClose: PropTypes.func.isRequired
   };
 
   tableWrapperDomNode = null;
@@ -1102,24 +1105,24 @@ class RunsTable extends Component {
       for (let index = 0; index < data.length; index++) {
         defaultSortIndices.push(index);
       }
-      // Apply sort if sorting is already enabled
-      if (Object.keys(sort).length) {
-        const sortKey = Object.keys(sort)[0];
-        const sortedData = this._getSortedData(defaultSortIndices.slice(), data, sortKey, sort[sortKey]);
-        this.setState({
-          data,
-          defaultSortIndices,
-          sortedData,
-          sortIndices: sortedData.getIndexArray()
-        });
-      } else {
-        this.setState({
-          data,
-          defaultSortIndices,
-          sortedData: new DataListWrapper(defaultSortIndices, data),
-          sortIndices: defaultSortIndices
-        });
-      }
+      // Here assumption is that runs are always sorted
+      // And sorting is enabled on one column
+      const sortKey = Object.keys(sort)[0];
+      const sortedData = this._getSortedData(defaultSortIndices.slice(), data, sortKey, sort[sortKey]);
+      this.setState({
+        data,
+        defaultSortIndices,
+        sortedData,
+        sortIndices: sortedData.getIndexArray()
+      });
+    }
+  };
+
+  _handleAutoRefreshUpdate = () => {
+    const {autoRefresh} = this.state;
+    // Restart polling if auto refresh is enabled
+    if (autoRefresh) {
+      this._startPolling();
     }
   };
 
@@ -1137,7 +1140,7 @@ class RunsTable extends Component {
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
       lastUpdateTime, isFetchingUpdates } = this.state;
-    const {showConfigColumnModal, handleConfigColumnModalClose} = this.props;
+    const {showConfigColumnModal, handleConfigColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
       const indexArray = sortedData.getIndexArray();
@@ -1379,6 +1382,8 @@ class RunsTable extends Component {
                            handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
         <ConfigColumnModal show={showConfigColumnModal} handleClose={handleConfigColumnModalClose}
                            handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
+        <SettingsModal show={showSettingsModal} handleClose={handleSettingsModalClose}
+                       handleAutoRefreshUpdate={this._handleAutoRefreshUpdate}/>
       </div>
     );
   }

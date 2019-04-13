@@ -8,11 +8,13 @@ import * as appConstants from "../../appConstants/app.constants";
 describe('SettingsModal', () => {
   let wrapper = null;
   const closeHandler = jest.fn(() => wrapper.setProps({show: false}));
+  const autoRefreshUpdateHandler = jest.fn();
   toast.success = jest.fn();
+
 
   beforeEach(() => {
     wrapper = shallow(
-      <SettingsModal handleClose={closeHandler} show={true}/>
+      <SettingsModal handleClose={closeHandler} show={true} handleAutoRefreshUpdate={autoRefreshUpdateHandler}/>
     );
   });
 
@@ -49,20 +51,24 @@ describe('SettingsModal', () => {
         settings: {
           [appConstants.SETTING_TIMEZONE]: {
             value: appConstants.SERVER_TIMEZONE,
+            name: appConstants.SETTING_TIMEZONE,
             id: 1
           },
           [appConstants.AUTO_REFRESH_INTERVAL]: {
             value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+            name: appConstants.AUTO_REFRESH_INTERVAL,
             id: 2
           }
         },
         initialSettings: {
           [appConstants.SETTING_TIMEZONE]: {
             value: appConstants.SERVER_TIMEZONE,
+            name: appConstants.SETTING_TIMEZONE,
             id: 1
           },
           [appConstants.AUTO_REFRESH_INTERVAL]: {
             value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+            name: appConstants.AUTO_REFRESH_INTERVAL,
             id: 2
           }
         },
@@ -90,14 +96,16 @@ describe('SettingsModal', () => {
         settings: {
           auto_refresh_interval: {
             id: 2,
+            name: appConstants.AUTO_REFRESH_INTERVAL,
             value: newRefreshInterval
           },
           timezone: {
             id: 1,
+            name: appConstants.SETTING_TIMEZONE,
             value: newTimezone
           }
         }
-      });
+      }, expect.any(Function));
 
       expect(toast.success).toHaveBeenCalledWith(`Settings saved successfully!`);
     });
