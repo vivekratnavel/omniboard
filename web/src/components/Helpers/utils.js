@@ -48,8 +48,8 @@ export const parseServerError = (error) => {
   return defaultMessage + message;
 };
 
-export const getRunStatus = (status, heartbeat) => {
-  return status === STATUS.RUNNING && heartbeat && (new Date() - new Date(heartbeat) > PROBABLY_DEAD_TIMEOUT) ? STATUS.PROBABLY_DEAD : status;
+export const getRunStatus = (status, lastbeat) => {
+  return status === STATUS.RUNNING && lastbeat && (new Date() - new Date(lastbeat) > PROBABLY_DEAD_TIMEOUT) ? STATUS.PROBABLY_DEAD : status;
 };
 
 export const getFileExtension = (fileName) => fileName.split('.').splice(-1)[0];
