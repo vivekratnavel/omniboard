@@ -314,7 +314,7 @@ class RunsTable extends Component {
 
             // Determine if a run is probably dead and assign the status accordingly
             if ('status' in data) {
-              data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY]);
+              data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY] || data[START_TIME_KEY]);
             }
 
             // Expand omniboard columns
