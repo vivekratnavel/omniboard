@@ -14,6 +14,7 @@ import { toast } from 'react-toastify';
 class SettingsModal extends PureComponent {
   static propTypes = {
     handleClose: PropTypes.func.isRequired,
+    handleAutoRefreshUpdate: PropTypes.func.isRequired,
     show: PropTypes.bool.isRequired
   };
 
@@ -30,6 +31,7 @@ class SettingsModal extends PureComponent {
 
   _handleApply = () => {
     const {settings, initialSettings} = this.state;
+    const { handleAutoRefreshUpdate } = this.props;
     const autoRefreshInterval = Number(settings[AUTO_REFRESH_INTERVAL].value);
     if(isNaN(autoRefreshInterval) || autoRefreshInterval < 5) {
       this.setState({
@@ -56,19 +58,24 @@ class SettingsModal extends PureComponent {
             const errors = res.filter(response => response.status !== 200);
             if (errors.length) {
               this.setState({
-                isInProgress: false,
                 error: parseServerError(errors[0])
               });
             } else {
-              this.setState({
-                isInProgress: false
-              });
               this.setGlobal({
                 settings
+              }, () => {
+                // reset polling if auto refresh interval
+                // setting was changed
+                if (dirtySettings.find(setting => setting.name === AUTO_REFRESH_INTERVAL)) {
+                  handleAutoRefreshUpdate();
+                }
               });
               toast.success(`Settings saved successfully!`);
               closeModal();
             }
+            this.setState({
+              isInProgress: false
+            });
           }).catch(error => {
           this.setState({
             isInProgress: false,

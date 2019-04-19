@@ -19,7 +19,8 @@ describe('RunsTable', () => {
     ],
     RealDate = Date,
     constantDate = new Date(2018),
-    configColumnModalCloseHandler = jest.fn();
+    configColumnModalCloseHandler = jest.fn(),
+    settingsModalCloseHandler = jest.fn();
   /* eslint-disable global-assign */
   toast.error = jest.fn();
   /* eslint-disable no-console */
@@ -40,7 +41,9 @@ describe('RunsTable', () => {
 
     await tick();
     wrapper = mount(
-      <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}/>
+      <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}
+                 showSettingsModal={false}
+                 handleSettingsModalClose={settingsModalCloseHandler}/>
     );
     // runsTable deletes certain keys in this data and it produces unexpected results
     // That's why assigning data everytime in "beforeEach" block
@@ -116,7 +119,7 @@ describe('RunsTable', () => {
       mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
       await tick();
 
-      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(queryString));
+      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(JSON.stringify(queryString)));
       mockAxios.mockResponse({status: 200, data: runsResponse});
       mockAxios.mockResponse({status: 200, data: tagsResponse});
       mockAxios.mockResponse({status: 200, data: configColumnsResponse});
@@ -199,6 +202,67 @@ describe('RunsTable', () => {
 
       expect(wrapper.state().isTableLoading).toBeFalsy();
     })
+  });
+
+  describe('should load partial updates', async () => {
+    const getAPIArguments = (queryString) => {
+      return ['/api/v1/Runs', {
+        params: {
+          select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
+            'result,start_time,resources,format,status,omniboard,metrics,meta',
+          sort: '-_id',
+          query: queryString,
+          populate: {
+            match: {
+              name: {
+                $in: [
+                  "pretrain.train.loss"
+                ],
+              },
+            },
+            path: "metrics",
+          }
+        }
+      }]
+    };
+
+    beforeEach(async () => {
+      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      await tick();
+
+      mockAxios.mockResponse({status: 200, data: runsResponse});
+      mockAxios.mockResponse({status: 200, data: tagsResponse});
+      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+      await tick();
+      mockAxios.reset();
+    });
+
+    it('and render correctly', async () => {
+      // it should query runs > max Run Id or
+      // runs with RUNNING status
+      const queryString = {$and: [{
+        $or: [{
+          _id: {$in: []}
+        }, {
+          _id: {$gt: 226}
+        }]
+        }]};
+      const updateResponse = [
+        {"_id":227,"status":"RUNNING","result":null,"start_time":"2017-12-09T03:52:27.032Z","heartbeat":"2017-12-09T19:02:33.590Z","omniboard":{"notes":"testing note!","tags":["tag1","test"]},"metrics":[]},
+        {"_id":226,"status":"COMPLETED","result":null,"start_time":"2017-12-09T03:52:27.032Z","heartbeat":"2017-12-09T19:02:33.590Z","omniboard":{"notes":"UPDATED NOTE","tags":["tag1","test"]},"metrics":[]}
+        ];
+      wrapper.instance().loadPartialUpdates();
+
+      expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
+      expect(wrapper.state().data).toHaveLength(2);
+      mockAxios.mockResponse({status: 200, data: updateResponse});
+
+      await tick();
+
+      expect(wrapper.state().data).toHaveLength(3);
+      expect(wrapper.state().data.filter(run => run._id === 227)).toHaveLength(1);
+      expect(wrapper.state().data.find(run => run._id === 226).notes).toEqual('UPDATED NOTE');
+    });
   });
 
   it('should initialize empty note with comment', async() => {
@@ -393,12 +457,12 @@ describe('RunsTable', () => {
     wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
 
     expect(event.preventDefault).toHaveBeenCalledWith();
-    expect(wrapper.state().sort['_id']).toEqual('DESC');
-    expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(226);
-    wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
-
     expect(wrapper.state().sort['_id']).toEqual('ASC');
     expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(222);
+    wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
+
+    expect(wrapper.state().sort['_id']).toEqual('DESC');
+    expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(226);
   });
 
   describe('should handle column show/hide correctly', () => {

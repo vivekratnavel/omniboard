@@ -124,8 +124,10 @@ exports[`App component should render 1`] = `
     />
     <RunsTable
       handleConfigColumnModalClose={[Function]}
+      handleSettingsModalClose={[Function]}
       localStorageKey="RunsTable|1"
       showConfigColumnModal={false}
+      showSettingsModal={false}
       stateFilterKeys={
         Array [
           "dropdownOptions",
@@ -137,13 +139,10 @@ exports[`App component should render 1`] = `
           "columnNameMap",
           "statusFilterOptions",
           "filters",
+          "autoRefresh",
         ]
       }
     />
   </div>
-  <SettingsModal
-    handleClose={[Function]}
-    show={false}
-  />
 </div>
 `;

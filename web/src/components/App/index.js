@@ -154,9 +154,10 @@ class App extends Component {
         <div className="content">
           <ToastContainer autoClose={false}/>
           <RunsTable localStorageKey={localStorageKey} showConfigColumnModal={showConfigColumnModal}
-                     handleConfigColumnModalClose={this._handleConfigColumnModalClose} />
+                     handleConfigColumnModalClose={this._handleConfigColumnModalClose}
+                     showSettingsModal={showSettingsModal}
+                     handleSettingsModalClose={this._handleSettingsModalClose} />
         </div>
-        <SettingsModal show={showSettingsModal} handleClose={this._handleSettingsModalClose}/>
       </div>
     );
   }

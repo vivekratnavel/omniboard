@@ -23,7 +23,9 @@ import { ConfigColumnModal } from '../ConfigColumnModal/configColumnModal';
 import PropTypes from 'prop-types';
 import Switch from 'react-switch';
 import moment from 'moment';
+import classNames from 'classnames';
 import { AUTO_REFRESH_INTERVAL } from "../../appConstants/app.constants";
+import {SettingsModal} from "../SettingsModal/settingsModal";
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -37,6 +39,16 @@ const DURATION_COLUMN_KEY = 'duration';
 const START_TIME_KEY = 'start_time';
 const STOP_TIME_KEY = 'stop_time';
 const HEARTBEAT_KEY = 'heartbeat';
+const OPERATOR = {
+  EQUALS: '$eq',
+  NOT_EQUALS: '$ne',
+  LESS_THAN: '$lt',
+  GREATER_THAN: '$gt',
+  LESS_THAN_EQUALS: '$lte',
+  GREATER_THAN_EQUALS: '$gte',
+  IN: '$in',
+  REGEX: '$regex'
+};
 
 function getStatusLabel(label) {
   return `<div class="clearfix">
@@ -56,37 +68,39 @@ const STATUS_FILTER_OPTIONS = [
   ];
 
 const FILTER_OPERATOR_OPTIONS = [
-  {label: '==', value: '$eq'},
-  {label: '!=', value: '$ne'},
-  {label: '<', value: '$lt'},
-  {label: '<=', value: '$lte'},
-  {label: '>', value: '$gt'},
-  {label: '>=', value: '$gte'},
-  {label: 'in', value: '$in'},
-  {label: 'regex', value: '$regex'}
+  {label: '==', value: OPERATOR.EQUALS},
+  {label: '!=', value: OPERATOR.NOT_EQUALS},
+  {label: '<', value: OPERATOR.LESS_THAN},
+  {label: '<=', value: OPERATOR.LESS_THAN_EQUALS},
+  {label: '>', value: OPERATOR.GREATER_THAN},
+  {label: '>=', value: OPERATOR.GREATER_THAN_EQUALS},
+  {label: 'in', value: OPERATOR.IN},
+  {label: 'regex', value: OPERATOR.REGEX}
   ];
 
 export const FILTER_OPERATOR_LABELS = {
-  $eq: '==',
-  $ne: '!=',
-  $lt: '<',
-  $lte: '<=',
-  $gt: '>',
-  $gte: '>=',
-  $in: 'in',
-  $regex: 'regex'
+  [OPERATOR.EQUALS]: '==',
+  [OPERATOR.NOT_EQUALS]: '!=',
+  [OPERATOR.LESS_THAN]: '<',
+  [OPERATOR.LESS_THAN_EQUALS]: '<=',
+  [OPERATOR.GREATER_THAN]: '>',
+  [OPERATOR.GREATER_THAN_EQUALS]: '>=',
+  [OPERATOR.IN]: 'in',
+  [OPERATOR.REGEX]: 'regex'
 };
 
 class RunsTable extends Component {
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
     stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort',
-      'columnNameMap', 'statusFilterOptions', 'filters']
+      'columnNameMap', 'statusFilterOptions', 'filters', 'autoRefresh']
   };
 
   static propTypes = {
     showConfigColumnModal: PropTypes.bool.isRequired,
-    handleConfigColumnModalClose: PropTypes.func.isRequired
+    handleConfigColumnModalClose: PropTypes.func.isRequired,
+    showSettingsModal: PropTypes.bool.isRequired,
+    handleSettingsModalClose: PropTypes.func.isRequired
   };
 
   tableWrapperDomNode = null;
@@ -111,6 +125,7 @@ class RunsTable extends Component {
       sort: {},
       sortIndices: [],
       isSelectLoading: {},
+      isFetchingUpdates: false,
       filters: {
         status: [],
         advanced: []
@@ -131,7 +146,9 @@ class RunsTable extends Component {
       isError: false,
       errorMessage: '',
       autoRefresh: true,
-      lastUpdateTime: new Date()
+      lastUpdateTime: new Date(),
+      metricColumns: [],
+      configColumns: []
     }
   }
 
@@ -146,14 +163,14 @@ class RunsTable extends Component {
     .split('.')
     .reduce((o, p) => o && o.hasOwnProperty(p) ? o[p] : defaultValue, object);
 
-  initPolling = () => {
-    this.loadData();
-    this.interval = setTimeout(this.initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
+  _initPolling = () => {
+    this.loadPartialUpdates();
+    this.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _startPolling = () => {
     this._stopPolling();
-    this.interval = setTimeout(this.initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
+    this.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _stopPolling = () => {
@@ -171,11 +188,9 @@ class RunsTable extends Component {
     });
   };
 
-  loadData = () => {
-    const {filters, columnOrder, dropdownOptions, columnWidths} = this.state;
-    let latestDropdownOptions = [];
+  _buildRunsQuery = (metricColumnsData) => {
+    const {filters} = this.state;
     const queryJson = {'$and': []};
-    let columnNameMap = {};
     const statusQueryFilter = operator => status => {
       if (status === STATUS.PROBABLY_DEAD || status === STATUS.RUNNING) {
         // Apply condition to filter "probably dead" status
@@ -220,9 +235,201 @@ class RunsTable extends Component {
         }
       });
     }
-    const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : {};
-    let metricColumnsData = [];
+
+    const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : '{}';
+    const runQueryParams = {
+      select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
+        'result,start_time,resources,format,status,omniboard,metrics,meta',
+      sort: '-_id',
+      query: queryString
+    };
+
+    if (metricColumnsData.length) {
+      const metricColumnNames = metricColumnsData.map(column => column.metric_name);
+      const distinctMetricColumnNames = [...new Set(metricColumnNames)];
+      runQueryParams.populate = {
+        path: 'metrics',
+        match: {
+          name: { $in : distinctMetricColumnNames }
+        }
+      };
+    }
+
+    return runQueryParams;
+  };
+
+  _parseRunsResponseData = (runsResponseData, configColumnsData, metricColumnsData) => {
+    let columnNameMap = {};
+
+    const parsedRuns = runsResponseData.map(data => {
+      if ('config' in data) {
+        const config = data['config'];
+        // Expand each key of config column as individual columns
+        delete data['config'];
+        data = {...data, ...config};
+        const configNameMap = this._getColumnNameMap(config, 'config');
+        columnNameMap = {...columnNameMap, ...configNameMap};
+
+        // Include config columns
+        if (configColumnsData.length) {
+          const configColumnsObject = {};
+          const configColumnNameMap = {};
+          configColumnsData.forEach(column => {
+            const columnName = column.name;
+            const configPath = column.config_path;
+            configColumnsObject[columnName] = this._resolveObjectPath(config, configPath, '');
+            configColumnNameMap[columnName] = `config.${configPath}`;
+          });
+          data = {...data, ...configColumnsObject};
+          columnNameMap = {...columnNameMap, ...configColumnNameMap};
+        }
+      }
+
+      if ('experiment' in data) {
+        const experiment = data['experiment'];
+        delete data['experiment'];
+        data = {...data, 'experiment_name': experiment['name']};
+        columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
+      }
+
+      if ('host' in data) {
+        const host = data['host'];
+        delete data['host'];
+        data = {...data, 'hostname': host['hostname']};
+        const hostMap = this._getColumnNameMap(host, 'host');
+        columnNameMap = {...columnNameMap, ...hostMap};
+      }
+
+      // Add duration column; duration = heartbeat - start_time
+      if (HEARTBEAT_KEY in data && data[HEARTBEAT_KEY] && START_TIME_KEY in data)
+        data[DURATION_COLUMN_KEY] = Math.abs(new Date(data[HEARTBEAT_KEY]) - new Date(data[START_TIME_KEY]));
+
+      // Determine if a run is probably dead and assign the status accordingly
+      if ('status' in data) {
+        data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY] || data[START_TIME_KEY]);
+      }
+
+      // Expand omniboard columns
+      if ('omniboard' in data) {
+        const omniboard = data['omniboard'];
+        delete data['omniboard'];
+        data = {...data, ...omniboard};
+        const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
+        columnNameMap = {...columnNameMap, ...omniboardMap};
+      }
+
+      // Add notes from comment if none has been saved in omniboard
+      if (!('notes' in data)) {
+        if ('meta' in data) {
+          const meta = data['meta'];
+          delete data['meta'];
+          if ('comment' in meta) {
+            const comment = meta['comment'];
+            data = {...data, 'notes': comment}
+          }
+        }
+      }
+
+      // Delete meta if not deleted already
+      if ('meta' in data) {
+        delete data['meta'];
+      }
+
+      // Include metric columns
+      if (metricColumnsData.length) {
+        const metricColumnsObject = {};
+        const metricColumnNameMap = {};
+        metricColumnsData.forEach(column => {
+          let value = 0;
+          const metric = data['metrics'].find(metric => metric.name === column.metric_name);
+          if (metric && metric.values) {
+            const extrema = column.extrema;
+            if (extrema === 'min') {
+              value = metric.values.reduce((a, b) => (a < b) ? a : b);
+            } else if (extrema === 'max') {
+              value = metric.values.reduce((a, b) => (a > b) ? a : b);
+            } else if (extrema === 'last') {
+              value = metric.values[metric.values.length - 1];
+            }
+          }
+          metricColumnsObject[column.name] = value;
+          metricColumnNameMap[column.name] = `omniboard.columns.${column.name}`;
+        });
+        data = {...data, ...metricColumnsObject};
+        columnNameMap = {...columnNameMap, ...metricColumnNameMap};
+      }
+      return data;
+    });
+
+    this.setState({
+      columnNameMap
+    });
+
+    return parsedRuns;
+  };
+
+  _getLatestColumnOrder = (runsResponseData) => {
+    let latestColumnOrder = runsResponseData.reduce((columns, row) => {
+      columns = Array.from(columns);
+      return new Set([...columns, ...Object.keys(row)]);
+    }, new Set());
+    if (!latestColumnOrder.has('tags')) {
+      latestColumnOrder.add('tags');
+    }
+    if (!latestColumnOrder.has('notes')) {
+      latestColumnOrder.add('notes');
+    }
+    // Remove metrics from it being displayed as a column
+    latestColumnOrder.delete('metrics');
+
+    return [...latestColumnOrder];
+  };
+
+  _updateRuns = (latestColumnOrder) => {
+    const {columnOrder, dropdownOptions, columnWidths} = this.state;
+
+    // Handle addition/deletion of metric/config columns
+    const dropdownOptionValues = dropdownOptions.map(option => option.value);
+    const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
+    const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
+    let newColumnOrder = columnOrder.slice();
+    let newDropdownOptions = dropdownOptions.slice();
+    let newColumnWidths = Object.assign({}, columnWidths);
+    if (columnsToAdd.length) {
+      newColumnOrder = newColumnOrder.concat(columnsToAdd);
+      const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
+      newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
+      const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
+        return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
+      }, {});
+      newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
+    }
+
+    this.setState({
+      columnOrder: newColumnOrder,
+      columnWidths: newColumnWidths,
+      dropdownOptions: newDropdownOptions
+    });
+
+    if (columnsToDelete.length) {
+      columnsToDelete.map(this._handleColumnDelete);
+    }
+  };
+
+  _getDefaultSortIndices = (runsResponseData) => {
+    const _defaultSortIndices = [];
+    for (let index = 0; index < runsResponseData.length; index++) {
+      _defaultSortIndices.push(index);
+    }
+
+    return _defaultSortIndices;
+  };
+
+  loadData = () => {
+    let latestDropdownOptions = [];
+
     let runQueryParams = {};
+    let metricColumnsData = [];
     this.setState({
       isTableLoading: true,
       isError: false
@@ -231,24 +438,8 @@ class RunsTable extends Component {
     // First retrieve metric columns as to decide which metrics need to be populated.
     axios.get('/api/v1/Omniboard.Columns').then(metricColumns => {
       metricColumnsData = metricColumns.data;
+      runQueryParams = this._buildRunsQuery(metricColumnsData);
 
-      runQueryParams = {
-        select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
-                'result,start_time,resources,format,status,omniboard,metrics,meta',
-        sort: '-_id',
-        query: queryString
-      };
-
-      if (metricColumnsData.length) {
-        const metricColumnNames = metricColumnsData.map(column => column.metric_name);
-        const distinctMetricColumnNames = [...new Set(metricColumnNames)];
-        runQueryParams.populate = {
-          path: 'metrics',
-          match: {
-            name: { $in : distinctMetricColumnNames }
-          }
-        };
-      }
       return Promise.resolve(true);
     }).then(resolved => {
       // The value of resolved is not used because
@@ -268,120 +459,10 @@ class RunsTable extends Component {
         let runsResponseData = runsResponse.data;
         const configColumnsData = configColumns.data;
         if (runsResponseData && runsResponseData.length) {
-          const _defaultSortIndices = [];
-          runsResponseData = runsResponseData.map(data => {
-            if ('config' in data) {
-              const config = data['config'];
-              // Expand each key of config column as individual columns
-              delete data['config'];
-              data = {...data, ...config};
-              const configNameMap = this._getColumnNameMap(config, 'config');
-              columnNameMap = {...columnNameMap, ...configNameMap};
 
-              // Include config columns
-              if (configColumnsData.length) {
-                const configColumnsObject = {};
-                const configColumnNameMap = {};
-                configColumnsData.forEach(column => {
-                  const columnName = column.name;
-                  const configPath = column.config_path;
-                  configColumnsObject[columnName] = this._resolveObjectPath(config, configPath, '');
-                  configColumnNameMap[columnName] = `config.${configPath}`;
-                });
-                data = {...data, ...configColumnsObject};
-                columnNameMap = {...columnNameMap, ...configColumnNameMap};
-              }
-            }
+          runsResponseData = this._parseRunsResponseData(runsResponseData, configColumnsData, metricColumnsData);
 
-            if ('experiment' in data) {
-              const experiment = data['experiment'];
-              delete data['experiment'];
-              data = {...data, 'experiment_name': experiment['name']};
-              columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
-            }
-
-            if ('host' in data) {
-              const host = data['host'];
-              delete data['host'];
-              data = {...data, 'hostname': host['hostname']};
-              const hostMap = this._getColumnNameMap(host, 'host');
-              columnNameMap = {...columnNameMap, ...hostMap};
-            }
-
-            // Add duration column; duration = heartbeat - start_time
-            if (HEARTBEAT_KEY in data && data[HEARTBEAT_KEY] && START_TIME_KEY in data)
-              data[DURATION_COLUMN_KEY] = Math.abs(new Date(data[HEARTBEAT_KEY]) - new Date(data[START_TIME_KEY]));
-
-            // Determine if a run is probably dead and assign the status accordingly
-            if ('status' in data) {
-              data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY] || data[START_TIME_KEY]);
-            }
-
-            // Expand omniboard columns
-            if ('omniboard' in data) {
-              const omniboard = data['omniboard'];
-              delete data['omniboard'];
-              data = {...data, ...omniboard};
-              const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
-              columnNameMap = {...columnNameMap, ...omniboardMap};
-            }
-
-            // Add notes from comment if none has been saved in omniboard
-            if (!('notes' in data)) {
-              if ('meta' in data) {
-                const meta = data['meta'];
-                delete data['meta'];
-                if ('comment' in meta) {
-                  const comment = meta['comment'];
-                  data = {...data, 'notes': comment}
-                }
-              }
-            }
-
-            // Delete meta if not deleted already
-            if ('meta' in data) {
-              delete data['meta'];
-            }
-
-            // Include metric columns
-            if (metricColumnsData.length) {
-              const metricColumnsObject = {};
-              const metricColumnNameMap = {};
-              metricColumnsData.forEach(column => {
-                let value = 0;
-                const metric = data['metrics'].find(metric => metric.name === column.metric_name);
-                if (metric && metric.values) {
-                  const extrema = column.extrema;
-                  if (extrema === 'min') {
-                    value = metric.values.reduce((a, b) => (a < b) ? a : b);
-                  } else if (extrema === 'max') {
-                    value = metric.values.reduce((a, b) => (a > b) ? a : b);
-                  } else if (extrema === 'last') {
-                    value = metric.values[metric.values.length - 1];
-                  }
-                }
-                metricColumnsObject[column.name] = value;
-                metricColumnNameMap[column.name] = `omniboard.columns.${column.name}`;
-              });
-              data = {...data, ...metricColumnsObject};
-              columnNameMap = {...columnNameMap, ...metricColumnNameMap};
-            }
-            return data;
-          });
-          let latestColumnOrder = runsResponseData.reduce((columns, row) => {
-            columns = Array.from(columns);
-            return new Set([...columns, ...Object.keys(row)]);
-          }, new Set());
-          if (!latestColumnOrder.has('tags')) {
-            latestColumnOrder.add('tags');
-          }
-          if (!latestColumnOrder.has('notes')) {
-            latestColumnOrder.add('notes');
-          }
-          // Remove metrics from it being displayed as a column
-          latestColumnOrder.delete('metrics');
-
-          latestColumnOrder = [...latestColumnOrder];
+          const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
 
           // Set columns array and dropdown options only the first time data is fetched
           if (this.state.data === null) {
@@ -413,51 +494,21 @@ class RunsTable extends Component {
             }
             this.showHideColumnsDomNode.syncData();
           } else {
-            // Handle addition/deletion of metric/config columns
-            const dropdownOptionValues = dropdownOptions.map(option => option.value);
-            const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
-            const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
-            let newColumnOrder = columnOrder.slice();
-            let newDropdownOptions = dropdownOptions.slice();
-            let newColumnWidths = Object.assign({}, columnWidths);
-            if (columnsToAdd.length) {
-              newColumnOrder = newColumnOrder.concat(columnsToAdd);
-              const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
-              newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
-              const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
-                return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
-              }, {});
-              newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
-            }
-
-            this.setState({
-              columnOrder: newColumnOrder,
-              columnWidths: newColumnWidths,
-              dropdownOptions: newDropdownOptions
-            });
-
-            if (columnsToDelete.length) {
-              columnsToDelete.map(this._handleColumnDelete);
-            }
+            this._updateRuns(latestColumnOrder);
           }
 
-          for (let index = 0; index < runsResponseData.length; index++) {
-            _defaultSortIndices.push(index);
-          }
-          const defaultSortIndices = _defaultSortIndices.length ? _defaultSortIndices : this.state.defaultSortIndices;
-          const sortIndices = this.state.sortIndices.length ? this.state.sortIndices : defaultSortIndices;
-          const sortedData = new DataListWrapper(sortIndices, runsResponseData);
+          const _defaultSortIndices = this._getDefaultSortIndices(runsResponseData);
           this.setState({
             data: runsResponseData,
-            defaultSortIndices: _defaultSortIndices,
-            columnNameMap
+            defaultSortIndices: _defaultSortIndices
           }, () => {
             // Apply sort if sorting is already enabled
             if (Object.keys(this.state.sort).length) {
               const sortKey = Object.keys(this.state.sort)[0];
               this._onSortChange(sortKey, this.state.sort[sortKey]);
             } else {
-              this.setState({sortedData});
+              // Default to sort by _id
+              this._onSortChange(ID_COLUMN_KEY, SortTypes.DESC);
             }
           });
         } else {
@@ -471,7 +522,9 @@ class RunsTable extends Component {
         this.setState({
           isTableLoading: false,
           tags: tags.data,
-          lastUpdateTime: new Date()
+          lastUpdateTime: new Date(),
+          configColumns: configColumnsData,
+          metricColumns: metricColumnsData
         });
       })).catch(error => {
         const errorMessage = parseServerError(error);
@@ -487,6 +540,76 @@ class RunsTable extends Component {
         isTableLoading: false,
         isError: true,
         errorMessage
+      });
+    });
+  };
+
+  loadPartialUpdates = () => {
+    const {metricColumns, configColumns, data} = this.state;
+    const runQueryParams = this._buildRunsQuery(metricColumns);
+    let queryString = JSON.parse(runQueryParams.query);
+
+    // Find the maximum run Id
+    const maxRunId = data.reduce((acc, current) => Math.max(acc, current._id), 0);
+
+    // Find all the runs that are in "RUNNING" status
+    const runningExperiments = data.filter(run => run['status'] === STATUS.RUNNING);
+    const runningIds = runningExperiments.map(run => run[ID_COLUMN_KEY]);
+
+    // Build query to fetch only latest runs or runs that are in "RUNNING" status
+    const queryJson = {'$and': [{
+      '$or': [{
+        [ID_COLUMN_KEY]: {[OPERATOR.IN]: runningIds}
+      }, {
+        [ID_COLUMN_KEY]: {[OPERATOR.GREATER_THAN]: maxRunId}
+      }]
+    }]};
+
+    if ('$and' in queryString) {
+      queryString['$and'].push(queryJson);
+    } else {
+      queryString = queryJson;
+    }
+
+    runQueryParams.query = queryString;
+
+    this.setState({
+      isFetchingUpdates: true
+    });
+
+    axios.get('/api/v1/Runs', {
+      params: runQueryParams
+    }).then(runsResponse => {
+      let runsResponseData = runsResponse.data;
+
+      if (runsResponseData && runsResponseData.length) {
+        const runIds = runsResponseData.map(run => run._id);
+        // Filter out runs from old data that overlap with runs in latest response
+        const oldData = data.filter(run => !runIds.includes(run._id));
+        const latestRuns = runsResponseData.concat(oldData);
+        runsResponseData = this._parseRunsResponseData(latestRuns, configColumns, metricColumns);
+
+        const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
+
+        this._updateRuns(latestColumnOrder);
+
+        const _defaultSortIndices = this._getDefaultSortIndices(runsResponseData);
+
+        this.setState({
+          data: runsResponseData,
+          defaultSortIndices: _defaultSortIndices
+        }, () => {
+          // Apply sort if sorting is already enabled
+          if (Object.keys(this.state.sort).length) {
+            const sortKey = Object.keys(this.state.sort)[0];
+            this._onSortChange(sortKey, this.state.sort[sortKey], false);
+          }
+        });
+      }
+
+      this.setState({
+        lastUpdateTime: new Date(),
+        isFetchingUpdates: false
       });
     });
   };
@@ -513,7 +636,7 @@ class RunsTable extends Component {
             isSelectLoading: Object.assign({}, isSelectLoading, {[rowIndex]: false}),
             sortedData: newData,
             tags: newTags
-          })
+          });
         }
     }).catch(error => {
       this.setState({
@@ -535,7 +658,7 @@ class RunsTable extends Component {
         newData.setObjectAt(rowIndex, Object.assign({}, newData.getObjectAt(rowIndex), {notes}));
         this.setState({
           sortedData: newData
-        })
+        });
       }
     }).catch(error => {
       toast.error(parseServerError(error));
@@ -636,11 +759,13 @@ class RunsTable extends Component {
     return new DataListWrapper(sortIndices, data);
   };
 
-  _onSortChange = (columnKey, sortDir) => {
+  _onSortChange = (columnKey, sortDir, resetExpandedRows = true) => {
     const {data, defaultSortIndices} = this.state;
     let sortIndices = defaultSortIndices.slice();
-    // Expanded rows uses rowId to expand a row. Reset the expanded rows state while sorting
-    this._resetExpandedRows();
+    if (resetExpandedRows) {
+      // Expanded rows uses rowId to expand a row. Reset the expanded rows state while sorting
+      this._resetExpandedRows();
+    }
     if (sortIndices && sortIndices.length) {
       const sortedData = this._getSortedData(sortIndices, data, columnKey, sortDir);
       this.setState({
@@ -671,7 +796,11 @@ class RunsTable extends Component {
     // Wait for LocalStorageMixin to setState
     // and then fetch data
     setTimeout(this.loadData, 1);
-    this.interval = setTimeout(this.initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
+    setTimeout(() => {
+      if (this.state.autoRefresh) {
+        this._startPolling();
+      }
+    }, 1);
   }
 
   /**
@@ -727,7 +856,7 @@ class RunsTable extends Component {
     if (!this.state.expandedRows.has(rowIndex)) {
       return null;
     }
-    const runId = this.state.sortedData.getObjectAt(rowIndex)['_id'];
+    const runId = this.state.sortedData.getObjectAt(rowIndex)[ID_COLUMN_KEY];
     const status = this.state.sortedData.getObjectAt(rowIndex)['status'];
     // Local storage key is used for synchronizing state of each drilldown view with local storage
     const localStorageKey = `DrillDownView|${runId}`;
@@ -977,24 +1106,24 @@ class RunsTable extends Component {
       for (let index = 0; index < data.length; index++) {
         defaultSortIndices.push(index);
       }
-      // Apply sort if sorting is already enabled
-      if (Object.keys(sort).length) {
-        const sortKey = Object.keys(sort)[0];
-        const sortedData = this._getSortedData(defaultSortIndices.slice(), data, sortKey, sort[sortKey]);
-        this.setState({
-          data,
-          defaultSortIndices,
-          sortedData,
-          sortIndices: sortedData.getIndexArray()
-        });
-      } else {
-        this.setState({
-          data,
-          defaultSortIndices,
-          sortedData: new DataListWrapper(defaultSortIndices, data),
-          sortIndices: defaultSortIndices
-        });
-      }
+      // Here assumption is that runs are always sorted
+      // And sorting is enabled on one column
+      const sortKey = Object.keys(sort)[0];
+      const sortedData = this._getSortedData(defaultSortIndices.slice(), data, sortKey, sort[sortKey]);
+      this.setState({
+        data,
+        defaultSortIndices,
+        sortedData,
+        sortIndices: sortedData.getIndexArray()
+      });
+    }
+  };
+
+  _handleAutoRefreshUpdate = () => {
+    const {autoRefresh} = this.state;
+    // Restart polling if auto refresh is enabled
+    if (autoRefresh) {
+      this._startPolling();
     }
   };
 
@@ -1010,8 +1139,9 @@ class RunsTable extends Component {
     const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
-      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh, lastUpdateTime } = this.state;
-    const {showConfigColumnModal, handleConfigColumnModalClose} = this.props;
+      filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
+      lastUpdateTime, isFetchingUpdates } = this.state;
+    const {showConfigColumnModal, handleConfigColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
     let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
       const indexArray = sortedData.getIndexArray();
@@ -1057,6 +1187,9 @@ class RunsTable extends Component {
     const getFilterValueLabel = value => Array.isArray(value) ? value.join(',') : value;
     const filterColumnNameOptions = this._getColumnNameOptions();
     const isFixed = columnKey => columnKey === '_id';
+    const lastUpdateLoaderClass = classNames({
+      'glyphicon-refresh-animate': isFetchingUpdates
+    });
     return (
       <div>
         <div className="table-header">
@@ -1179,8 +1312,13 @@ class RunsTable extends Component {
                     width={32} height={16} className="switch-container" onColor="#33bd33"/>
             &nbsp;
           </label>
-          <span>Last Update:
+          <span>
+            &nbsp;
+            <Glyphicon glyph="refresh" className={lastUpdateLoaderClass}/>
+            &nbsp;
+            Last Update:
             <span className="date-text"> {moment(lastUpdateTime).format('MMMM Do, hh:mm:ss A')}</span>
+            &nbsp;
           </span>
           &nbsp;
           <Button bsStyle="success" className="reload-button" onClick={this.loadData}>
@@ -1245,6 +1383,8 @@ class RunsTable extends Component {
                            handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
         <ConfigColumnModal show={showConfigColumnModal} handleClose={handleConfigColumnModalClose}
                            handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
+        <SettingsModal show={showSettingsModal} handleClose={handleSettingsModalClose}
+                       handleAutoRefreshUpdate={this._handleAutoRefreshUpdate}/>
       </div>
     );
   }
