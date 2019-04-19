@@ -306,7 +306,7 @@ class RunsTable extends Component {
 
       // Determine if a run is probably dead and assign the status accordingly
       if ('status' in data) {
-        data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY]);
+        data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY] || data[START_TIME_KEY]);
       }
 
       // Expand omniboard columns
@@ -459,6 +459,7 @@ class RunsTable extends Component {
         let runsResponseData = runsResponse.data;
         const configColumnsData = configColumns.data;
         if (runsResponseData && runsResponseData.length) {
+
           runsResponseData = this._parseRunsResponseData(runsResponseData, configColumnsData, metricColumnsData);
 
           const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);

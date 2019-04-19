@@ -54,7 +54,7 @@ class CapturedOutView extends Component {
     })
     .then(runsResponse => {
       const runsResponseData = runsResponse.data;
-      const status = getRunStatus(runsResponseData.status, runsResponseData.heartbeat);
+      const status = getRunStatus(runsResponseData.status, runsResponseData.heartbeat || runsResponseData.start_time);
       this.setState({
         capturedOut: runsResponseData.captured_out,
         status,
