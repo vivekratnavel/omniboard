@@ -29,6 +29,14 @@ For setting more advanced connection properties, use the `--mu` option together 
 omniboard --mu mongodb://user:pwd@host/admin?authMechanism=SCRAM-SHA-1 sacred
 ```
 
+For basic authentication, start omniboard with the `-u` option:
+
+```bash
+omniboard -m hostname:port:database -u username:password:secret
+```
+
+Replace `username`, `password` and `secret` with your desired authentication information.
+
 Go to http://localhost:9000 to access omniboard.
 
 ### Docker
