@@ -294,6 +294,9 @@ class MetricColumnModal extends PureComponent {
       }
     });
     const extremaOptions = [{
+      label: 'average',
+      value: 'average'
+    },{
       label: 'min',
       value: 'min'
     }, {
@@ -302,9 +305,6 @@ class MetricColumnModal extends PureComponent {
     },{
       label: 'last',
       value: 'last'
-    },{
-      label: 'average',
-      value: 'average'
     }];
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
