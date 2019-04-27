@@ -240,6 +240,10 @@ exports[`MetricColumnModal should render correctly 2`] = `
                 options={
                   Array [
                     Object {
+                      "label": "average",
+                      "value": "average",
+                    },
+                    Object {
                       "label": "min",
                       "value": "min",
                     },
@@ -347,6 +351,10 @@ exports[`MetricColumnModal should render correctly 2`] = `
                 onChange={[Function]}
                 options={
                   Array [
+                    Object {
+                      "label": "average",
+                      "value": "average",
+                    },
                     Object {
                       "label": "min",
                       "value": "min",

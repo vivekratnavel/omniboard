@@ -350,6 +350,8 @@ class RunsTable extends Component {
               value = metric.values.reduce((a, b) => (a > b) ? a : b);
             } else if (extrema === 'last') {
               value = metric.values[metric.values.length - 1];
+            } else if (extrema === 'average') {
+              value = metric.values.reduce((a, b) => a + b, 0) / metric.values.length;
             }
           }
           metricColumnsObject[column.name] = value;

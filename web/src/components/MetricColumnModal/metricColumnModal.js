@@ -294,6 +294,9 @@ class MetricColumnModal extends PureComponent {
       }
     });
     const extremaOptions = [{
+      label: 'average',
+      value: 'average'
+    },{
       label: 'min',
       value: 'min'
     }, {
