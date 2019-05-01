@@ -1,4 +1,5 @@
 import {databaseConn, gfs} from './config/database';
+import {authUser, authPwd, authSecret} from './config/auth';
 import express from 'express';
 import * as path from 'path';
 import morgan from 'morgan';
@@ -16,6 +17,33 @@ import archiver from 'archiver';
 
 const app = express();
 const router = express.Router();
+const session = require('express-session');
+
+// Basic auth, if configured
+if (authPwd !== '') {
+  app.use(session({ resave: true, secret: authSecret, saveUninitialized: true }));
+  app.use((req, res, next) => {
+    if (!req.session.user) {
+      // https://stackoverflow.com/questions/23616371
+      const auth = {login: authUser, password: authPwd}
+      // parse login and password from headers
+      const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+      const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+
+      // Verify login and password are set and correct
+      if (!login || !password || login !== auth.login || password !== auth.password) {
+        res.set('WWW-Authenticate', 'Basic realm="401"') // change this
+        res.status(401).send('Authentication required.') // custom message
+        return
+      }
+      else {
+        req.session.user = true;
+      }
+    }
+    // Access granted
+    next()
+  })
+}
 
 // Setup logger
 app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms'));

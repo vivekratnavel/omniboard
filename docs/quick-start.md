@@ -35,6 +35,14 @@ For instance, to connect with a running instance on the cloud service [MongoDB A
 omniboard --mu "mongodb+srv://my-username:my-password@my-cluster-v9zjk.mongodb.net/sacred?retryWrites=true"
 ```
 
+For basic authentication, start omniboard with the `-u` option:
+
+```bash
+omniboard -m hostname:port:database -u username:password:secret
+```
+
+Replace `username`, `password` and `secret` with your desired authentication information.
+
 Go to http://localhost:9000 to access omniboard.
 
 ### Docker
