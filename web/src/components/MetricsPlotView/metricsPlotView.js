@@ -6,6 +6,7 @@ import PropTypes from 'prop-types'
 import reactMixin from 'react-mixin';
 import Slider from 'rc-slider';
 import LocalStorageMixin from 'react-localstorage';
+import NumericInput from 'react-numeric-input';
 
 const DEFAULT_SELECTION_KEY = "MetricsPlotView|default";
 const DEFAULT_PLOT_WIDTH = 800;
@@ -239,8 +240,8 @@ class MetricsPlotView extends Component {
             })}
           </div>
           <div style={wrapperStyle}>
-            <div>Smoothing: {smoothing}</div>
-            <Slider test-attr={"plot-smoothing-slider"} min={0} max={0.99} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
+            <div>Smoothing: <NumericInput min={0} max={0.999} step={0.001} value={smoothing} onChange={this._plotSmoothingChangeHandler} /></div>
+            <Slider test-attr={"plot-smoothing-slider"} min={0} max={0.999} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
           </div>
           <h4>Plot Size</h4>
           <div id="plot-size">
