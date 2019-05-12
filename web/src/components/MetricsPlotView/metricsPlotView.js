@@ -10,6 +10,7 @@ import LocalStorageMixin from 'react-localstorage';
 const DEFAULT_SELECTION_KEY = "MetricsPlotView|default";
 const DEFAULT_PLOT_WIDTH = 800;
 const DEFAULT_PLOT_HEIGHT = 400;
+const DEFAULT_PLOT_SMOOTHING = 0;
 
 class MetricsPlotView extends Component {
   static propTypes = {
@@ -19,7 +20,7 @@ class MetricsPlotView extends Component {
 
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['selectedMetricNames', 'selectedXAxis', 'selectedYAxis', 'plotWidth', 'plotHeight']
+    stateFilterKeys: ['selectedMetricNames', 'selectedXAxis', 'selectedYAxis', 'plotWidth', 'plotHeight', 'smoothing']
   };
 
   constructor(props) {
@@ -28,6 +29,7 @@ class MetricsPlotView extends Component {
       selectedMetricNames: [],
       selectedXAxis: X_AXIS_VALUES[0],
       selectedYAxis: SCALE_VALUES[0],
+      smoothing: DEFAULT_PLOT_SMOOTHING,
       plotWidth: DEFAULT_PLOT_WIDTH,
       plotHeight: DEFAULT_PLOT_HEIGHT
     };
@@ -89,7 +91,8 @@ class MetricsPlotView extends Component {
         selectedXAxis: defaultSelection.selectedXAxis || X_AXIS_VALUES[0],
         selectedYAxis: defaultSelection.selectedYAxis || SCALE_VALUES[0],
         plotWidth: defaultSelection.plotWidth || DEFAULT_PLOT_WIDTH,
-        plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT
+        plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT,
+        smoothing: defaultSelection.smoothing || DEFAULT_PLOT_SMOOTHING
       });
     }
   };
@@ -114,9 +117,17 @@ class MetricsPlotView extends Component {
     this._updateDefaultSelection({plotHeight: value});
   };
 
+  _plotSmoothingChangeHandler = (value) => {
+    this.setState({
+      smoothing: value
+    });
+    // update local storage to set default height
+    this._updateDefaultSelection({smoothing: value});
+  };
+
   render() {
     const {metricsResponse, runId} = this.props;
-    const {selectedMetricNames, selectedXAxis, selectedYAxis, plotWidth, plotHeight} = this.state;
+    const {selectedMetricNames, selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing} = this.state;
     let metricsResponseMap = {},
       metricNames = [];
     if (metricsResponse && metricsResponse.length) {
@@ -131,15 +142,57 @@ class MetricsPlotView extends Component {
         <div className="alert alert-warning">No metrics are available to plot</div>
       )
     }
-    const plotData = Array.from(selectedMetricNames).map(metricName => {
-      return {
+
+    const colors = [
+      '#1f77b4',
+      '#ff7f0e',
+      '#2ca02c',
+      '#d62728',
+      '#9467bd',
+      '#8c564b',
+      '#e377c2',
+      '#7f7f7f',
+      '#bcbd22',
+      '#17becf'
+    ]
+
+    const plotData = Array.from(selectedMetricNames).reduce((r, metricName) => {
+      // original data
+      let colorindex = (r.length / 2) % colors.length
+      r.push({
+        type: 'scatter',
+        mode: 'lines+points',
+        name: metricName + '.unsmoothed',
+        x: metricsResponseMap[metricName][selectedXAxis],
+        y: metricsResponseMap[metricName]['values'],
+        opacity: 0.2,
+        marker: {color: colors[colorindex]},
+        showlegend: false,
+        hoverinfo: 'none'
+      });
+
+      // calculate smoothed graph
+      let smoothed = []
+      let ravg = metricsResponseMap[metricName]['values'][0]
+      for (let v of metricsResponseMap[metricName]['values']) {
+        ravg = ravg * smoothing + (1 - smoothing) * v
+        smoothed.push(ravg)
+      }
+
+      // smoothed data
+      r.push({
         type: 'scatter',
         mode: 'lines+points',
         name: metricName,
         x: metricsResponseMap[metricName][selectedXAxis],
-        y: metricsResponseMap[metricName]['values']
-      };
-    });
+        y: smoothed,
+        opacity: 1,
+        marker: {color: colors[colorindex]}
+      });
+
+      return r;
+    }, []);
+
     const yAxisLayout = selectedYAxis === SCALE_VALUE.LOGARITHMIC ? {type: 'log', autorange: true} : {};
     const wrapperStyle = { width: 120, margin: 0 };
 
@@ -184,6 +237,10 @@ class MetricsPlotView extends Component {
                 </div>
               )
             })}
+          </div>
+          <div style={wrapperStyle}>
+            <div>Smoothing: {smoothing}</div>
+            <Slider test-attr={"plot-smoothing-slider"} min={0} max={0.99} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
           </div>
           <h4>Plot Size</h4>
           <div id="plot-size">
