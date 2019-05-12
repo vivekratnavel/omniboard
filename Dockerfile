@@ -11,11 +11,14 @@ RUN chmod +x /tini
 # Having "--" at the end will enable passing command line args to npm script
 ENTRYPOINT ["/tini", "--", "npm", "run", "prod", "--"]
 
-COPY . /usr/omniboard
+COPY package.json yarn.lock /usr/omniboard/
 RUN npm install
 
+COPY web/package.json web/yarn.lock /usr/omniboard/web/
 WORKDIR /usr/omniboard/web
 RUN npm install
+
+COPY . /usr/omniboard
 
 WORKDIR /usr/omniboard
 RUN npm run build
