@@ -122,7 +122,7 @@ class MetricsPlotView extends Component {
     this.setState({
       smoothing: value
     });
-    // update local storage to set default height
+    // update local storage to set default smoothing
     this._updateDefaultSelection({smoothing: value});
   };
 
