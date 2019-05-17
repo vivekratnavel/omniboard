@@ -67,6 +67,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
       "selectedYAxis",
       "plotWidth",
       "plotHeight",
+      "smoothing",
     ]
   }
 >
@@ -188,6 +189,278 @@ exports[`MetricsPlotView should render correctly 1`] = `
             Logarithmic
           </label>
         </div>
+      </div>
+      <div
+        style={
+          Object {
+            "margin": 0,
+            "width": 120,
+          }
+        }
+      >
+        <div>
+          Smoothing: 
+          <NumericInput
+            componentClass="input"
+            format={null}
+            max={0.999}
+            min={0}
+            mobile="auto"
+            onChange={[Function]}
+            parse={null}
+            precision={null}
+            step={0.001}
+            strict={false}
+            style={Object {}}
+            value={0}
+          >
+            <span
+              className="react-numeric-input"
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "display": "inline-block",
+                  "position": "relative",
+                }
+              }
+            >
+              <input
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onInput={[Function]}
+                onKeyDown={[Function]}
+                onSelect={[Function]}
+                style={
+                  Object {
+                    "WebkitAppearance": "none",
+                    "border": "1px solid #ccc",
+                    "borderRadius": 2,
+                    "boxSizing": "border-box",
+                    "display": "block",
+                    "fontSize": "inherit",
+                    "lineHeight": "normal",
+                    "paddingLeft": 4,
+                    "paddingRight": "3ex",
+                  }
+                }
+                type="text"
+                value="0"
+              />
+              <b
+                onMouseDown={[Function]}
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchStart={[Function]}
+                style={
+                  Object {
+                    "background": "rgba(0,0,0,.1)",
+                    "borderColor": "rgba(0,0,0,.1)",
+                    "borderRadius": "2px 2px 0 0",
+                    "borderStyle": "solid",
+                    "borderWidth": "1px 1px 0 1px",
+                    "bottom": "50%",
+                    "boxShadow": "-1px -1px 3px rgba(0,0,0,.1) inset,1px 1px 3px rgba(255,255,255,.7) inset",
+                    "cursor": "default",
+                    "position": "absolute",
+                    "right": 2,
+                    "textAlign": "center",
+                    "top": 2,
+                    "transition": "all 0.1s",
+                    "width": "2.26ex",
+                  }
+                }
+              >
+                <i
+                  style={
+                    Object {
+                      "borderColor": "transparent transparent rgba(0, 0, 0, 0.7)",
+                      "borderStyle": "solid",
+                      "borderWidth": "0 0.6ex 0.6ex 0.6ex",
+                      "height": 0,
+                      "left": "50%",
+                      "margin": "-0.3ex 0 0 -0.56ex",
+                      "position": "absolute",
+                      "top": "50%",
+                      "width": 0,
+                    }
+                  }
+                />
+              </b>
+              <b
+                onMouseDown={[Function]}
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchStart={[Function]}
+                style={
+                  Object {
+                    "background": "rgba(0,0,0,.1)",
+                    "borderColor": "rgba(0,0,0,.1)",
+                    "borderRadius": "0 0 2px 2px",
+                    "borderStyle": "solid",
+                    "borderWidth": "0 1px 1px 1px",
+                    "bottom": 2,
+                    "boxShadow": "-1px -1px 3px rgba(0,0,0,.1) inset,1px 1px 3px rgba(255,255,255,.7) inset",
+                    "cursor": "default",
+                    "position": "absolute",
+                    "right": 2,
+                    "textAlign": "center",
+                    "top": "50%",
+                    "transition": "all 0.1s",
+                    "width": "2.26ex",
+                  }
+                }
+              >
+                <i
+                  style={
+                    Object {
+                      "borderColor": "rgba(0, 0, 0, 0.7) transparent transparent",
+                      "borderStyle": "solid",
+                      "borderWidth": "0.6ex 0.6ex 0 0.6ex",
+                      "height": 0,
+                      "left": "50%",
+                      "margin": "-0.3ex 0 0 -0.56ex",
+                      "position": "absolute",
+                      "top": "50%",
+                      "width": 0,
+                    }
+                  }
+                />
+              </b>
+            </span>
+          </NumericInput>
+        </div>
+        <ComponentEnhancer(undefined)
+          activeDotStyle={Object {}}
+          className=""
+          disabled={false}
+          dotStyle={Object {}}
+          dots={false}
+          handle={[Function]}
+          handleStyle={
+            Array [
+              Object {},
+            ]
+          }
+          included={true}
+          marks={Object {}}
+          max={0.999}
+          min={0}
+          onAfterChange={[Function]}
+          onBeforeChange={[Function]}
+          onChange={[Function]}
+          prefixCls="rc-slider"
+          railStyle={Object {}}
+          step={0.001}
+          test-attr="plot-smoothing-slider"
+          trackStyle={
+            Array [
+              Object {},
+            ]
+          }
+          value={0}
+          vertical={false}
+        >
+          <div
+            className="rc-slider"
+            onBlur={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onMouseDown={[Function]}
+            onMouseUp={[Function]}
+            onTouchStart={[Function]}
+          >
+            <div
+              className="rc-slider-rail"
+              style={Object {}}
+            />
+            <Track
+              className="rc-slider-track"
+              included={true}
+              length={0}
+              offset={0}
+              style={Object {}}
+              vertical={false}
+            >
+              <div
+                className="rc-slider-track"
+                style={
+                  Object {
+                    "left": "0%",
+                    "width": "0%",
+                  }
+                }
+              />
+            </Track>
+            <Steps
+              activeDotStyle={Object {}}
+              dotStyle={Object {}}
+              dots={false}
+              included={true}
+              lowerBound={0}
+              marks={Object {}}
+              max={0.999}
+              min={0}
+              prefixCls="rc-slider"
+              step={0.001}
+              upperBound={0}
+              vertical={false}
+            >
+              <div
+                className="rc-slider-step"
+              />
+            </Steps>
+            <Handle
+              className="rc-slider-handle"
+              disabled={false}
+              key="0"
+              max={0.999}
+              min={0}
+              offset={0}
+              prefixCls="rc-slider"
+              style={Object {}}
+              value={0}
+              vertical={false}
+            >
+              <div
+                aria-disabled={false}
+                aria-valuemax={0.999}
+                aria-valuemin={0}
+                aria-valuenow={0}
+                className="rc-slider-handle"
+                onBlur={[Function]}
+                onKeyDown={[Function]}
+                role="slider"
+                style={
+                  Object {
+                    "left": "0%",
+                  }
+                }
+                tabIndex={0}
+              />
+            </Handle>
+            <Marks
+              className="rc-slider-mark"
+              included={true}
+              lowerBound={0}
+              marks={Object {}}
+              max={0.999}
+              min={0}
+              onClickLabel={[Function]}
+              upperBound={0}
+              vertical={false}
+            >
+              <div
+                className="rc-slider-mark"
+              />
+            </Marks>
+          </div>
+        </ComponentEnhancer(undefined)>
       </div>
       <h4>
         Plot Size
