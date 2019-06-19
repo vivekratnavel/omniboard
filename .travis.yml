@@ -16,7 +16,6 @@ after_success:
 branches:
   only:
   - master
-  - /^greenkeeper\/.*$/
 deploy:
   provider: script
   skip_cleanup: true
