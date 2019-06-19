@@ -30,8 +30,16 @@ if ('m' in argv) {
   mongodbURI = `${defaultURI}/${defaultDatabase}`;
 }
 
-const mongoOptions = { auto_reconnect: true, useNewUrlParser: true };
-const reconnectTries = 2;
+const mongoOptions = {
+  auto_reconnect: true,
+  autoIndex: false, // Don't build indexes
+  useNewUrlParser: true,
+  reconnectTries: 10, // Retry up to 30 times
+  reconnectInterval: 3000, // Reconnect every 3000ms
+  poolSize: 10, // Maintain up to 10 socket connections
+  // If not connected, return errors immediately rather than waiting for reconnect
+  bufferMaxEntries: 0
+};
 let counter = 0;
 let gfs = null;
 const createConnection = function(mongodbURI, mongoOptions) {
@@ -39,14 +47,11 @@ const createConnection = function(mongodbURI, mongoOptions) {
 
   db.on('error', function(err) {
     // If first connect fails because mongod is down, try again later.
-    // This is only needed for first connect, not for runtime reconnects.
-    // See: https://github.com/Automattic/mongoose/issues/5169
-    if (err.message && err.message.match(/failed to connect to server .* on first connect/)) {
       console.log(new Date(), String(err));
-      if (counter < reconnectTries) {
+      if (counter < mongoOptions.reconnectTries) {
         counter++;
         // Wait for a bit, then try to connect again
-        console.log('Retrying in 20 seconds...');
+        console.log(`Retrying in ${mongoOptions.reconnectInterval / 1000} seconds...`);
         setTimeout(function () {
           console.log('Retrying first connect...');
           db.openUri(mongodbURI).catch(() => {
@@ -55,15 +60,11 @@ const createConnection = function(mongodbURI, mongoOptions) {
           // Well, errors thrown by db.open() will also be passed to .on('error'),
           // so we can handle them there, no need to log anything in the catch here.
           // But we still need this empty catch to avoid unhandled rejections.
-        }, 20 * 1000);
+        }, mongoOptions.reconnectInterval);
       } else {
-        console.log(`Failed to establish connection to ${mongodbURI} after ${reconnectTries} retries. Exiting now...`);
+        console.log(`Failed to establish connection to ${mongodbURI} after ${mongoOptions.reconnectTries} retries. Exiting now...`);
         process.exit(1);
       }
-    } else {
-      // Some other error occurred.  Log it.
-      console.error(new Date(), String(err));
-    }
   });
 
   db.once('open', function() {

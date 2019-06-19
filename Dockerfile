@@ -9,18 +9,14 @@ ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 # Having "--" at the end will enable passing command line args to npm script
-ENTRYPOINT ["/tini", "--", "npm", "run", "prod", "--"]
+ENTRYPOINT ["/tini", "--", "yarn", "run", "prod"]
 
-COPY package.json yarn.lock /usr/omniboard/
-RUN npm install
-
-COPY web/package.json web/yarn.lock /usr/omniboard/web/
-WORKDIR /usr/omniboard/web
-RUN npm install
+# install yarn
+RUN npm install -g yarn
 
 COPY . /usr/omniboard
 
 WORKDIR /usr/omniboard
-RUN npm run build
+RUN yarn install
 
 EXPOSE 9000
