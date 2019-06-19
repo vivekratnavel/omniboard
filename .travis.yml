@@ -33,7 +33,7 @@ before_install:
     # Import the gpg key
     gpg --batch --yes --import /tmp/git_gpg_keys.asc &&
     # Create a script that pass the passphrase to the gpg CLI called by git
-    echo '/usr/bin/gpg2 --pinentry-mode loopback --passphrase ${GPG_PASSPHRASE} --batch --no-tty "$@"' > /tmp/gpg-with-passphrase && chmod +x /tmp/gpg-with-passphrase &&
+    echo '/usr/bin/gpg2 --pinentry-mode loopback --passphrase ${GPG_PASSPHRASE} --batch --yes --no-tty "$@"' > /tmp/gpg-with-passphrase && chmod +x /tmp/gpg-with-passphrase &&
     # Configure git to use the script that passes the passphrase
     git config gpg.program "/tmp/gpg-with-passphrase" &&
     # Configure git to sign the commits and tags
