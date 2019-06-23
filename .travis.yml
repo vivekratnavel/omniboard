@@ -36,7 +36,7 @@ before_install:
     # Configure git to use the script that passes the passphrase
     git config gpg.program "/tmp/gpg-with-passphrase" &&
     # Configure git to sign the commits and tags
-    git config commit.gpgsign true &&
+    #git config commit.gpgsign true &&
     # Configure git to use your GPG key
-    git config --global user.signingkey ${GPG_KEY_ID}
+    #git config --global user.signingkey ${GPG_KEY_ID}
   fi
