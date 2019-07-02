@@ -1,0 +1,6 @@
+{
+  "default": {
+    "mongodbURI": "mongodb://localhost/sacred",
+    "path":"/"
+  }
+}

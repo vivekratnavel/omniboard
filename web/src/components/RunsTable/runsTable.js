@@ -1,5 +1,6 @@
 import React, { Component } from 'reactn';
 import axios from 'axios';
+import backend from '../Backend/backend';
 import Multiselect from 'react-bootstrap-multiselect';
 import { Table, Column } from 'fixed-data-table-2';
 import LocalStorageMixin from 'react-localstorage';
@@ -438,7 +439,7 @@ class RunsTable extends Component {
     });
 
     // First retrieve metric columns as to decide which metrics need to be populated.
-    axios.get('/api/v1/Omniboard.Columns').then(metricColumns => {
+    backend.get('api/v1/Omniboard.Columns').then(metricColumns => {
       metricColumnsData = metricColumns.data;
       runQueryParams = this._buildRunsQuery(metricColumnsData);
 
@@ -447,15 +448,15 @@ class RunsTable extends Component {
       // The value of resolved is not used because
       // it breaks all unit tests and makes it impossible to write unit tests.
       axios.all([
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: runQueryParams
         }),
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: {
             distinct: 'omniboard.tags'
           }
         }),
-        axios.get('/api/v1/Omniboard.Config.Columns')
+        backend.get('api/v1/Omniboard.Config.Columns')
       ]).then(axios.spread((runsResponse, tags, configColumns) => {
 
         let runsResponseData = runsResponse.data;
@@ -579,7 +580,7 @@ class RunsTable extends Component {
       isFetchingUpdates: true
     });
 
-    axios.get('/api/v1/Runs', {
+    backend.get('api/v1/Runs', {
       params: runQueryParams
     }).then(runsResponse => {
       let runsResponseData = runsResponse.data;
@@ -619,7 +620,7 @@ class RunsTable extends Component {
   updateTags(id, tagValues, rowIndex) {
     const isSelectLoading = Object.assign({}, this.state.isSelectLoading, {[rowIndex]: true});
     this.setState({isSelectLoading});
-    axios.put('/api/v1/Runs/' + id, {
+    backend.put('api/v1/Runs/' + id, {
       omniboard: {
         tags: tagValues
       }
@@ -649,7 +650,7 @@ class RunsTable extends Component {
   }
 
   updateNotes(id, notes, rowIndex) {
-    axios.put('/api/v1/Runs/' + id, {
+    backend.put('api/v1/Runs/' + id, {
       omniboard: {
         notes: notes
       }
@@ -1043,7 +1044,7 @@ class RunsTable extends Component {
         const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
         const queryJson = {[filterColumnName]: { [operator]: value}};
         // Fetch autocomplete suggestions
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: {
             distinct: filterColumnName,
             query: JSON.stringify(queryJson)

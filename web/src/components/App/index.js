@@ -1,17 +1,21 @@
 import React, { Component } from 'reactn';
-import { Navbar, Nav, MenuItem, NavDropdown, Glyphicon, NavItem } from 'react-bootstrap';
+import { Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem } from 'react-bootstrap';
 import RunsTable from '../RunsTable/runsTable';
+import backend from '../Backend/backend';
 import axios from 'axios';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { parseServerError } from "../Helpers/utils";
-import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
-import { SettingsModal } from "../SettingsModal/settingsModal";
 import moment from 'moment-timezone';
-import {SETTING_TIMEZONE, AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL} from "../../appConstants/app.constants";
+import { AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL, SETTING_TIMEZONE } from "../../appConstants/app.constants";
+import PropTypes from "prop-types";
 
 class App extends Component {
+  static propTypes = {
+    match: PropTypes.object,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -63,7 +67,7 @@ class App extends Component {
    * @private
    */
   _updateGlobalSettings = (settingsResponse) => {
-    const settings = settingsResponse.reduce( (acc, current) => {
+    const settings = settingsResponse.reduce((acc, current) => {
       return Object.assign({}, acc, {[current.name]: current});
     }, this.global.settings);
 
@@ -73,7 +77,7 @@ class App extends Component {
   };
 
   _initializeSetting = (setting, value) => {
-    axios.post('/api/v1/Omniboard.Settings', {
+    backend.post('api/v1/Omniboard.Settings', {
       name: setting,
       value
     }).then(response => {
@@ -85,8 +89,8 @@ class App extends Component {
 
   _fetchData = () => {
     axios.all([
-      axios.get('/api/v1/database'),
-      axios.get('/api/v1/Omniboard.Settings')
+      backend.get('api/v1/database'),
+      backend.get('api/v1/Omniboard.Settings')
     ]).then(axios.spread((dbResponse, settingsResponse) => {
       if (dbResponse && dbResponse.data && dbResponse.data.name) {
         this.setState({
@@ -116,6 +120,10 @@ class App extends Component {
   };
 
   componentDidMount() {
+    const {match: {params}} = this.props;
+    if (params.model !== undefined) {
+      backend.defaults.baseURL = '/' + params.model;
+    }
     this._fetchData();
   }
 
@@ -135,7 +143,7 @@ class App extends Component {
               <NavItem>({dbName})</NavItem>
             </Nav>
             <Nav pullRight>
-              <NavDropdown eventKey={1} title={<Glyphicon glyph="cog" />} id="settings">
+              <NavDropdown eventKey={1} title={<Glyphicon glyph="cog"/>} id="settings">
                 <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this._resetCache}>
                   <Glyphicon glyph="refresh"/>
                   &nbsp; Reset Cache
@@ -156,7 +164,7 @@ class App extends Component {
           <RunsTable localStorageKey={localStorageKey} showConfigColumnModal={showConfigColumnModal}
                      handleConfigColumnModalClose={this._handleConfigColumnModalClose}
                      showSettingsModal={showSettingsModal}
-                     handleSettingsModalClose={this._handleSettingsModalClose} />
+                     handleSettingsModalClose={this._handleSettingsModalClose}/>
         </div>
       </div>
     );

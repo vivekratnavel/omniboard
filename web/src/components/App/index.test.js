@@ -10,7 +10,7 @@ describe('App component', () => {
   toast.error = jest.fn();
 
   beforeEach(async () => {
-    wrapper = shallow(<App/>);
+    wrapper = shallow(<App match={{params: {model: undefined}}}/>);
     await tick();
   });
 
@@ -63,7 +63,7 @@ describe('App component', () => {
 
   describe('should fetch database name on mount', async () => {
     it('and handle success', async () => {
-      expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/database');
+      expect(mockAxios.get).toHaveBeenCalledWith('api/v1/database');
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: [{name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1}]});
       await tick();

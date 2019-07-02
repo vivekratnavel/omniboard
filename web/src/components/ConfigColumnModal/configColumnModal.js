@@ -3,6 +3,7 @@ import React, { PureComponent } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert } from 'react-bootstrap';
 import './configColumnModal.scss';
 import axios from 'axios';
+import backend from '../Backend/backend';
 import Select from 'react-select';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { parseServerError } from '../Helpers/utils';
@@ -54,8 +55,8 @@ class ConfigColumnModal extends PureComponent {
       }
       return accumulator;
     }, []);
-    const createRequests = newColumns.map(column => axios.post('/api/v1/Omniboard.Config.Columns', ConfigColumnModal.serializeColumn(column)));
-    const updateRequests = dirtyColumns.map(column => axios.post(`/api/v1/Omniboard.Config.Columns/${column.id}`, ConfigColumnModal.serializeColumn(column)));
+    const createRequests = newColumns.map(column => backend.post('api/v1/Omniboard.Config.Columns', ConfigColumnModal.serializeColumn(column)));
+    const updateRequests = dirtyColumns.map(column => backend.post(`api/v1/Omniboard.Config.Columns/${column.id}`, ConfigColumnModal.serializeColumn(column)));
     const requests = createRequests.concat(updateRequests);
     const closeModal = () => {
       this.setState({ isInProgress: false });
@@ -126,7 +127,7 @@ class ConfigColumnModal extends PureComponent {
       const {columns} = this.state;
       const columnsClone = columns.slice();
       if (columns[key].id) {
-        axios.delete('/api/v1/Omniboard.Config.Columns/' + columns[key].id).then(response => {
+        backend.delete('api/v1/Omniboard.Config.Columns/' + columns[key].id).then(response => {
           if (response.status === 204) {
             columnsClone.splice(key, 1);
             this.setState({
@@ -198,7 +199,7 @@ class ConfigColumnModal extends PureComponent {
       isLoadingColumns: true,
       error: ''
     });
-    axios.get('/api/v1/Omniboard.Config.Columns').then( response => {
+    backend.get('api/v1/Omniboard.Config.Columns').then( response => {
       const columns = response.data.map(column => {
         return {
           id: column._id,
@@ -224,7 +225,7 @@ class ConfigColumnModal extends PureComponent {
     this.setState({
       isLoadingConfigs: true
     });
-    axios.get('/api/v1/Runs', {
+    backend.get('api/v1/Runs', {
       params: {
         distinct: 'config'
       }

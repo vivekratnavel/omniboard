@@ -7,7 +7,7 @@ exports[`Routes should render correctly 1`] = `
       <Route
         component={[Function]}
         exact={true}
-        path="/"
+        path="/:model?"
       />
       <Route
         component={[Function]}

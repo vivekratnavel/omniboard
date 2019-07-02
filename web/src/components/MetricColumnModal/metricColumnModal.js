@@ -3,6 +3,7 @@ import React, { PureComponent } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert } from 'react-bootstrap';
 import './metricColumnModal.scss';
 import axios from 'axios';
+import backend from '../Backend/backend';
 import Select from 'react-select';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { parseServerError } from '../Helpers/utils';
@@ -55,8 +56,8 @@ class MetricColumnModal extends PureComponent {
       }
       return accumulator;
     }, []);
-    const createRequests = newColumns.map(column => axios.post('/api/v1/Omniboard.Columns', MetricColumnModal.serializeColumn(column)));
-    const updateRequests = dirtyColumns.map(column => axios.post(`/api/v1/Omniboard.Columns/${column.id}`, MetricColumnModal.serializeColumn(column)));
+    const createRequests = newColumns.map(column => backend.post('api/v1/Omniboard.Columns', MetricColumnModal.serializeColumn(column)));
+    const updateRequests = dirtyColumns.map(column => backend.post(`api/v1/Omniboard.Columns/${column.id}`, MetricColumnModal.serializeColumn(column)));
     const requests = createRequests.concat(updateRequests);
     const closeModal = () => {
       this.setState({ isInProgress: false });
@@ -127,7 +128,7 @@ class MetricColumnModal extends PureComponent {
       const {columns} = this.state;
       const columnsClone = columns.slice();
       if (columns[key].id) {
-        axios.delete('/api/v1/Omniboard.Columns/' + columns[key].id).then(response => {
+        backend.delete('api/v1/Omniboard.Columns/' + columns[key].id).then(response => {
           if (response.status === 204) {
             columnsClone.splice(key, 1);
             this.setState({
@@ -211,7 +212,7 @@ class MetricColumnModal extends PureComponent {
       isLoadingColumns: true,
       error: ''
     });
-    axios.get('/api/v1/Omniboard.Columns').then( response => {
+    backend.get('api/v1/Omniboard.Columns').then( response => {
       const columns = response.data.map(column => {
         return {
           id: column._id,
@@ -238,7 +239,7 @@ class MetricColumnModal extends PureComponent {
     this.setState({
       isLoadingMetricNames: true
     });
-    axios.get('/api/v1/Metrics', {
+    backend.get('api/v1/Metrics', {
       params: {
         distinct: 'name'
       }

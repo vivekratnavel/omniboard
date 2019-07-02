@@ -93,7 +93,7 @@ describe('RunsTable', () => {
 
   describe('should load data', async () => {
     const getAPIArguments = (queryString) => {
-      return ['/api/v1/Runs', {
+      return ['api/v1/Runs', {
         params: {
           select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
             'result,start_time,resources,format,status,omniboard,metrics,meta',
@@ -206,7 +206,7 @@ describe('RunsTable', () => {
 
   describe('should load partial updates', async () => {
     const getAPIArguments = (queryString) => {
-      return ['/api/v1/Runs', {
+      return ['api/v1/Runs', {
         params: {
           select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
             'result,start_time,resources,format,status,omniboard,metrics,meta',
@@ -349,7 +349,7 @@ describe('RunsTable', () => {
     });
 
     it('for success response', () => {
-      expect(mockAxios.put).toHaveBeenCalledWith('/api/v1/Runs/' + runsResponse[rowIndex]._id, {
+      expect(mockAxios.put).toHaveBeenCalledWith('api/v1/Runs/' + runsResponse[rowIndex]._id, {
         omniboard: {
           tags: ['tag1','tag2']
         }
@@ -389,7 +389,7 @@ describe('RunsTable', () => {
     });
 
     it('for success response', () => {
-      expect(mockAxios.put).toHaveBeenCalledWith('/api/v1/Runs/' + runsResponse[rowIndex]._id, {
+      expect(mockAxios.put).toHaveBeenCalledWith('api/v1/Runs/' + runsResponse[rowIndex]._id, {
         omniboard: {
           notes
         }

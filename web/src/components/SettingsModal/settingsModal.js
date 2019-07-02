@@ -3,6 +3,7 @@ import React, { PureComponent } from 'reactn';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, Alert, FormControl,
   Form, FormGroup, InputGroup, Col, ControlLabel } from 'react-bootstrap';
 import './settingsModal.scss';
+import backend from '../Backend/backend';
 import axios from 'axios';
 import Select from 'react-select';
 import { ProgressWrapper } from '../Helpers/hoc';
@@ -46,7 +47,7 @@ class SettingsModal extends PureComponent {
         }
         return accumulator;
       }, []);
-      const updateRequests = dirtySettings.map(setting => axios.post(`/api/v1/Omniboard.Settings/${setting._id}`,
+      const updateRequests = dirtySettings.map(setting => backend.post(`api/v1/Omniboard.Settings/${setting._id}`,
         setting));
       const closeModal = () => {
         this.setState({isInProgress: false});

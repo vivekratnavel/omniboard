@@ -5,6 +5,7 @@ import { STATUS } from '../../appConstants/status.constants';
 import { Glyphicon } from 'react-bootstrap';
 import './capturedOutView.scss';
 import axios from 'axios';
+import backend from '../Backend/backend';
 import { toast } from 'react-toastify';
 
 const RELOAD_TIMEOUT = 3000;
@@ -47,7 +48,7 @@ class CapturedOutView extends Component {
   _loadData = () => {
     const {runId} = this.props;
     const {errorCount} = this.state;
-    axios.get(`/api/v1/Runs/${runId}`, {
+    backend.get(`api/v1/Runs/${runId}`, {
       params: {
         select: 'captured_out,status,heartbeat'
       }

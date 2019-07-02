@@ -41,7 +41,7 @@ describe('MetricColumnModal', () => {
   it('should fetch metric columns on mount', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
 
-    expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/Metrics', {params: {distinct: 'name'}});
+    expect(mockAxios.get).toHaveBeenCalledWith('api/v1/Metrics', {params: {distinct: 'name'}});
     expect(wrapper.state().isLoadingMetricNames).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: metricNamesResponse});
 

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react';
 import axios from 'axios';
+import backend from '../Backend/backend';
 import ReactJson from 'react-json-view'
 import './drillDownView.scss'
 import { Nav, NavItem } from 'react-bootstrap';
@@ -84,12 +85,12 @@ class DrillDownView extends Component {
         isTableLoading: true
       });
       axios.all([
-        axios.get(`/api/v1/Runs/${runId}`, {
+        backend.get(`api/v1/Runs/${runId}`, {
           params: {
             select: 'captured_out,info,meta,host,experiment,artifacts,config,fail_trace,status'
           }
         }),
-        axios.get('/api/v1/Metrics', {
+        backend.get('api/v1/Metrics', {
           params: {
             query: `{"run_id":"${runId}"}`
           }

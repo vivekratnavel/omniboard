@@ -42,7 +42,7 @@ class FilePreview extends PureComponent {
         return (<Alert bsStyle="warning">{warningMessage}</Alert>);
       }
       if (imageExtensions.includes(extension) && fileId) {
-        let imgSource = `/api/v1/files/download/${fileId}/${fileName}`;
+        let imgSource = `api/v1/files/download/${fileId}/${fileName}`;
         return(<img src={imgSource} alt='image'/>);
       } else if (fileInfo && fileInfo.data) {
         return (<SyntaxHighlighter language={getLanguageFromFileName(fileName)} style={tomorrow}>{fileInfo.data}</SyntaxHighlighter>);

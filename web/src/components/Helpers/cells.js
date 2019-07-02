@@ -8,6 +8,7 @@ import './cells.scss';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from 'react-bootstrap';
 import { parseServerError } from "./utils";
 import axios from 'axios';
+import backend from '../Backend/backend';
 import { toast } from 'react-toastify';
 import ms from 'ms';
 import moment from 'moment-timezone';
@@ -151,7 +152,7 @@ class IdCell extends Component {
       this.setState({
         isDeleteInProgress: true
       });
-      axios.get('/api/v1/Runs/' + experimentId, {
+      backend.get('api/v1/Runs/' + experimentId, {
         params: {
           select: 'artifacts,metrics',
           populate: 'metrics'
@@ -161,7 +162,7 @@ class IdCell extends Component {
         const deleteApis = [];
         if(runsResponse.metrics && runsResponse.metrics.length) {
           deleteApis.push(
-            axios.delete('/api/v1/Metrics/', {
+            backend.delete('api/v1/Metrics/', {
             params: {
               query: JSON.stringify({
                 run_id: experimentId
@@ -177,7 +178,7 @@ class IdCell extends Component {
             return {_id: file.file_id}
           });
           deleteApis.push(
-            axios.delete('/api/v1/Fs.chunks/', {
+            backend.delete('api/v1/Fs.chunks/', {
               params: {
                 query: JSON.stringify({
                   $or: chunksQuery
@@ -185,7 +186,7 @@ class IdCell extends Component {
               }
             }));
           deleteApis.push(
-            axios.delete('/api/v1/Fs.files/', {
+            backend.delete('api/v1/Fs.files/', {
               params: {
                 query: JSON.stringify({
                   $or: filesQuery
@@ -194,7 +195,7 @@ class IdCell extends Component {
             }));
         }
         deleteApis.push(
-          axios.delete('/api/v1/Runs/' + experimentId)
+          backend.delete('api/v1/Runs/' + experimentId)
         );
 
         axios.all(deleteApis).then(axios.spread((...deleteResponses) => {

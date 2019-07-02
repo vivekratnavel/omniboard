@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react';
 import { Alert, Button } from 'react-bootstrap';
 import './sourceFilesView.scss';
+import backend from '../Backend/backend';
 import axios from 'axios';
 import { ProgressWrapper } from '../Helpers/hoc';
 import {concatArrayBuffers, getFileExtension, parseServerError} from '../Helpers/utils';
@@ -53,7 +54,7 @@ class SourceFilesView extends Component {
       files.forEach(file => {
         query.$or.push({'_id': file.file_id});
       });
-      axios.get('/api/v1/Fs.files', {
+      backend.get('api/v1/Fs.files', {
         params: {
           query
         }
@@ -86,7 +87,7 @@ class SourceFilesView extends Component {
   _downloadFile = (fileId, fileName) => {
     return (event) => {
       axios({
-        url: `/api/v1/files/download/${fileId}/${fileName}`,
+        url: `api/v1/files/download/${fileId}/${fileName}`,
         method: 'GET',
         responseType: 'blob'
       }).then(response => {
@@ -108,7 +109,7 @@ class SourceFilesView extends Component {
         isZipInProgress: true
       });
       axios({
-        url: `/api/v1/files/downloadAll/${runId}/${type}`,
+        url: `api/v1/files/downloadAll/${runId}/${type}`,
         method: 'GET',
         responseType: 'blob'
       }).then(response => {
