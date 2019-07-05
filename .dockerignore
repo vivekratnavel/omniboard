@@ -1,8 +1,10 @@
 # Dependency directories
-node_modules/
-dist/
-coverage/
-build/
+**/node_modules/
+**/dist/
+**/coverage/
+**/build/
 .dockerignore
 .gitignore
+.git
 README.md
+Dockerfile
