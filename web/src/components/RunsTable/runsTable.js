@@ -1158,9 +1158,6 @@ class RunsTable extends Component {
             } else if (typeof row[key] === "boolean") {
               // Convert boolean to string
               value = row[key] + "";
-            } else if (typeof row[key] === "number") {
-              // Convert boolean to string
-              value = row[key] + "";
             } else {
               value = row[key];
             }
