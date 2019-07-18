@@ -17,13 +17,14 @@ EXPOSE 9000
 FROM node:10-alpine
 
 WORKDIR /usr/omniboard
+RUN apk add --no-cache tini
 
 # Having "--" at the end will enable passing command line args to npm script
-ENTRYPOINT ["npm", "run", "prod", "--"]
+ENTRYPOINT ["/sbin/tini", "--", "yarn", "run", "prod"]
 
 ENV PATH /usr/omniboard/node_modules/.bin:$PATH
 
 COPY --from=builder /usr/omniboard/package.json /usr/omniboard/package.json
 COPY --from=builder /usr/omniboard/dist /usr/omniboard/dist
 COPY --from=builder /usr/omniboard/web/build /usr/omniboard/web/build
-RUN npm install --production && npm cache clean --force
+RUN yarn install --production && yarn cache clean --force
