@@ -1151,7 +1151,7 @@ class RunsTable extends Component {
         return Object.keys(row).map( key => {
           let value = '';
           // value of row[key] could be false when type is boolean
-          if (row[key] || typeof row[key] === "boolean") {
+          if (row[key] || typeof row[key] === "boolean" || typeof row[key] === "number") {
             if (typeof row[key] === "object" && key !== TAGS_COLUMN_HEADER) {
               // Convert object to string
               value = JSON.stringify(row[key]);
