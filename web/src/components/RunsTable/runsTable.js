@@ -9,11 +9,11 @@ import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
 import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';
 import { DataListWrapper } from '../Helpers/dataListWrapper';
 import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell,
-  SortTypes, StatusCell, IdCell, DateCell } from '../Helpers/cells';
+  SortTypes, StatusCell, IdCell, DateCell, PendingCell } from '../Helpers/cells';
 import { DrillDownView } from '../DrillDownView/drillDownView';
 import { EXPANDED_ROW_HEIGHT } from '../DrillDownView/drillDownView.scss';
-import { headerText, arrayDiff, reorderArray, capitalize, parseServerError, getRunStatus } from '../Helpers/utils';
-import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../appConstants/status.constants';
+import { headerText, reorderArray, capitalize, parseServerError } from '../Helpers/utils';
+import { STATUS } from '../../appConstants/status.constants';
 import { ProgressWrapper } from '../Helpers/hoc';
 import { toast } from 'react-toastify';
 import Select  from 'react-select';
@@ -30,6 +30,7 @@ import {SettingsModal} from "../SettingsModal/settingsModal";
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
 const DEFAULT_ROW_HEIGHT = 70;
+const DEFAULT_INITIAL_FETCH_COUNT = 50;
 const DEFAULT_EXPANDED_ROW_HEIGHT = Number(EXPANDED_ROW_HEIGHT);
 const TAGS_COLUMN_HEADER = 'tags';
 const NOTES_COLUMN_HEADER = 'notes';
@@ -92,7 +93,7 @@ export const FILTER_OPERATOR_LABELS = {
 class RunsTable extends Component {
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'defaultSortIndices', 'sortIndices', 'sort',
+    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'sort',
       'columnNameMap', 'statusFilterOptions', 'filters', 'autoRefresh']
   };
 
@@ -114,7 +115,6 @@ class RunsTable extends Component {
     this.state = {
       data: null,
       sortedData: null,
-      defaultSortIndices: [],
       columnOrder: [],
       dropdownOptions: [],
       statusFilterOptions: STATUS_FILTER_OPTIONS,
@@ -123,7 +123,6 @@ class RunsTable extends Component {
       tableHeight: 600,
       columnWidths: {},
       sort: {},
-      sortIndices: [],
       isSelectLoading: {},
       isFetchingUpdates: false,
       filters: {
@@ -148,7 +147,9 @@ class RunsTable extends Component {
       autoRefresh: true,
       lastUpdateTime: new Date(),
       metricColumns: [],
-      configColumns: []
+      configColumns: [],
+      runsCount: 0,
+      dataVersion: 0
     }
   }
 
@@ -170,7 +171,7 @@ class RunsTable extends Component {
 
   _startPolling = () => {
     this._stopPolling();
-    this.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
+    // this.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _stopPolling = () => {
@@ -188,30 +189,19 @@ class RunsTable extends Component {
     });
   };
 
-  _buildRunsQuery = (metricColumnsData) => {
-    const {filters} = this.state;
+  _buildRunsQuery = (metricColumnsData, end = DEFAULT_INITIAL_FETCH_COUNT) => {
+    const {filters, dropdownOptions, columnNameMap, sort} = this.state;
     const queryJson = {'$and': []};
     const statusQueryFilter = operator => status => {
-      if (status === STATUS.PROBABLY_DEAD || status === STATUS.RUNNING) {
-        // Apply condition to filter "probably dead" status
-        // "PROBABLY_DEAD" status is given to runs which are running, but the last heartbeat was at-least 120000ms ago
-        const heartbeatTimeout = new Date() - PROBABLY_DEAD_TIMEOUT;
-        let heartbeat = status === STATUS.PROBABLY_DEAD ? `<${heartbeatTimeout}` : `>${heartbeatTimeout}`;
-        if (operator === '$ne') {
-          // inverse the operator for '$ne'
-          heartbeat = status === STATUS.PROBABLY_DEAD ? `>${heartbeatTimeout}` : `<${heartbeatTimeout}`;
-          return {'$or': [{'status': {[operator]: STATUS.RUNNING}}, {heartbeat}]};
-        }
-        return {'$and': [{'status': STATUS.RUNNING}, {heartbeat}]};
-      }
       return {'status': {[operator]: status}};
     };
+    let sort_by = '_id'; // default sort
+    let order_by = '-1'; // default order by DESC
 
     if (filters && filters.status.length) {
       const statusFilter = filters.status.map(statusQueryFilter('$eq'));
       queryJson.$and.push({'$or': statusFilter});
     }
-
     // Process advanced filters
     if (filters && filters.advanced.length) {
       filters.advanced.forEach(filter => {
@@ -236,26 +226,39 @@ class RunsTable extends Component {
       });
     }
 
-    const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : '{}';
-    const runQueryParams = {
-      select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
-        'result,start_time,resources,format,status,omniboard,metrics,meta',
-      sort: '-_id',
-      query: queryString
-    };
-
-    if (metricColumnsData.length) {
-      const metricColumnNames = metricColumnsData.map(column => column.metric_name);
-      const distinctMetricColumnNames = [...new Set(metricColumnNames)];
-      runQueryParams.populate = {
-        path: 'metrics',
-        match: {
-          name: { $in : distinctMetricColumnNames }
-        }
-      };
+    // Apply sorting
+    if (Object.keys(sort).length) {
+      sort_by = Object.keys(sort)[0];
+      order_by = sort[sort_by] === SortTypes.ASC ? 1 : -1;
+      if (sort_by in columnNameMap) {
+        sort_by = columnNameMap[sort_by];
+      }
     }
 
-    return runQueryParams;
+    const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : '{}';
+    let select = '';
+    // As an optimization, select data that is only required
+    // by looking at the selected columns from the dropdown options
+    if (dropdownOptions.length) {
+      select = dropdownOptions.filter(optionItem => optionItem.selected === true).map(option => {
+        return option.value in columnNameMap ? columnNameMap[option.value] : option.value;
+      }).join(',');
+    } else {
+      // Load defaults for the first time
+      select = '_id,heartbeat,experiment,command,host,stop_time,config,duration,' +
+        'result,start_time,resources,format,status,omniboard,metrics,meta';
+      if (metricColumnsData.length) {
+        const metricColumnNames = metricColumnsData.map(column => column.name);
+        select = select + ',' + metricColumnNames.join(',');
+      }
+    }
+    return {
+      select: select,
+      sort_by,
+      order_by,
+      query: queryString,
+      limit: end
+    };
   };
 
   _parseRunsResponseData = (runsResponseData, configColumnsData, metricColumnsData) => {
@@ -285,6 +288,12 @@ class RunsTable extends Component {
         }
       }
 
+      if ('info' in data) {
+        // info column has information about metric names
+        // which is not needed here
+        delete data['info'];
+      }
+
       if ('experiment' in data) {
         const experiment = data['experiment'];
         delete data['experiment'];
@@ -300,23 +309,16 @@ class RunsTable extends Component {
         columnNameMap = {...columnNameMap, ...hostMap};
       }
 
-      // Add duration column; duration = heartbeat - start_time
-      if (HEARTBEAT_KEY in data && data[HEARTBEAT_KEY] && START_TIME_KEY in data)
-        data[DURATION_COLUMN_KEY] = Math.abs(new Date(data[HEARTBEAT_KEY]) - new Date(data[START_TIME_KEY]));
-
-      // Determine if a run is probably dead and assign the status accordingly
-      if ('status' in data) {
-        data['status'] = getRunStatus(data['status'], data[HEARTBEAT_KEY] || data[START_TIME_KEY]);
-      }
-
       // Expand omniboard columns
       if ('omniboard' in data) {
         const omniboard = data['omniboard'];
         delete data['omniboard'];
         data = {...data, ...omniboard};
-        const omniboardMap = this._getColumnNameMap(omniboard, 'omniboard');
-        columnNameMap = {...columnNameMap, ...omniboardMap};
       }
+
+      // Add tags and notes to columnNameMap
+      const omniboardMap = this._getColumnNameMap({'tags': [], 'notes': ''}, 'omniboard');
+      columnNameMap = {...columnNameMap, ...omniboardMap};
 
       // Add notes from comment if none has been saved in omniboard
       if (!('notes' in data)) {
@@ -335,31 +337,8 @@ class RunsTable extends Component {
         delete data['meta'];
       }
 
-      // Include metric columns
-      if (metricColumnsData.length) {
-        const metricColumnsObject = {};
-        const metricColumnNameMap = {};
-        metricColumnsData.forEach(column => {
-          let value = 0;
-          const metric = data['metrics'].find(metric => metric.name === column.metric_name);
-          if (metric && metric.values) {
-            const extrema = column.extrema;
-            if (extrema === 'min') {
-              value = metric.values.reduce((a, b) => (a < b) ? a : b);
-            } else if (extrema === 'max') {
-              value = metric.values.reduce((a, b) => (a > b) ? a : b);
-            } else if (extrema === 'last') {
-              value = metric.values[metric.values.length - 1];
-            } else if (extrema === 'average') {
-              value = metric.values.reduce((a, b) => a + b, 0) / metric.values.length;
-            }
-          }
-          metricColumnsObject[column.name] = value;
-          metricColumnNameMap[column.name] = `omniboard.columns.${column.name}`;
-        });
-        data = {...data, ...metricColumnsObject};
-        columnNameMap = {...columnNameMap, ...metricColumnNameMap};
-      }
+      delete data['metrics'];
+
       return data;
     });
 
@@ -390,41 +369,33 @@ class RunsTable extends Component {
   _updateRuns = (latestColumnOrder) => {
     const {columnOrder, dropdownOptions, columnWidths} = this.state;
 
+    // TODO: change this logic to add/delete metric or config columns. Since we do projection based on selected columns, it will no longer work
     // Handle addition/deletion of metric/config columns
-    const dropdownOptionValues = dropdownOptions.map(option => option.value);
-    const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
-    const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
-    let newColumnOrder = columnOrder.slice();
-    let newDropdownOptions = dropdownOptions.slice();
-    let newColumnWidths = Object.assign({}, columnWidths);
-    if (columnsToAdd.length) {
-      newColumnOrder = newColumnOrder.concat(columnsToAdd);
-      const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
-      newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
-      const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
-        return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
-      }, {});
-      newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
-    }
-
-    this.setState({
-      columnOrder: newColumnOrder,
-      columnWidths: newColumnWidths,
-      dropdownOptions: newDropdownOptions
-    });
-
-    if (columnsToDelete.length) {
-      columnsToDelete.map(this._handleColumnDelete);
-    }
-  };
-
-  _getDefaultSortIndices = (runsResponseData) => {
-    const _defaultSortIndices = [];
-    for (let index = 0; index < runsResponseData.length; index++) {
-      _defaultSortIndices.push(index);
-    }
-
-    return _defaultSortIndices;
+    // const dropdownOptionValues = dropdownOptions.map(option => option.value);
+    // const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
+    // const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
+    // let newColumnOrder = columnOrder.slice();
+    // let newDropdownOptions = dropdownOptions.slice();
+    // let newColumnWidths = Object.assign({}, columnWidths);
+    // if (columnsToAdd.length) {
+    //   newColumnOrder = newColumnOrder.concat(columnsToAdd);
+    //   const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
+    //   newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
+    //   const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
+    //     return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
+    //   }, {});
+    //   newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
+    // }
+    //
+    // this.setState({
+    //   columnOrder: newColumnOrder,
+    //   columnWidths: newColumnWidths,
+    //   dropdownOptions: newDropdownOptions
+    // });
+    //
+    // if (columnsToDelete.length) {
+    //   columnsToDelete.map(this._handleColumnDelete);
+    // }
   };
 
   loadData = () => {
@@ -455,11 +426,17 @@ class RunsTable extends Component {
             distinct: 'omniboard.tags'
           }
         }),
-        axios.get('/api/v1/Omniboard.Config.Columns')
-      ]).then(axios.spread((runsResponse, tags, configColumns) => {
+        axios.get('/api/v1/Omniboard.Config.Columns'),
+        axios.get('/api/v1/Runs/count', {
+          params: {
+            query: runQueryParams.query
+          }
+        })
+      ]).then(axios.spread((runsResponse, tags, configColumns, runsCountResponse) => {
 
         let runsResponseData = runsResponse.data;
         const configColumnsData = configColumns.data;
+        const runsCount = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
         if (runsResponseData && runsResponseData.length) {
 
           runsResponseData = this._parseRunsResponseData(runsResponseData, configColumnsData, metricColumnsData);
@@ -499,25 +476,15 @@ class RunsTable extends Component {
             this._updateRuns(latestColumnOrder);
           }
 
-          const _defaultSortIndices = this._getDefaultSortIndices(runsResponseData);
           this.setState({
             data: runsResponseData,
-            defaultSortIndices: _defaultSortIndices
-          }, () => {
-            // Apply sort if sorting is already enabled
-            if (Object.keys(this.state.sort).length) {
-              const sortKey = Object.keys(this.state.sort)[0];
-              this._onSortChange(sortKey, this.state.sort[sortKey]);
-            } else {
-              // Default to sort by _id
-              this._onSortChange(ID_COLUMN_KEY, SortTypes.DESC);
-            }
+            sortedData: new DataListWrapper(runsResponseData, runsCount, this._fetchRunsRange),
+            runsCount
           });
         } else {
           // If response is empty, set empty array for table data
           this.setState({
             data: [],
-            defaultSortIndices: [],
             sortedData: new DataListWrapper()
           });
         }
@@ -529,6 +496,8 @@ class RunsTable extends Component {
           metricColumns: metricColumnsData
         });
       })).catch(error => {
+        /* eslint-disable no-console */
+        console.log('ERROR', error);
         const errorMessage = parseServerError(error);
         this.setState({
           isTableLoading: false,
@@ -537,6 +506,7 @@ class RunsTable extends Component {
         });
       });
     }).catch(error => {
+      console.log('ERROR', error);
       const errorMessage = parseServerError(error);
       this.setState({
         isTableLoading: false,
@@ -595,17 +565,8 @@ class RunsTable extends Component {
 
         this._updateRuns(latestColumnOrder);
 
-        const _defaultSortIndices = this._getDefaultSortIndices(runsResponseData);
-
         this.setState({
-          data: runsResponseData,
-          defaultSortIndices: _defaultSortIndices
-        }, () => {
-          // Apply sort if sorting is already enabled
-          if (Object.keys(this.state.sort).length) {
-            const sortKey = Object.keys(this.state.sort)[0];
-            this._onSortChange(sortKey, this.state.sort[sortKey], false);
-          }
+          data: runsResponseData
         });
       }
 
@@ -616,7 +577,14 @@ class RunsTable extends Component {
     });
   };
 
-  updateTags(id, tagValues, rowIndex) {
+  _refreshTableView = () => {
+    const {dataVersion} = this.state;
+    this.setState({
+      dataVersion: dataVersion + 1
+    });
+  };
+
+  updateTags = (id, tagValues, rowIndex) => {
     const isSelectLoading = Object.assign({}, this.state.isSelectLoading, {[rowIndex]: true});
     this.setState({isSelectLoading});
     axios.put('/api/v1/Runs/' + id, {
@@ -626,8 +594,8 @@ class RunsTable extends Component {
     }).then(response => {
         if (response.status === 200) {
           const {sortedData, tags, isSelectLoading} = this.state;
-          const newData = new DataListWrapper(sortedData.getIndexArray(), sortedData.getDataArray());
-          newData.setObjectAt(rowIndex, Object.assign({}, newData.getObjectAt(rowIndex), {tags: tagValues}));
+
+          sortedData.setObjectAt(rowIndex, Object.assign({}, sortedData.getObjectAt(rowIndex), {tags: tagValues}));
           const newTags = tags;
           tagValues.forEach(tag => {
             if (newTags.indexOf(tag) < 0) {
@@ -636,9 +604,9 @@ class RunsTable extends Component {
           });
           this.setState({
             isSelectLoading: Object.assign({}, isSelectLoading, {[rowIndex]: false}),
-            sortedData: newData,
             tags: newTags
           });
+          this._refreshTableView();
         }
     }).catch(error => {
       this.setState({
@@ -646,9 +614,9 @@ class RunsTable extends Component {
       });
       toast.error(parseServerError(error));
     });
-  }
+  };
 
-  updateNotes(id, notes, rowIndex) {
+  updateNotes = (id, notes, rowIndex)  => {
     axios.put('/api/v1/Runs/' + id, {
       omniboard: {
         notes: notes
@@ -656,16 +624,13 @@ class RunsTable extends Component {
     }).then(response => {
       if (response.status === 200) {
         const {sortedData} = this.state;
-        const newData = new DataListWrapper(sortedData.getIndexArray(), sortedData.getDataArray());
-        newData.setObjectAt(rowIndex, Object.assign({}, newData.getObjectAt(rowIndex), {notes}));
-        this.setState({
-          sortedData: newData
-        });
+        sortedData.setObjectAt(rowIndex, Object.assign({}, sortedData.getObjectAt(rowIndex), {notes}));
+        this._refreshTableView();
       }
     }).catch(error => {
       toast.error(parseServerError(error));
     });
-  }
+  };
 
   createDropdownOption = (key, selected = true) => {
     return {
@@ -740,44 +705,19 @@ class RunsTable extends Component {
     });
   };
 
-  _getSortedData = (sortIndices, data, columnKey, sortDir) => {
-    sortIndices.sort((indexA, indexB) => {
-      const dataA = data[indexA][columnKey];
-      const dataB = data[indexB][columnKey];
-      const valueA = columnKey === DURATION_COLUMN_KEY ? Number(dataA) || 0 : dataA;
-      const valueB = columnKey === DURATION_COLUMN_KEY ? Number(dataB) || 0 : dataB;
-      let sortVal = 0;
-      if (valueA > valueB) {
-        sortVal = 1;
-      }
-      if (valueA < valueB) {
-        sortVal = -1;
-      }
-      if (sortVal !== 0 && sortDir === SortTypes.DESC) {
-        sortVal = sortVal * -1;
-      }
-      return sortVal;
-    });
-    return new DataListWrapper(sortIndices, data);
-  };
-
   _onSortChange = (columnKey, sortDir, resetExpandedRows = true) => {
-    const {data, defaultSortIndices} = this.state;
-    let sortIndices = defaultSortIndices.slice();
     if (resetExpandedRows) {
       // Expanded rows uses rowId to expand a row. Reset the expanded rows state while sorting
       this._resetExpandedRows();
     }
-    if (sortIndices && sortIndices.length) {
-      const sortedData = this._getSortedData(sortIndices, data, columnKey, sortDir);
-      this.setState({
-        sortedData,
-        sort: {
-          [columnKey]: sortDir,
-        },
-        sortIndices: sortedData.getIndexArray()
-      });
-    }
+
+    this.setState({
+      sort: {
+        [columnKey]: sortDir,
+      }
+    });
+
+    this.loadData();
   };
 
   resizeTable = () => {
@@ -868,29 +808,35 @@ class RunsTable extends Component {
   };
 
   getCell(columnKey, rowData) {
-    const {tags, isSelectLoading} = this.state;
-    let cell = <TextCell data={rowData} />;
+    const {tags, isSelectLoading, dataVersion} = this.state;
+    let cell = <PendingCell data={rowData} dataVersion={dataVersion}>
+      <TextCell/>
+    </PendingCell>;
     if (columnKey === TAGS_COLUMN_HEADER) {
-      cell = <SelectCell
-        tableDom={this.tableWrapperDomNode}
-        data={rowData}
-        isLoading={isSelectLoading}
-        tagChangeHandler={this._handleTagChange}
-        options={tags}/>;
+      cell = <PendingCell data={rowData} dataVersion={dataVersion} tableDom={this.tableWrapperDomNode}
+                          isLoading={isSelectLoading}
+                          tagChangeHandler={this._handleTagChange}
+                          options={tags}>
+        <SelectCell/>
+      </PendingCell>;
     }
     if (columnKey === NOTES_COLUMN_HEADER) {
-      cell = <EditableCell
-        data={rowData}
-        changeHandler={this._handleNotesChange}/>;
+      cell = <PendingCell data={rowData} dataVersion={dataVersion} changeHandler={this._handleNotesChange}>
+        <EditableCell/>
+      </PendingCell>;
     }
     if (columnKey === EXPERIMENT_NAME) {
-      cell = <StatusCell data={rowData}/>;
+      cell = <PendingCell data={rowData} dataVersion={dataVersion}><StatusCell/></PendingCell>;
     }
     if (columnKey === ID_COLUMN_KEY) {
-      cell = <IdCell data={rowData} handleDataUpdate={this._handleDeleteExperimentRun}/>;
+      cell = <PendingCell data={rowData} dataVersion={dataVersion} handleDataUpdate={this._handleDeleteExperimentRun}>
+        <IdCell/>
+      </PendingCell>;
     }
     if ([START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY].includes(columnKey)) {
-      cell = <DateCell data={rowData}/>
+      cell = <PendingCell data={rowData} dataVersion={dataVersion}>
+        <DateCell/>
+      </PendingCell>
     }
     return <ExpandRowCell callback={this._handleCollapseClick}>{cell}</ExpandRowCell>;
   }
@@ -947,7 +893,10 @@ class RunsTable extends Component {
         filterColumnName: '',
         filterColumnOperator: '$eq',
         filterColumnValue: ''
-      }, this.loadData);
+      }, () => {
+        this.resizeTable();
+        this.loadData();
+      });
     }
   };
 
@@ -1099,24 +1048,18 @@ class RunsTable extends Component {
   };
 
   _handleDeleteExperimentRun = runId => {
-    const {data, sort} = this.state;
+    const {sortedData, runsCount} = this.state;
+    const data = sortedData.getDataArray();
     const index = data.findIndex(item => item._id === runId);
-    const defaultSortIndices = [];
     if (index > -1) {
       // Remove element at index
       data.splice(index, 1);
-      for (let index = 0; index < data.length; index++) {
-        defaultSortIndices.push(index);
-      }
-      // Here assumption is that runs are always sorted
-      // And sorting is enabled on one column
-      const sortKey = Object.keys(sort)[0];
-      const sortedData = this._getSortedData(defaultSortIndices.slice(), data, sortKey, sort[sortKey]);
+      const newRunsCount = runsCount - 1;
+      const newData = new DataListWrapper(data, newRunsCount, this._fetchRunsRange);
       this.setState({
         data,
-        defaultSortIndices,
-        sortedData,
-        sortIndices: sortedData.getIndexArray()
+        sortedData: newData,
+        runsCount: newRunsCount
       });
     }
   };
@@ -1137,17 +1080,54 @@ class RunsTable extends Component {
     return false;
   };
 
+  /**
+   *
+   * @param end
+   * @private
+   * @returns Promise
+   */
+  _fetchRunsRange = (end) => {
+    const {metricColumns, dataVersion, configColumns} = this.state;
+    const runQueryParams = this._buildRunsQuery(metricColumns, end);
+    /* eslint-disable no-console */
+    console.log('fetching.. ', runQueryParams);
+    return new Promise((resolve, reject) => {
+      axios.all([
+        axios.get('/api/v1/Runs', {
+          params: runQueryParams
+        }),
+        axios.get('/api/v1/Runs/count', {
+          params: {
+            query: runQueryParams.query
+          }
+        })
+      ]).then(axios.spread((runsResponse, runsCountResponse) => {
+        const runsResponseData = this._parseRunsResponseData(runsResponse.data, configColumns, metricColumns);
+        const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
+        const count = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
+        this._updateRuns(latestColumnOrder);
+
+        console.log('count: ', count);
+        this.setState({
+          data: runsResponseData,
+          dataVersion: dataVersion + 1,
+          runsCount: count
+        });
+        resolve({data: runsResponseData, count});
+      }))
+        .catch(error => reject(error));
+    });
+  };
+
   render() {
     const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
-      lastUpdateTime, isFetchingUpdates } = this.state;
+      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion } = this.state;
     const {showConfigColumnModal, handleConfigColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
-    let rowData = new DataListWrapper();
     if (sortedData && sortedData.getSize()) {
-      const indexArray = sortedData.getIndexArray();
-      const _rowData = sortedData.getDataArray().map( row => {
+      sortedData.data = sortedData.getDataArray().map( row => {
         return Object.keys(row).map( key => {
           let value = '';
           // value of row[key] could be false when type is boolean
@@ -1169,7 +1149,6 @@ class RunsTable extends Component {
           return Object.assign({}, rowValues, value);
         }, {});
       });
-      rowData = new DataListWrapper(indexArray, _rowData);
     }
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
@@ -1192,6 +1171,13 @@ class RunsTable extends Component {
     const lastUpdateLoaderClass = classNames({
       'glyphicon-refresh-animate': isFetchingUpdates
     });
+    const countClass = classNames({
+      'count-text': true,
+      'hide': isTableLoading
+    });
+    console.log('re-rendering...');
+    console.log('sorted data: ', sortedData);
+    console.log('version: ', dataVersion);
     return (
       <div>
         <div className="table-header">
@@ -1306,27 +1292,32 @@ class RunsTable extends Component {
             </div>
           </div>
         </div>
-        <div className="status-bar pull-right">
-          <label>
-            <span className="label-text">Auto Refresh</span>
+        <div className="clearfix">
+          <div className="status-bar pull-left">
+            <span className={countClass}>{runsCount} experiments</span>
+          </div>
+          <div className="status-bar pull-right">
+            <label>
+              <span className="label-text">Auto Refresh</span>
+              &nbsp;
+              <Switch onChange={this._handleAutoRefreshChange} checked={autoRefresh}
+                      width={32} height={16} className="switch-container" onColor="#33bd33"/>
+              &nbsp;
+            </label>
+            <span>
             &nbsp;
-            <Switch onChange={this._handleAutoRefreshChange} checked={autoRefresh}
-                    width={32} height={16} className="switch-container" onColor="#33bd33"/>
-            &nbsp;
-          </label>
-          <span>
-            &nbsp;
-            <Glyphicon glyph="refresh" className={lastUpdateLoaderClass}/>
-            &nbsp;
-            Last Update:
+              <Glyphicon glyph="refresh" className={lastUpdateLoaderClass}/>
+              &nbsp;
+              Last Update:
             <span className="date-text"> {moment(lastUpdateTime).format('MMMM Do, hh:mm:ss A')}</span>
-            &nbsp;
+              &nbsp;
           </span>
-          &nbsp;
-          <Button bsStyle="success" className="reload-button" onClick={this.loadData}>
-            <Glyphicon glyph="repeat"/>
-            <span className="reload-text"> Reload</span>
-          </Button>
+            &nbsp;
+            <Button bsStyle="success" className="reload-button" onClick={this.loadData}>
+              <Glyphicon glyph="repeat"/>
+              <span className="reload-text"> Reload</span>
+            </Button>
+          </div>
         </div>
         <div className="table-wrapper" ref={el => this.tableWrapperDomNode = el}>
           {
@@ -1342,7 +1333,7 @@ class RunsTable extends Component {
                 headerHeight={DEFAULT_HEADER_HEIGHT}
                 subRowHeightGetter={this._subRowHeightGetter}
                 rowExpanded={this._rowExpandedGetter}
-                rowsCount={rowData.getSize()}
+                rowsCount={runsCount}
                 onColumnReorderEndCallback={this._onColumnReorderEndCallback}
                 isColumnReordering={false}
                 onColumnResizeEndCallback={this._onColumnResizeEndCallback}
@@ -1359,7 +1350,7 @@ class RunsTable extends Component {
                   <Column
                     allowCellsRecycling={true}
                     columnKey={columnKey}
-                    key={i}
+                    key={dataVersion + i}
                     isReorderable={true}
                     fixed={isFixed(columnKey)}
                     header={
@@ -1371,7 +1362,7 @@ class RunsTable extends Component {
                         {headerText(columnKey)}
                       </HeaderCell>
                     }
-                    cell={this.getCell(columnKey, rowData)}
+                    cell={this.getCell(columnKey, sortedData)}
                     width={columnWidths[columnKey]}
                     flexGrow={1}
                     isResizable={true}

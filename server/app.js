@@ -14,6 +14,7 @@ import OmniboardSettingsModel from './models/omniboard.settings';
 import FilesModel from './models/fs.files';
 import ChunksModel from './models/fs.chunks';
 import archiver from 'archiver';
+import { getRunsResponse } from "./runs.response";
 
 const app = express();
 const router = express.Router();
@@ -52,12 +53,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(methodOverride());
 
+app.use(logErrors);
+app.use(clientErrorHandler);
+app.use(errorHandler);
+
 // Extend express mime types
 express.static.mime.define({'text/plain': ['py']});
 express.static.mime.define({'application/octet-stream': ['pickle']});
 
-//To prevent errors from Cross Origin Resource Sharing, we will set
-//our headers to allow CORS with middleware like so:
+// To prevent errors from Cross Origin Resource Sharing, we will set
+// our headers to allow CORS with middleware like so:
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -68,7 +73,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-restify.serve(router, RunsModel);
+// restify.serve(router, RunsModel);
 restify.serve(router, MetricsModel);
 restify.serve(router, OmniboardColumnsModel);
 restify.serve(router, OmniboardConfigColumnsModel);
@@ -77,9 +82,9 @@ restify.serve(router, FilesModel);
 restify.serve(router, ChunksModel);
 app.use(router);
 
-router.get('/api/v1/files/:id', function(req, res) {
+router.get('/api/v1/files/:id', function(req, res, next) {
   FilesModel.findById(req.params.id).populate('chunk').exec(function(err, result) {
-    if (err) throw (err);
+    if (err) return next(err);
     const resultData = new Buffer.from(result.chunk[0].data, 'base64');
     const fileName = result.filename.split('/').splice(-1)[0];
     res.contentType(fileName);
@@ -91,6 +96,21 @@ router.get('/api/v1/files/:id', function(req, res) {
   });
 });
 
+router.get('/api/v1/Runs/count', function(req, res, next) {
+  RunsModel.estimatedDocumentCount({}, function(err, count) {
+    if (err) return next(err);
+    res.json({count});
+  });
+});
+
+router.get('/api/v1/Runs', function(req, res, next) {
+  getRunsResponse(req, res, next);
+});
+
+router.get('/api/v1/Runs/:id', function(req, res, next) {
+  getRunsResponse(req, res, next, req.params.id);
+});
+
 router.get('/api/v1/files/download/:id/:fileName', function(req, res) {
   // Read file as stream from Mongo GridFS
   const readStream = gfs.createReadStream({
@@ -98,6 +118,7 @@ router.get('/api/v1/files/download/:id/:fileName', function(req, res) {
   });
   //error handling, e.g. file does not exist
   readStream.on('error', function (err) {
+    /* eslint-disable no-console */
     console.error('An error occurred: ', err);
     throw err;
   });
@@ -112,7 +133,7 @@ router.get('/api/v1/files/download/:id/:fileName', function(req, res) {
   readStream.pipe(res);
 });
 
-router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res) {
+router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res, next) {
   const FILE_TYPE = {
     SOURCE_FILES: 'source_files',
     ARTIFACTS: 'artifacts'
@@ -127,7 +148,7 @@ router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res) {
     res.status(400).json({message: 'Error: Invalid input for fileType.'});
   } else {
     RunsModel.findById(req.params.runId).exec(function(err, result) {
-      if (err) throw (err);
+      if (err) return next(err);
       let files = [];
       if (fileType === FILE_TYPE.SOURCE_FILES) {
         if (result && result.experiment && result.experiment.sources) {
@@ -150,6 +171,7 @@ router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res) {
       const fileName = `${fileType}-${runId}.zip`; // ex: source-files-1.zip
       const dirName = `${fileType}-${runId}`; // ex: source-files-1
       archive.on('error', function(err) {
+        /* eslint-disable no-console */
         console.error('An error occurred: ', err);
         res.status(500);
         throw err;
@@ -160,6 +182,7 @@ router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res) {
         });
         //error handling, e.g. file does not exist
         readStream.on('error', function (err) {
+          /* eslint-disable no-console */
           console.error('An error occurred: ', err);
           res.status(500);
           throw err;
@@ -215,14 +238,23 @@ app.use(function (req, res, next) {
   next(err);
 });
 
-// error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+function logErrors (err, req, res, next) {
+  /* eslint-disable no-console */
+  console.error(err.stack);
+  next(err);
+}
 
-  // render the error page
-  res.status(err.status || 500).json({message: 'Error: ' + err.message});
-});
+function clientErrorHandler (err, req, res, next) {
+  if (req.xhr) {
+    res.status(500).send({ message: 'An unknown error occurred!' });
+  } else {
+    next(err);
+  }
+}
+
+function errorHandler (err, req, res, next) {
+  res.status(500);
+  res.render('error', { message: err });
+}
 
 export default app;

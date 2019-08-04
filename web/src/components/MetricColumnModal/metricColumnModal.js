@@ -367,12 +367,23 @@ class MetricColumnModal extends PureComponent {
         </ModalHeader>
         <ModalBody>
           <div style={{paddingBottom: '15px'}}>
-            Add a column to display Min/Max of any metric value
+            Add a column to display an extrema of any metric value
           </div>
           {errorAlert}
           <ProgressWrapper loading={isLoadingColumns}>
             <div>
               <form>
+                <div className="row" style={{paddingBottom: '10px'}}>
+                  <div className="col-xs-4 text-center">
+                    <strong>Column</strong>
+                  </div>
+                  <div className="col-xs-4 text-center">
+                    <strong>Metric</strong>
+                  </div>
+                  <div className="col-xs-4 text-center">
+                    <strong>Extrema</strong>
+                  </div>
+                </div>
                 {columns.map( (columnRow, i) => renderColumnRow(columnRow, i))}
               </form>
             </div>

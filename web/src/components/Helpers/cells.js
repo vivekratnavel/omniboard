@@ -23,6 +23,26 @@ function reverseSortDirection(sortDir) {
   return sortDir === SortTypes.DESC ? SortTypes.ASC : SortTypes.DESC;
 }
 
+class PendingCell extends React.PureComponent {
+  static propTypes = {
+    columnKey: PropTypes.string,
+    children: PropTypes.node,
+    rowIndex: PropTypes.number,
+    data: PropTypes.object,
+    dataVersion: PropTypes.number
+  };
+
+  render() {
+    const { data, rowIndex, dataVersion, children, ...props } = this.props;
+    const rowObject = data && data.getObjectAt(rowIndex);
+    return (
+      rowObject ?
+        <span data-version={dataVersion}>{React.cloneElement(children, {data, rowIndex, ...props})}</span>
+        : <Cell>{'pending'}</Cell>
+    );
+  }
+}
+
 class ExpandRowCell extends React.PureComponent {
   static propTypes = {
     callback: PropTypes.func,
@@ -105,9 +125,9 @@ class DateCell extends React.PureComponent {
 class IdCell extends Component {
   static propTypes = {
     columnKey: PropTypes.string,
-    data: PropTypes.object.isRequired,
+    data: PropTypes.object,
     rowIndex: PropTypes.number,
-    handleDataUpdate: PropTypes.func.isRequired
+    handleDataUpdate: PropTypes.func
   };
 
   constructor(props) {
@@ -300,7 +320,8 @@ class StatusCell extends React.PureComponent {
       // Get the value for the given column to set value of select input
       const experimentName = data.getObjectAt(rowIndex)[columnKey];
       const status = data.getObjectAt(rowIndex)['status'];
-      const classNames = 'circle pull-left ' + status.toLowerCase();
+      const statusClassName = status && status.toLowerCase();
+      const classNames = 'circle pull-left ' + statusClassName;
       return (
         <Cell {...props}>
           <div className="clearfix">
@@ -427,4 +448,5 @@ class HeaderCell extends Component {
   }
 }
 
-export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes, ExpandRowCell, StatusCell, IdCell, DateCell}
+export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes,
+  ExpandRowCell, StatusCell, IdCell, DateCell, PendingCell}
