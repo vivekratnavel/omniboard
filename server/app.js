@@ -26,15 +26,15 @@ if (authPwd !== '') {
   app.use((req, res, next) => {
     if (!req.session.user) {
       // https://stackoverflow.com/questions/23616371
-      const auth = {login: authUser, password: authPwd}
+      const auth = {login: authUser, password: authPwd};
       // parse login and password from headers
-      const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
-      const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+      const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
+      const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
 
       // Verify login and password are set and correct
       if (!login || !password || login !== auth.login || password !== auth.password) {
-        res.set('WWW-Authenticate', 'Basic realm="401"') // change this
-        res.status(401).send('Authentication required.') // custom message
+        res.set('WWW-Authenticate', 'Basic realm="401"'); // change this
+        res.status(401).send('Authentication required.'); // custom message
         return
       }
       else {
@@ -73,7 +73,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-// restify.serve(router, RunsModel);
 restify.serve(router, MetricsModel);
 restify.serve(router, OmniboardColumnsModel);
 restify.serve(router, OmniboardConfigColumnsModel);
@@ -97,10 +96,14 @@ router.get('/api/v1/files/:id', function(req, res, next) {
 });
 
 router.get('/api/v1/Runs/count', function(req, res, next) {
-  RunsModel.estimatedDocumentCount({}, function(err, count) {
-    if (err) return next(err);
-    res.json({count});
-  });
+  if (req.query.query) {
+    getRunsResponse(req, res, next, null, true);
+  } else {
+    RunsModel.estimatedDocumentCount({}, function(err, count) {
+      if (err) return next(err);
+      res.json({count});
+    });
+  }
 });
 
 router.get('/api/v1/Runs', function(req, res, next) {
@@ -111,6 +114,18 @@ router.get('/api/v1/Runs/:id', function(req, res, next) {
   getRunsResponse(req, res, next, req.params.id);
 });
 
+router.delete('/api/v1/Runs/:id', function(req, res, next) {
+  RunsModel.findOneAndDelete({_id: req.params.id}, function(err, doc) {
+    if (err) {
+      /* eslint-disable no-console */
+      console.error('An error occurred: ', err);
+      next(err);
+    } else {
+      res.status(204).json(doc);
+    }
+  });
+});
+
 router.get('/api/v1/files/download/:id/:fileName', function(req, res) {
   // Read file as stream from Mongo GridFS
   const readStream = gfs.createReadStream({
@@ -118,7 +133,6 @@ router.get('/api/v1/files/download/:id/:fileName', function(req, res) {
   });
   //error handling, e.g. file does not exist
   readStream.on('error', function (err) {
-    /* eslint-disable no-console */
     console.error('An error occurred: ', err);
     throw err;
   });
@@ -174,7 +188,7 @@ router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res, next
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
         res.status(500);
-        throw err;
+        next(err);
       });
       files.forEach(function(file) {
         const readStream = gfs.createReadStream({
@@ -185,7 +199,7 @@ router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res, next
           /* eslint-disable no-console */
           console.error('An error occurred: ', err);
           res.status(500);
-          throw err;
+          next(err);
         });
         // add file to archive
         archive.append(readStream, {name: file.name, prefix: dirName});
@@ -199,7 +213,7 @@ router.get('/api/v1/files/downloadAll/:runId/:fileType', function(req, res, next
   }
 });
 
-router.get('/api/v1/files/preview/:fileId', function(req, res) {
+router.get('/api/v1/files/preview/:fileId', function(req, res, next) {
   // Read file as stream from Mongo GridFS
   const readStream = gfs.createReadStream({
     _id: req.params.fileId
@@ -207,7 +221,7 @@ router.get('/api/v1/files/preview/:fileId', function(req, res) {
   //error handling, e.g. file does not exist
   readStream.on('error', function (err) {
     console.error('An error occurred: ', err);
-    throw err;
+    next(err);
   });
 
   // Pipe the file stream to http response

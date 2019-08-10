@@ -478,8 +478,7 @@ class RunsTable extends Component {
 
           this.setState({
             data: runsResponseData,
-            sortedData: new DataListWrapper(runsResponseData, runsCount, this._fetchRunsRange),
-            runsCount
+            sortedData: new DataListWrapper(runsResponseData, runsCount, this._fetchRunsRange)
           });
         } else {
           // If response is empty, set empty array for table data
@@ -493,7 +492,8 @@ class RunsTable extends Component {
           tags: tags.data,
           lastUpdateTime: new Date(),
           configColumns: configColumnsData,
-          metricColumns: metricColumnsData
+          metricColumns: metricColumnsData,
+          runsCount
         });
       })).catch(error => {
         /* eslint-disable no-console */
@@ -968,14 +968,8 @@ class RunsTable extends Component {
   _getColumnNameOptions = () => {
     const {dropdownOptions, columnNameMap} = this.state;
     return dropdownOptions.reduce((options, option) => {
-      // Exclude duration and metric columns from dropdown options
-      // since filter cannot be applied directly on those fields
-      if (option.value !== DURATION_COLUMN_KEY) {
-        const newValue = option.value in columnNameMap ? columnNameMap[option.value] : option.value;
-        if (newValue.indexOf('omniboard.columns.') === -1) {
-          options.push(Object.assign({}, option, {value: newValue}));
-        }
-      }
+      const newValue = option.value in columnNameMap ? columnNameMap[option.value] : option.value;
+      options.push(Object.assign({}, option, {value: newValue}));
       return options;
     }, []);
   };
@@ -1056,6 +1050,8 @@ class RunsTable extends Component {
       data.splice(index, 1);
       const newRunsCount = runsCount - 1;
       const newData = new DataListWrapper(data, newRunsCount, this._fetchRunsRange);
+      // reset expanded rows
+      this._resetExpandedRows();
       this.setState({
         data,
         sortedData: newData,

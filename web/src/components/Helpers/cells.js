@@ -167,28 +167,52 @@ class IdCell extends Component {
 
   _deleteHandler = (experimentId) => (e) => {
     e.stopPropagation();
+
+    const buildChunksQuery = (chunksQuery) => {
+      return axios.delete('/api/v1/Fs.chunks/', {
+        params: {
+          query: JSON.stringify({
+            $or: chunksQuery
+          })
+        }
+      });
+    };
+
+    const buildFilesQuery = (filesQuery) => {
+      return axios.delete('/api/v1/Fs.files/', {
+        params: {
+          query: JSON.stringify({
+            $or: filesQuery
+          })
+        }
+      });
+    };
+
     if (experimentId && !isNaN(experimentId)) {
       this.setState({
         isDeleteInProgress: true
       });
       axios.get('/api/v1/Runs/' + experimentId, {
         params: {
-          select: 'artifacts,metrics',
-          populate: 'metrics'
+          select: 'artifacts,experiment.sources'
         }
       }).then(response => {
         const runsResponse = response.data;
         const deleteApis = [];
-        if(runsResponse.metrics && runsResponse.metrics.length) {
-          deleteApis.push(
-            axios.delete('/api/v1/Metrics/', {
-            params: {
-              query: JSON.stringify({
-                run_id: experimentId
-              })
-            }
-          }));
-        }
+
+        // Since deletes are idempotent, delete all metric rows
+        // from metrics collection associated with the given run id
+        // without checking if metric rows are present or not.
+        deleteApis.push(
+          axios.delete('/api/v1/Metrics/', {
+          params: {
+            query: JSON.stringify({
+              run_id: experimentId
+            })
+          }
+        }));
+
+        // Delete all artifacts associated with the run id.
         if (runsResponse.artifacts && runsResponse.artifacts.length) {
           const chunksQuery = runsResponse.artifacts.map(file => {
             return {files_id: file.file_id}
@@ -196,23 +220,23 @@ class IdCell extends Component {
           const filesQuery = runsResponse.artifacts.map(file => {
             return {_id: file.file_id}
           });
-          deleteApis.push(
-            axios.delete('/api/v1/Fs.chunks/', {
-              params: {
-                query: JSON.stringify({
-                  $or: chunksQuery
-                })
-              }
-            }));
-          deleteApis.push(
-            axios.delete('/api/v1/Fs.files/', {
-              params: {
-                query: JSON.stringify({
-                  $or: filesQuery
-                })
-              }
-            }));
+          deleteApis.push(buildChunksQuery(chunksQuery));
+          deleteApis.push(buildFilesQuery(filesQuery));
         }
+
+        // Delete all source files associated with run id.
+        if (runsResponse.experiment && runsResponse.experiment.sources && runsResponse.experiment.sources.length) {
+          const chunksQuery = runsResponse.experiment.sources.map(file => {
+            return {files_id: file[1]}
+          });
+          const filesQuery = runsResponse.experiment.sources.map(file => {
+            return {_id: file[1]}
+          });
+          deleteApis.push(buildChunksQuery(chunksQuery));
+          deleteApis.push(buildFilesQuery(filesQuery));
+        }
+
+        // Delete run.
         deleteApis.push(
           axios.delete('/api/v1/Runs/' + experimentId)
         );
