@@ -1,36 +1,36 @@
-import React, { Component } from 'reactn';
+import React, {Component} from 'reactn';
 import axios from 'axios';
 import Multiselect from 'react-bootstrap-multiselect';
-import { Table, Column } from 'fixed-data-table-2';
+import {Table, Column} from 'fixed-data-table-2';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
 import 'fixed-data-table-2/dist/fixed-data-table.css';
-import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
-import { MetricColumnModal } from '../MetricColumnModal/metricColumnModal';
-import { DataListWrapper } from '../Helpers/dataListWrapper';
-import { EditableCell, SelectCell, ExpandRowCell ,TextCell, CollapseCell, HeaderCell,
-  SortTypes, StatusCell, IdCell, DateCell, PendingCell } from '../Helpers/cells';
-import { DrillDownView } from '../DrillDownView/drillDownView';
-import { EXPANDED_ROW_HEIGHT } from '../DrillDownView/drillDownView.scss';
-import { headerText, reorderArray, capitalize, parseServerError } from '../Helpers/utils';
-import { STATUS } from '../../appConstants/status.constants';
-import { ProgressWrapper } from '../Helpers/hoc';
-import { toast } from 'react-toastify';
-import Select  from 'react-select';
+import {Button, ButtonToolbar, Alert, Glyphicon} from 'react-bootstrap';
+import {toast} from 'react-toastify';
+import Select from 'react-select';
 import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable';
 import Async from 'react-select/lib/Async';
-import { ConfigColumnModal } from '../ConfigColumnModal/configColumnModal';
 import PropTypes from 'prop-types';
 import Switch from 'react-switch';
 import moment from 'moment';
 import classNames from 'classnames';
-import { AUTO_REFRESH_INTERVAL } from "../../appConstants/app.constants";
-import {SettingsModal} from "../SettingsModal/settingsModal";
+import ms from 'ms';
+import {MetricColumnModal} from '../MetricColumnModal/metricColumnModal';
+import {DataListWrapper} from '../Helpers/dataListWrapper';
+import {EditableCell, SelectCell, ExpandRowCell, TextCell, CollapseCell, HeaderCell,
+  SortTypes, StatusCell, IdCell, DateCell, PendingCell} from '../Helpers/cells';
+import {DrillDownView} from '../DrillDownView/drillDownView';
+import {EXPANDED_ROW_HEIGHT} from '../DrillDownView/drillDownView.scss';
+import {headerText, reorderArray, capitalize, parseServerError, arrayDiffColumns} from '../Helpers/utils';
+import {STATUS} from '../../appConstants/status.constants';
+import {ProgressWrapper} from '../Helpers/hoc';
+import {CustomColumnModal} from '../CustomColumnModal/customColumnModal';
+import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE} from '../../appConstants/app.constants';
+import {SettingsModal} from '../SettingsModal/settingsModal';
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
 const DEFAULT_ROW_HEIGHT = 70;
-const DEFAULT_INITIAL_FETCH_COUNT = 50;
 const DEFAULT_EXPANDED_ROW_HEIGHT = Number(EXPANDED_ROW_HEIGHT);
 const TAGS_COLUMN_HEADER = 'tags';
 const NOTES_COLUMN_HEADER = 'notes';
@@ -66,7 +66,7 @@ const STATUS_FILTER_OPTIONS = [
   {label: getStatusLabel('timeout'), value: STATUS.TIMEOUT, selected: true},
   {label: getStatusLabel('probably_dead'), value: STATUS.PROBABLY_DEAD, selected: true},
   {label: getStatusLabel('queued'), value: STATUS.QUEUED, selected: true}
-  ];
+];
 
 const FILTER_OPERATOR_OPTIONS = [
   {label: '==', value: OPERATOR.EQUALS},
@@ -77,7 +77,7 @@ const FILTER_OPERATOR_OPTIONS = [
   {label: '>=', value: OPERATOR.GREATER_THAN_EQUALS},
   {label: 'in', value: OPERATOR.IN},
   {label: 'regex', value: OPERATOR.REGEX}
-  ];
+];
 
 export const FILTER_OPERATOR_LABELS = {
   [OPERATOR.EQUALS]: '==',
@@ -93,21 +93,32 @@ export const FILTER_OPERATOR_LABELS = {
 class RunsTable extends Component {
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['dropdownOptions', 'columnOrder', 'columnWidths', 'sort',
-      'columnNameMap', 'statusFilterOptions', 'filters', 'autoRefresh']
+    stateFilterKeys: ['dropdownOptions',
+      'columnOrder',
+      'columnWidths',
+      'sort',
+      'metricAndCustomColumns',
+      'columnNameMap',
+      'statusFilterOptions',
+      'filters',
+      'autoRefresh']
   };
 
   static propTypes = {
-    showConfigColumnModal: PropTypes.bool.isRequired,
-    handleConfigColumnModalClose: PropTypes.func.isRequired,
+    showCustomColumnModal: PropTypes.bool.isRequired,
+    handleCustomColumnModalClose: PropTypes.func.isRequired,
     showSettingsModal: PropTypes.bool.isRequired,
     handleSettingsModalClose: PropTypes.func.isRequired
   };
 
   tableWrapperDomNode = null;
+
   showHideColumnsDomNode = null;
+
   statusFilterDomNode = null;
+
   tableDom = null;
+
   interval = null;
 
   constructor(props) {
@@ -147,22 +158,25 @@ class RunsTable extends Component {
       autoRefresh: true,
       lastUpdateTime: new Date(),
       metricColumns: [],
-      configColumns: [],
+      customColumns: [],
+      metricAndCustomColumns: [],
       runsCount: 0,
       dataVersion: 0
-    }
+    };
   }
 
   _getColumnNameMap = (configs, rootName) => {
-    return Object.keys(configs).reduce( (configMap, conf) => {
+    return Object.keys(configs).reduce((configMap, conf) => {
       configMap[conf] = `${rootName}.${conf}`;
       return configMap;
     }, {});
   };
 
+  _getInitialFetchSize = () => Number(this.global.settings[INITIAL_FETCH_SIZE].value);
+
   _resolveObjectPath = (object, path, defaultValue) => path
     .split('.')
-    .reduce((o, p) => o && o.hasOwnProperty(p) ? o[p] : defaultValue, object);
+    .reduce((o, p) => o && Object.prototype.hasOwnProperty.call(o, p) ? o[p] : defaultValue, object);
 
   _initPolling = () => {
     this.loadPartialUpdates();
@@ -171,7 +185,7 @@ class RunsTable extends Component {
 
   _startPolling = () => {
     this._stopPolling();
-    // this.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
+    // This.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _stopPolling = () => {
@@ -184,39 +198,50 @@ class RunsTable extends Component {
     } else {
       this._stopPolling();
     }
+
     this.setState({
       autoRefresh: checked
     });
   };
 
-  _buildRunsQuery = (metricColumnsData, end = DEFAULT_INITIAL_FETCH_COUNT) => {
+  _buildRunsQuery = (metricColumnsData, customColumnsData, end = null) => {
     const {filters, dropdownOptions, columnNameMap, sort} = this.state;
-    const queryJson = {'$and': []};
+    const queryJson = {$and: []};
     const statusQueryFilter = operator => status => {
-      return {'status': {[operator]: status}};
+      return {status: {[operator]: status}};
     };
-    let sort_by = '_id'; // default sort
-    let order_by = '-1'; // default order by DESC
 
-    if (filters && filters.status.length) {
-      const statusFilter = filters.status.map(statusQueryFilter('$eq'));
-      queryJson.$and.push({'$or': statusFilter});
+    // Get default initial fetch count from global settings.
+    if (!end) {
+      end = this.global.settings[INITIAL_FETCH_SIZE].value;
     }
+
+    let sort_by = '_id'; // Default sort
+    let order_by = '-1'; // Default order by DESC
+
+    if (filters && filters.status.length > 0) {
+      const statusFilter = filters.status.map(statusQueryFilter('$eq'));
+      queryJson.$and.push({$or: statusFilter});
+    }
+
     // Process advanced filters
-    if (filters && filters.advanced.length) {
+    if (filters && filters.advanced.length > 0) {
       filters.advanced.forEach(filter => {
         if (filter.operator === '$in') {
           const orFilters = filter.name === 'status' ? filter.value.map(statusQueryFilter('$eq')) : [{[filter.name]: filter.value}];
-          queryJson.$and.push({'$or': orFilters});
+          queryJson.$and.push({$or: orFilters});
         } else {
           // Check if the value is a number or boolean and convert type accordingly
-          let value = filter.value;
+          let {value} = filter;
           if (isNaN(value)) {
-            // check if value is boolean
+            // Check if value is boolean
             value = value === 'true' || (value === 'false' ? false : value);
+            // Convert to milliseconds for duration
+            value = filter.name === 'duration' ? ms(value) : value;
           } else {
             value = Number(value);
           }
+
           if (filter.name === 'status') {
             queryJson.$and.push(statusQueryFilter(filter.operator)(value));
           } else {
@@ -227,7 +252,7 @@ class RunsTable extends Component {
     }
 
     // Apply sorting
-    if (Object.keys(sort).length) {
+    if (Object.keys(sort).length > 0) {
       sort_by = Object.keys(sort)[0];
       order_by = sort[sort_by] === SortTypes.ASC ? 1 : -1;
       if (sort_by in columnNameMap) {
@@ -235,11 +260,11 @@ class RunsTable extends Component {
       }
     }
 
-    const queryString = queryJson.$and.length ? JSON.stringify(queryJson) : '{}';
+    const queryString = queryJson.$and.length > 0 ? JSON.stringify(queryJson) : '{}';
     let select = '';
     // As an optimization, select data that is only required
     // by looking at the selected columns from the dropdown options
-    if (dropdownOptions.length) {
+    if (dropdownOptions.length > 0) {
       select = dropdownOptions.filter(optionItem => optionItem.selected === true).map(option => {
         return option.value in columnNameMap ? columnNameMap[option.value] : option.value;
       }).join(',');
@@ -247,13 +272,22 @@ class RunsTable extends Component {
       // Load defaults for the first time
       select = '_id,heartbeat,experiment,command,host,stop_time,config,duration,' +
         'result,start_time,resources,format,status,omniboard,metrics,meta';
-      if (metricColumnsData.length) {
+      if (metricColumnsData.length > 0) {
         const metricColumnNames = metricColumnsData.map(column => column.name);
         select = select + ',' + metricColumnNames.join(',');
       }
+
+      if (customColumnsData.length > 0) {
+        // Select those paths that are not already present in the select to avoid two conflicting paths error
+        const customColumnPaths = customColumnsData.filter(column => !select.split(',').some(col => col === column.config_path.split('.')[0]));
+        if (customColumnPaths.length > 0) {
+          select = select + ',' + customColumnPaths.join(',');
+        }
+      }
     }
+
     return {
-      select: select,
+      select,
       sort_by,
       order_by,
       query: queryString,
@@ -261,83 +295,88 @@ class RunsTable extends Component {
     };
   };
 
-  _parseRunsResponseData = (runsResponseData, configColumnsData, metricColumnsData) => {
-    let columnNameMap = {};
+  _parseRunsResponseData = (runsResponseData, customColumnsData, _metricColumnsData) => {
+    /* eslint-disable react/no-access-state-in-setstate */
+    let columnNameMap = {...this.state.columnNameMap};
+    /* eslint-enable react/no-access-state-in-setstate */
 
     const parsedRuns = runsResponseData.map(data => {
       if ('config' in data) {
-        const config = data['config'];
+        const {config} = data;
         // Expand each key of config column as individual columns
-        delete data['config'];
         data = {...data, ...config};
         const configNameMap = this._getColumnNameMap(config, 'config');
         columnNameMap = {...columnNameMap, ...configNameMap};
+      }
 
-        // Include config columns
-        if (configColumnsData.length) {
-          const configColumnsObject = {};
-          const configColumnNameMap = {};
-          configColumnsData.forEach(column => {
-            const columnName = column.name;
-            const configPath = column.config_path;
-            configColumnsObject[columnName] = this._resolveObjectPath(config, configPath, '');
-            configColumnNameMap[columnName] = `config.${configPath}`;
-          });
-          data = {...data, ...configColumnsObject};
-          columnNameMap = {...columnNameMap, ...configColumnNameMap};
-        }
+      // Include custom config columns
+      if (customColumnsData.length > 0) {
+        const customColumnsObject = {};
+        const customColumnNameMap = {};
+        customColumnsData.forEach(column => {
+          const columnName = column.name;
+          const configPath = column.config_path;
+          customColumnsObject[columnName] = this._resolveObjectPath(data, configPath, '');
+          customColumnNameMap[columnName] = configPath;
+        });
+        data = {...data, ...customColumnsObject};
+        columnNameMap = {...columnNameMap, ...customColumnNameMap};
+      }
+
+      if ('config' in data) {
+        delete data.config;
       }
 
       if ('info' in data) {
-        // info column has information about metric names
+        // Info column has information about metric names
         // which is not needed here
-        delete data['info'];
+        delete data.info;
       }
 
       if ('experiment' in data) {
-        const experiment = data['experiment'];
-        delete data['experiment'];
-        data = {...data, 'experiment_name': experiment['name']};
-        columnNameMap = {...columnNameMap, 'experiment_name': 'experiment.name'};
+        const {experiment} = data;
+        delete data.experiment;
+        data = {...data, experiment_name: experiment.name};
+        columnNameMap = {...columnNameMap, experiment_name: 'experiment.name'};
       }
 
       if ('host' in data) {
-        const host = data['host'];
-        delete data['host'];
-        data = {...data, 'hostname': host['hostname']};
+        const {host} = data;
+        delete data.host;
+        data = {...data, hostname: host.hostname};
         const hostMap = this._getColumnNameMap(host, 'host');
         columnNameMap = {...columnNameMap, ...hostMap};
       }
 
       // Expand omniboard columns
       if ('omniboard' in data) {
-        const omniboard = data['omniboard'];
-        delete data['omniboard'];
+        const {omniboard} = data;
+        delete data.omniboard;
         data = {...data, ...omniboard};
       }
 
       // Add tags and notes to columnNameMap
-      const omniboardMap = this._getColumnNameMap({'tags': [], 'notes': ''}, 'omniboard');
+      const omniboardMap = this._getColumnNameMap({tags: [], notes: ''}, 'omniboard');
       columnNameMap = {...columnNameMap, ...omniboardMap};
 
       // Add notes from comment if none has been saved in omniboard
       if (!('notes' in data)) {
         if ('meta' in data) {
-          const meta = data['meta'];
-          delete data['meta'];
+          const {meta} = data;
+          delete data.meta;
           if ('comment' in meta) {
-            const comment = meta['comment'];
-            data = {...data, 'notes': comment}
+            const {comment} = meta;
+            data = {...data, notes: comment};
           }
         }
       }
 
       // Delete meta if not deleted already
       if ('meta' in data) {
-        delete data['meta'];
+        delete data.meta;
       }
 
-      delete data['metrics'];
+      delete data.metrics;
 
       return data;
     });
@@ -349,72 +388,105 @@ class RunsTable extends Component {
     return parsedRuns;
   };
 
-  _getLatestColumnOrder = (runsResponseData) => {
-    let latestColumnOrder = runsResponseData.reduce((columns, row) => {
-      columns = Array.from(columns);
+  _handleNewColumnAddition = () => {
+    axios.all([
+      axios.get('/api/v1/Omniboard.Metric.Columns'),
+      axios.get('/api/v1/Omniboard.Custom.Columns')
+    ]).then(axios.spread((metricColumns, customColumns) => {
+      const latestMetricAndCustomColumns = this._getLatestMetricAndCustomColumns(metricColumns.data, customColumns.data);
+      this._updateRuns(latestMetricAndCustomColumns);
+      this.loadData();
+    }));
+  };
+
+  _getLatestColumnOrder = runsResponseData => {
+    const latestColumnOrder = runsResponseData.reduce((columns, row) => {
+      columns = [...columns];
       return new Set([...columns, ...Object.keys(row)]);
     }, new Set());
     if (!latestColumnOrder.has('tags')) {
       latestColumnOrder.add('tags');
     }
+
     if (!latestColumnOrder.has('notes')) {
       latestColumnOrder.add('notes');
     }
-    // Remove metrics from it being displayed as a column
-    latestColumnOrder.delete('metrics');
 
     return [...latestColumnOrder];
   };
 
-  _updateRuns = (latestColumnOrder) => {
-    const {columnOrder, dropdownOptions, columnWidths} = this.state;
+  _getLatestMetricAndCustomColumns = (metricColumnsData, customColumnsData) => {
+    const metricColumns = metricColumnsData.map(column => {
+      return {
+        name: column.name,
+        value: column.name
+      };
+    });
+    const customColumns = customColumnsData.map(column => {
+      return {
+        name: column.name,
+        value: column.config_path
+      };
+    });
+    return metricColumns.concat(customColumns);
+  };
 
-    // TODO: change this logic to add/delete metric or config columns. Since we do projection based on selected columns, it will no longer work
-    // Handle addition/deletion of metric/config columns
-    // const dropdownOptionValues = dropdownOptions.map(option => option.value);
-    // const columnsToAdd = arrayDiff(latestColumnOrder, dropdownOptionValues);
-    // const columnsToDelete = arrayDiff(dropdownOptionValues, latestColumnOrder);
-    // let newColumnOrder = columnOrder.slice();
-    // let newDropdownOptions = dropdownOptions.slice();
-    // let newColumnWidths = Object.assign({}, columnWidths);
-    // if (columnsToAdd.length) {
-    //   newColumnOrder = newColumnOrder.concat(columnsToAdd);
-    //   const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column));
-    //   newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
-    //   const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
-    //     return Object.assign({}, columnWidths, {[column]: DEFAULT_COLUMN_WIDTH});
-    //   }, {});
-    //   newColumnWidths = Object.assign({}, newColumnWidths, columnWidthsToAdd);
-    // }
-    //
-    // this.setState({
-    //   columnOrder: newColumnOrder,
-    //   columnWidths: newColumnWidths,
-    //   dropdownOptions: newDropdownOptions
-    // });
-    //
-    // if (columnsToDelete.length) {
-    //   columnsToDelete.map(this._handleColumnDelete);
-    // }
+  _updateRuns = latestMetricAndCustomColumns => {
+    const {columnOrder, dropdownOptions, columnWidths, metricAndCustomColumns} = this.state;
+
+    // Handle addition/deletion of metric/custom columns
+    let columnsToAdd = arrayDiffColumns(latestMetricAndCustomColumns, metricAndCustomColumns);
+    const columnsToDelete = arrayDiffColumns(metricAndCustomColumns, latestMetricAndCustomColumns);
+    let newColumnOrder = columnOrder.slice();
+    let newDropdownOptions = dropdownOptions.slice();
+    let newColumnWidths = {...columnWidths};
+    // Avoid adding the same column twice
+    columnsToAdd = columnsToAdd.filter(column => !newColumnOrder.includes(column.name));
+    console.log('columns to add:', columnsToAdd);
+    if (columnsToAdd.length > 0) {
+      newColumnOrder = newColumnOrder.concat(columnsToAdd.map(column => column.name));
+      const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column.name));
+      newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
+      const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
+        const columnName = column.name;
+        return {...columnWidths, [columnName]: DEFAULT_COLUMN_WIDTH};
+      }, {});
+      newColumnWidths = {...newColumnWidths, ...columnWidthsToAdd};
+    }
+
+    this.setState({
+      columnOrder: newColumnOrder,
+      columnWidths: newColumnWidths,
+      dropdownOptions: newDropdownOptions,
+      metricAndCustomColumns: latestMetricAndCustomColumns
+    });
+
+    if (columnsToDelete.length > 0) {
+      columnsToDelete.map(col => col.name).map(this._handleColumnDelete);
+    }
   };
 
   loadData = () => {
-    let latestDropdownOptions = [];
+    const latestDropdownOptions = [];
 
     let runQueryParams = {};
     let metricColumnsData = [];
+    let customColumnsData = [];
     this.setState({
       isTableLoading: true,
       isError: false
     });
 
-    // First retrieve metric columns as to decide which metrics need to be populated.
-    axios.get('/api/v1/Omniboard.Columns').then(metricColumns => {
+    // First retrieve metric columns and custom config columns to decide which metrics and columns need to be populated.
+    axios.all([
+      axios.get('/api/v1/Omniboard.Metric.Columns'),
+      axios.get('/api/v1/Omniboard.Custom.Columns')
+    ]).then(axios.spread((metricColumns, customColumns) => {
       metricColumnsData = metricColumns.data;
-      runQueryParams = this._buildRunsQuery(metricColumnsData);
-
+      customColumnsData = customColumns.data;
+      runQueryParams = this._buildRunsQuery(metricColumnsData, customColumnsData);
       return Promise.resolve(true);
-    }).then(resolved => {
+    })).then(_resolved => {
       // The value of resolved is not used because
       // it breaks all unit tests and makes it impossible to write unit tests.
       axios.all([
@@ -426,22 +498,19 @@ class RunsTable extends Component {
             distinct: 'omniboard.tags'
           }
         }),
-        axios.get('/api/v1/Omniboard.Config.Columns'),
         axios.get('/api/v1/Runs/count', {
           params: {
             query: runQueryParams.query
           }
         })
-      ]).then(axios.spread((runsResponse, tags, configColumns, runsCountResponse) => {
-
+      ]).then(axios.spread((runsResponse, tags, runsCountResponse) => {
         let runsResponseData = runsResponse.data;
-        const configColumnsData = configColumns.data;
         const runsCount = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
-        if (runsResponseData && runsResponseData.length) {
-
-          runsResponseData = this._parseRunsResponseData(runsResponseData, configColumnsData, metricColumnsData);
+        if (runsResponseData && runsResponseData.length > 0) {
+          runsResponseData = this._parseRunsResponseData(runsResponseData, customColumnsData, metricColumnsData);
 
           const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
+          const latestMetricAndCustomColumns = this._getLatestMetricAndCustomColumns(metricColumnsData, customColumnsData);
 
           // Set columns array and dropdown options only the first time data is fetched
           if (this.state.data === null) {
@@ -457,28 +526,33 @@ class RunsTable extends Component {
               if (key === TAGS_COLUMN_HEADER || key === NOTES_COLUMN_HEADER) {
                 columnWidth = 250;
               }
+
               if (key === '_id') {
                 columnWidth = 70;
               }
+
               columnWidths[key] = columnWidth;
             });
+
             // Set state only for the first load.
             // Local storage is used to synchronize state for subsequent page reloads
             if (this.state.columnOrder.length === 0) {
               this.setState({
                 columnOrder: latestColumnOrder,
                 columnWidths,
-                dropdownOptions: latestDropdownOptions
+                dropdownOptions: latestDropdownOptions,
+                metricAndCustomColumns: latestMetricAndCustomColumns
               });
             }
+
             this.showHideColumnsDomNode.syncData();
           } else {
-            this._updateRuns(latestColumnOrder);
+            this._updateRuns(latestMetricAndCustomColumns);
           }
 
           this.setState({
             data: runsResponseData,
-            sortedData: new DataListWrapper(runsResponseData, runsCount, this._fetchRunsRange)
+            sortedData: new DataListWrapper(runsResponseData, runsCount, this._getInitialFetchSize(), this._fetchRunsRange)
           });
         } else {
           // If response is empty, set empty array for table data
@@ -487,16 +561,16 @@ class RunsTable extends Component {
             sortedData: new DataListWrapper()
           });
         }
+
         this.setState({
           isTableLoading: false,
           tags: tags.data,
           lastUpdateTime: new Date(),
-          configColumns: configColumnsData,
+          customColumns: customColumnsData,
           metricColumns: metricColumnsData,
           runsCount
         });
       })).catch(error => {
-        /* eslint-disable no-console */
         console.log('ERROR', error);
         const errorMessage = parseServerError(error);
         this.setState({
@@ -517,7 +591,7 @@ class RunsTable extends Component {
   };
 
   loadPartialUpdates = () => {
-    const {metricColumns, configColumns, data} = this.state;
+    const {metricColumns, customColumns, data} = this.state;
     const runQueryParams = this._buildRunsQuery(metricColumns);
     let queryString = JSON.parse(runQueryParams.query);
 
@@ -525,12 +599,12 @@ class RunsTable extends Component {
     const maxRunId = data.reduce((acc, current) => Math.max(acc, current._id), 0);
 
     // Find all the runs that are in "RUNNING" status
-    const runningExperiments = data.filter(run => run['status'] === STATUS.RUNNING);
+    const runningExperiments = data.filter(run => run.status === STATUS.RUNNING);
     const runningIds = runningExperiments.map(run => run[ID_COLUMN_KEY]);
 
     // Build query to fetch only latest runs or runs that are in "RUNNING" status
-    const queryJson = {'$and': [{
-      '$or': [{
+    const queryJson = {$and: [{
+      $or: [{
         [ID_COLUMN_KEY]: {[OPERATOR.IN]: runningIds}
       }, {
         [ID_COLUMN_KEY]: {[OPERATOR.GREATER_THAN]: maxRunId}
@@ -538,7 +612,7 @@ class RunsTable extends Component {
     }]};
 
     if ('$and' in queryString) {
-      queryString['$and'].push(queryJson);
+      queryString.$and.push(queryJson);
     } else {
       queryString = queryJson;
     }
@@ -554,15 +628,14 @@ class RunsTable extends Component {
     }).then(runsResponse => {
       let runsResponseData = runsResponse.data;
 
-      if (runsResponseData && runsResponseData.length) {
+      if (runsResponseData && runsResponseData.length > 0) {
         const runIds = runsResponseData.map(run => run._id);
         // Filter out runs from old data that overlap with runs in latest response
         const oldData = data.filter(run => !runIds.includes(run._id));
         const latestRuns = runsResponseData.concat(oldData);
-        runsResponseData = this._parseRunsResponseData(latestRuns, configColumns, metricColumns);
+        runsResponseData = this._parseRunsResponseData(latestRuns, customColumns, metricColumns);
 
         const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
-
         this._updateRuns(latestColumnOrder);
 
         this.setState({
@@ -585,46 +658,53 @@ class RunsTable extends Component {
   };
 
   updateTags = (id, tagValues, rowIndex) => {
-    const isSelectLoading = Object.assign({}, this.state.isSelectLoading, {[rowIndex]: true});
-    this.setState({isSelectLoading});
+    this.setState(prevState => {
+      return {
+        isSelectLoading: {...prevState.isSelectLoading, [rowIndex]: true}
+      };
+    });
     axios.put('/api/v1/Runs/' + id, {
       omniboard: {
         tags: tagValues
       }
     }).then(response => {
-        if (response.status === 200) {
-          const {sortedData, tags, isSelectLoading} = this.state;
+      if (response.status === 200) {
+        const {sortedData, tags, isSelectLoading} = this.state;
 
-          sortedData.setObjectAt(rowIndex, Object.assign({}, sortedData.getObjectAt(rowIndex), {tags: tagValues}));
-          const newTags = tags;
-          tagValues.forEach(tag => {
-            if (newTags.indexOf(tag) < 0) {
-              newTags.push(tag);
-            }
-          });
-          this.setState({
-            isSelectLoading: Object.assign({}, isSelectLoading, {[rowIndex]: false}),
-            tags: newTags
-          });
-          this._refreshTableView();
-        }
+        sortedData.setObjectAt(rowIndex, {...sortedData.getObjectAt(rowIndex), tags: tagValues});
+        const newTags = tags;
+        tagValues.forEach(tag => {
+          if (!newTags.includes(tag)) {
+            newTags.push(tag);
+          }
+        });
+        this.setState({
+          isSelectLoading: {...isSelectLoading, [rowIndex]: false},
+          tags: newTags
+        });
+        this._refreshTableView();
+      }
     }).catch(error => {
-      this.setState({
-        isSelectLoading: Object.assign({}, isSelectLoading, {[rowIndex]: false})
+      this.setState(prevState => {
+        return {
+          isSelectLoading: {...prevState.isSelectLoading, [rowIndex]: false}
+        };
       });
       toast.error(parseServerError(error));
     });
   };
 
-  updateNotes = (id, notes, rowIndex)  => {
+  updateNotes = (id, notes, rowIndex) => {
     axios.put('/api/v1/Runs/' + id, {
       omniboard: {
-        notes: notes
+        notes
       }
     }).then(response => {
       if (response.status === 200) {
         const {sortedData} = this.state;
-        sortedData.setObjectAt(rowIndex, Object.assign({}, sortedData.getObjectAt(rowIndex), {notes}));
+        console.log('data,', sortedData.getObjectAt(rowIndex), 'notes', notes);
+        sortedData.setObjectAt(rowIndex, {...sortedData.getObjectAt(rowIndex), notes});
+        console.log(sortedData.getObjectAt(rowIndex).notes);
         this._refreshTableView();
       }
     }).catch(error => {
@@ -647,17 +727,22 @@ class RunsTable extends Component {
     });
   };
 
-  _handleDropdownChange = (e) => {
+  _handleShowHideColumnsDropdownChange = _e => {
     const selectedKeys = this.showHideColumnsDomNode.$multiselect.val();
     this.setState(({dropdownOptions}) => ({
       dropdownOptions: dropdownOptions.map(option => {
         option.selected = selectedKeys.includes(option.value);
         return option;
       })
-    }), this._updateColumnOrder);
+    }), () => {
+      this._updateColumnOrder();
+      // To fetch data for newly selected columns, load data again.
+      // Loading data will add new projections in build query phase.
+      this.loadData();
+    });
   };
 
-  _onColumnReorderEndCallback = (event) => {
+  _onColumnReorderEndCallback = event => {
     const columnOrderClone = Object.assign([], this.state.columnOrder);
     const dropdownOptionsClone = Object.assign([], this.state.dropdownOptions);
     const columnOrder = columnOrderClone.filter(columnKey => columnKey !== event.reorderColumn);
@@ -676,6 +761,7 @@ class RunsTable extends Component {
       columnOrder.push(event.reorderColumn);
       dropdownOptions.push(dropdownOptionToReorder);
     }
+
     this.setState({
       columnOrder,
       dropdownOptions
@@ -684,16 +770,17 @@ class RunsTable extends Component {
 
   _onColumnResizeEndCallback = (newColumnWidth, columnKey) => {
     this.setState(({columnWidths}) => ({
-      columnWidths: Object.assign({}, columnWidths, {[columnKey]: newColumnWidth})
+      columnWidths: {...columnWidths, [columnKey]: newColumnWidth}
     }));
   };
 
-  _handleColumnHide = (columnKey) => {
+  _handleColumnHide = columnKey => {
     this.setState(({dropdownOptions}) => ({
       dropdownOptions: dropdownOptions.map(option => {
         if (option.value === columnKey) {
           option.selected = false;
         }
+
         return option;
       })
     }), () => this._updateColumnOrder());
@@ -713,7 +800,7 @@ class RunsTable extends Component {
 
     this.setState({
       sort: {
-        [columnKey]: sortDir,
+        [columnKey]: sortDir
       }
     });
 
@@ -734,7 +821,7 @@ class RunsTable extends Component {
    */
   componentDidMount() {
     this.resizeTable();
-    window.addEventListener("resize", this.resizeTable);
+    window.addEventListener('resize', this.resizeTable);
     // Wait for LocalStorageMixin to setState
     // and then fetch data
     setTimeout(this.loadData, 1);
@@ -749,48 +836,48 @@ class RunsTable extends Component {
    * Remove event listener
    */
   componentWillUnmount() {
-    window.removeEventListener("resize", this.resizeTable);
+    window.removeEventListener('resize', this.resizeTable);
   }
 
-  _handleTagChange = (rowIndex) => {
-    return (values) => {
+  _handleTagChange = rowIndex => {
+    return values => {
       const {sortedData} = this.state;
-      const id = sortedData.getObjectAt(rowIndex)['_id'];
+      const id = sortedData.getObjectAt(rowIndex)._id;
       const tags = values.map(optionValue => optionValue.value);
       if (id) {
         this.updateTags(id, tags, rowIndex);
       }
-    }
+    };
   };
 
-  _handleNotesChange = (rowIndex) => {
+  _handleNotesChange = rowIndex => {
     return (name, value) => {
       const {sortedData} = this.state;
-      const id = sortedData.getObjectAt(rowIndex)['_id'];
+      const id = sortedData.getObjectAt(rowIndex)._id;
       if (id) {
         this.updateNotes(id, value, rowIndex);
       }
-    }
+    };
   };
 
-  _handleCollapseClick = (rowIndex) => {
+  _handleCollapseClick = rowIndex => {
     const {expandedRows} = this.state;
     const shallowCopyOfExpandedRows = new Set([...expandedRows]);
     let scrollToRow = rowIndex;
     if (shallowCopyOfExpandedRows.has(rowIndex)) {
       shallowCopyOfExpandedRows.delete(rowIndex);
-      scrollToRow = null
+      scrollToRow = null;
     } else {
       shallowCopyOfExpandedRows.add(rowIndex);
     }
 
     this.setState({
-      scrollToRow: scrollToRow,
+      scrollToRow,
       expandedRows: shallowCopyOfExpandedRows
     });
   };
 
-  _subRowHeightGetter = (index) => {
+  _subRowHeightGetter = index => {
     return this.state.expandedRows.has(index) ? DEFAULT_EXPANDED_ROW_HEIGHT : 0;
   };
 
@@ -798,8 +885,9 @@ class RunsTable extends Component {
     if (!this.state.expandedRows.has(rowIndex)) {
       return null;
     }
+
     const runId = this.state.sortedData.getObjectAt(rowIndex)[ID_COLUMN_KEY];
-    const status = this.state.sortedData.getObjectAt(rowIndex)['status'];
+    const {status} = this.state.sortedData.getObjectAt(rowIndex);
     // Local storage key is used for synchronizing state of each drilldown view with local storage
     const localStorageKey = `DrillDownView|${runId}`;
     return (
@@ -809,49 +897,66 @@ class RunsTable extends Component {
 
   getCell(columnKey, rowData) {
     const {tags, isSelectLoading, dataVersion} = this.state;
-    let cell = <PendingCell data={rowData} dataVersion={dataVersion}>
-      <TextCell/>
-    </PendingCell>;
+    let cell = (
+      <PendingCell data={rowData} dataVersion={dataVersion}>
+        <TextCell/>
+      </PendingCell>
+    );
     if (columnKey === TAGS_COLUMN_HEADER) {
-      cell = <PendingCell data={rowData} dataVersion={dataVersion} tableDom={this.tableWrapperDomNode}
-                          isLoading={isSelectLoading}
-                          tagChangeHandler={this._handleTagChange}
-                          options={tags}>
-        <SelectCell/>
-      </PendingCell>;
+      cell = (
+        <PendingCell data={rowData} dataVersion={dataVersion} tableDom={this.tableWrapperDomNode}
+          isLoading={isSelectLoading}
+          tagChangeHandler={this._handleTagChange}
+          options={tags}
+        >
+          <SelectCell/>
+        </PendingCell>
+      );
     }
+
     if (columnKey === NOTES_COLUMN_HEADER) {
-      cell = <PendingCell data={rowData} dataVersion={dataVersion} changeHandler={this._handleNotesChange}>
-        <EditableCell/>
-      </PendingCell>;
+      cell = (
+        <PendingCell data={rowData} dataVersion={dataVersion} changeHandler={this._handleNotesChange}>
+          <EditableCell dataVersion={dataVersion}/>
+        </PendingCell>
+      );
     }
+
     if (columnKey === EXPERIMENT_NAME) {
       cell = <PendingCell data={rowData} dataVersion={dataVersion}><StatusCell/></PendingCell>;
     }
+
     if (columnKey === ID_COLUMN_KEY) {
-      cell = <PendingCell data={rowData} dataVersion={dataVersion} handleDataUpdate={this._handleDeleteExperimentRun}>
-        <IdCell/>
-      </PendingCell>;
+      cell = (
+        <PendingCell data={rowData} dataVersion={dataVersion} handleDataUpdate={this._handleDeleteExperimentRun}>
+          <IdCell/>
+        </PendingCell>
+      );
     }
+
     if ([START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY].includes(columnKey)) {
-      cell = <PendingCell data={rowData} dataVersion={dataVersion}>
-        <DateCell/>
-      </PendingCell>
+      cell = (
+        <PendingCell data={rowData} dataVersion={dataVersion}>
+          <DateCell/>
+        </PendingCell>
+      );
     }
+
     return <ExpandRowCell callback={this._handleCollapseClick}>{cell}</ExpandRowCell>;
   }
 
-  _handleStatusFilterChange = (e) => {
+  _handleStatusFilterChange = _e => {
     const selectedKeys = this.statusFilterDomNode.$multiselect.val();
     const updateFilter = () => {
       const {filters} = this.state;
       // When all the statuses are selected to be shown or none is selected, then reset the filter
       const statusFilter = selectedKeys.length < STATUS_FILTER_OPTIONS.length ? selectedKeys : [];
-      const newFilters = Object.assign({}, filters, {status: statusFilter});
+      const newFilters = {...filters, status: statusFilter};
       this.setState({
         filters: newFilters
       }, this.loadData);
     };
+
     this.setState(({statusFilterOptions}) => ({
       statusFilterOptions: statusFilterOptions.map(option => {
         option.selected = selectedKeys.includes(option.value);
@@ -867,20 +972,12 @@ class RunsTable extends Component {
   };
 
   _handleAddFilterClick = () => {
-    const { filterColumnOperator, filterColumnValue, filterColumnName, filters } = this.state;
+    const {filterColumnOperator, filterColumnValue, filterColumnName, filters} = this.state;
     this.setState({
       filterColumnValueError: false,
       filterColumnNameError: false
     });
-    if (!filterColumnName) {
-      this.setState({
-        filterColumnNameError: true
-      });
-    } else if (!filterColumnValue) {
-      this.setState({
-        filterColumnValueError: true
-      });
-    } else {
+    if (filterColumnName && filterColumnValue) {
       const advancedFilters = Object.assign([...filters.advanced]);
       const newFilter = {
         name: filterColumnName,
@@ -889,13 +986,23 @@ class RunsTable extends Component {
       };
       advancedFilters.push(newFilter);
       this.setState({
-        filters: Object.assign({}, filters, {'advanced': advancedFilters}),
+        filters: {...filters, advanced: advancedFilters},
         filterColumnName: '',
         filterColumnOperator: '$eq',
         filterColumnValue: ''
       }, () => {
         this.resizeTable();
         this.loadData();
+      });
+    } else if (filterColumnValue) {
+      // FilterColumnName is empty or undefined.
+      this.setState({
+        filterColumnNameError: true
+      });
+    } else {
+      // FilterColumnValue is empty or undefined.
+      this.setState({
+        filterColumnValueError: true
       });
     }
   };
@@ -906,22 +1013,23 @@ class RunsTable extends Component {
     });
   };
 
-  _handleColumnDelete = (columnName) => {
+  _handleColumnDelete = columnName => {
     const {columnOrder, dropdownOptions, columnWidths} = this.state;
     let newColumnOrder = columnOrder.slice();
     let newDropdownOptions = dropdownOptions.slice();
-    let newColumnWidths = Object.assign({}, columnWidths);
+    const newColumnWidths = {...columnWidths};
     if (columnName) {
       newColumnOrder = newColumnOrder.filter(column => column !== columnName);
       newDropdownOptions = newDropdownOptions.filter(option => option.value !== columnName);
       if (columnName in newColumnWidths) {
         delete newColumnWidths[columnName];
       }
+
       this.setState({
         columnOrder: newColumnOrder,
         dropdownOptions: newDropdownOptions,
         columnWidths: newColumnWidths
-      })
+      });
     }
   };
 
@@ -957,34 +1065,34 @@ class RunsTable extends Component {
     });
   };
 
-  _handleFilterColumnValueChange = (value) => {
-    // value will be array for multi select
+  _handleFilterColumnValueChange = value => {
+    // Value will be array for multi select
     const resultantValue = Array.isArray(value) ? value.map(val => val.value) : value.value;
     this.setState({
       filterColumnValue: resultantValue
-    })
+    });
   };
 
   _getColumnNameOptions = () => {
     const {dropdownOptions, columnNameMap} = this.state;
     return dropdownOptions.reduce((options, option) => {
       const newValue = option.value in columnNameMap ? columnNameMap[option.value] : option.value;
-      options.push(Object.assign({}, option, {value: newValue}));
+      options.push({...option, value: newValue});
       return options;
     }, []);
   };
 
   _getColumnValueOptions = inputValue => {
     const {filterColumnName} = this.state;
-    // construct case-insensitive regex
+    // Construct case-insensitive regex
     const regex = `^(?i)(${inputValue})`;
     return new Promise(resolve => {
       // Get suggestions for columns of types other than Date or Number
       // Since Date type Number type doesn't support regex
-      if (filterColumnName.length && ![ID_COLUMN_KEY, START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY, DURATION_COLUMN_KEY].includes(filterColumnName)) {
-        const operator = inputValue && !isNaN(inputValue) ? "$eq" : "$regex";
+      if (filterColumnName.length > 0 && ![ID_COLUMN_KEY, START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY, DURATION_COLUMN_KEY].includes(filterColumnName)) {
+        const operator = inputValue && !isNaN(inputValue) ? '$eq' : '$regex';
         const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
-        const queryJson = {[filterColumnName]: { [operator]: value}};
+        const queryJson = {[filterColumnName]: {[operator]: value}};
         // Fetch autocomplete suggestions
         axios.get('/api/v1/Runs', {
           params: {
@@ -993,16 +1101,18 @@ class RunsTable extends Component {
           }
         }).then(response => {
           if (response.status === 200) {
-            const options = response.data.reduce( (result, current) => {
-              if (typeof current !== "object" && current) {
+            const options = response.data.reduce((result, current) => {
+              if (typeof current !== 'object' && current) {
                 result.push({label: current.toString(), value: current.toString()});
               }
+
               return result;
             }, []);
-            // include Probably Dead status for status options
+            // Include Probably Dead status for status options
             if (filterColumnName === 'status') {
               options.push({label: STATUS.PROBABLY_DEAD, value: STATUS.PROBABLY_DEAD});
             }
+
             this.setState({
               currentColumnValueOptions: options
             });
@@ -1011,6 +1121,15 @@ class RunsTable extends Component {
             resolve([]);
           }
         });
+      } else if (filterColumnName.length > 0 && filterColumnName === DURATION_COLUMN_KEY) {
+        // Suggest duration options.
+        const options = ['30s', '1m', '5m', '10m', '30m', '1h', '2h'].map(key => {
+          return {
+            label: key,
+            value: key
+          };
+        });
+        resolve(options);
       } else {
         resolve([]);
       }
@@ -1032,13 +1151,14 @@ class RunsTable extends Component {
             JSON.stringify(advFilter.value) !== JSON.stringify(filter.value)) {
             advFilters.push(advFilter);
           }
+
           return advFilters;
         }, []);
         this.setState({
-          filters: Object.assign({}, filters, {'advanced': advancedFilters})
+          filters: {...filters, advanced: advancedFilters}
         }, this.loadData);
       }
-    }
+    };
   };
 
   _handleDeleteExperimentRun = runId => {
@@ -1049,8 +1169,8 @@ class RunsTable extends Component {
       // Remove element at index
       data.splice(index, 1);
       const newRunsCount = runsCount - 1;
-      const newData = new DataListWrapper(data, newRunsCount, this._fetchRunsRange);
-      // reset expanded rows
+      const newData = new DataListWrapper(data, newRunsCount, this._getInitialFetchSize, this._fetchRunsRange);
+      // Reset expanded rows
       this._resetExpandedRows();
       this.setState({
         data,
@@ -1073,20 +1193,21 @@ class RunsTable extends Component {
     if (filterColumnName === 'status') {
       return !(option.value === '$eq' || option.value === '$ne' || option.value === '$in');
     }
+
     return false;
   };
 
   /**
-   *
-   * @param end
+   * Function to fetch runs till the given limit.
+   * @param {number} end End limit to fetch runs collection
    * @private
-   * @returns Promise
+   * @returns {Promise} Promise
    */
-  _fetchRunsRange = (end) => {
-    const {metricColumns, dataVersion, configColumns} = this.state;
-    const runQueryParams = this._buildRunsQuery(metricColumns, end);
-    /* eslint-disable no-console */
-    console.log('fetching.. ', runQueryParams);
+  _fetchRunsRange = end => {
+    const {metricColumns, dataVersion, customColumns} = this.state;
+    const runQueryParams = this._buildRunsQuery(metricColumns, customColumns, end);
+    console.log('end:', end);
+
     return new Promise((resolve, reject) => {
       axios.all([
         axios.get('/api/v1/Runs', {
@@ -1098,12 +1219,10 @@ class RunsTable extends Component {
           }
         })
       ]).then(axios.spread((runsResponse, runsCountResponse) => {
-        const runsResponseData = this._parseRunsResponseData(runsResponse.data, configColumns, metricColumns);
-        const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
+        const runsResponseData = this._parseRunsResponseData(runsResponse.data, customColumns, metricColumns);
         const count = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
-        this._updateRuns(latestColumnOrder);
 
-        console.log('count: ', count);
+        console.log('count:', count);
         this.setState({
           data: runsResponseData,
           dataVersion: dataVersion + 1,
@@ -1116,51 +1235,57 @@ class RunsTable extends Component {
   };
 
   render() {
-    const { sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
+    const {sortedData, sort, columnOrder, expandedRows, scrollToRow, dropdownOptions, tableWidth, tableHeight,
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
-      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion } = this.state;
-    const {showConfigColumnModal, handleConfigColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
+      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion} = this.state;
+    const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
     if (sortedData && sortedData.getSize()) {
-      sortedData.data = sortedData.getDataArray().map( row => {
-        return Object.keys(row).map( key => {
+      sortedData.data = sortedData.getDataArray().map(row => {
+        return Object.keys(row).map(key => {
           let value = '';
-          // value of row[key] could be false when type is boolean
-          if (row[key] || typeof row[key] === "boolean" || typeof row[key] === "number") {
-            if (typeof row[key] === "object" && key !== TAGS_COLUMN_HEADER) {
+          // Value of row[key] could be false when type is boolean
+          if (row[key] || typeof row[key] === 'boolean' || typeof row[key] === 'number') {
+            if (typeof row[key] === 'object' && key !== TAGS_COLUMN_HEADER) {
               // Convert object to string
               value = JSON.stringify(row[key]);
-            } else if (typeof row[key] === "boolean") {
+            } else if (typeof row[key] === 'boolean') {
               // Convert boolean to string
-              value = row[key] + "";
+              value = String(row[key]);
             } else {
               value = row[key];
             }
           }
+
           return {
             [key]: value
-          }
-        }).reduce( (rowValues, value) => {
-          return Object.assign({}, rowValues, value);
+          };
+        }).reduce((rowValues, value) => {
+          return {...rowValues, ...value};
         }, {});
       });
     }
+
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
       return selectValue ? selectValue : value ? {label: value, value} : '';
     };
+
     const getMultiSelectValue = (options, value) => {
       if (Array.isArray(value)) {
         return value.map(val => getSelectValue(options, val));
       }
+
       return getSelectValue(options, value);
     };
+
     const getCreateLabel = input => input;
     const getFilterNameLabel = value => {
       const columnName = Object.keys(columnNameMap).find(key => columnNameMap[key] === value) || value;
       return headerText(columnName);
     };
+
     const getFilterValueLabel = value => Array.isArray(value) ? value.join(',') : value;
     const filterColumnNameOptions = this._getColumnNameOptions();
     const isFixed = columnKey => columnKey === '_id';
@@ -1169,211 +1294,211 @@ class RunsTable extends Component {
     });
     const countClass = classNames({
       'count-text': true,
-      'hide': isTableLoading
+      hide: isTableLoading
     });
-    console.log('re-rendering...');
-    console.log('sorted data: ', sortedData);
-    console.log('version: ', dataVersion);
+    console.log('sorted data:', sortedData);
+    console.log('version:', dataVersion);
     return (
       <div>
-        <div className="table-header">
-          <div className="flex-container">
-            <div className="item">
-              <div className="status-filter pull-left">
-                <label className="filter-label">Status: </label>
+        <div className='table-header'>
+          <div className='flex-container'>
+            <div className='item'>
+              <div className='status-filter pull-left'>
+                <label className='filter-label'>Status: </label>
                 <Multiselect
-                  id={"status_filter"}
-                  data={statusFilterOptions} multiple
-                  includeSelectAllOption={true}
-                  onChange={this._handleStatusFilterChange}
-                  onSelectAll={this._handleStatusFilterChange}
-                  onDeselectAll={this._handleStatusFilterChange}
-                  maxHeight={300}
-                  enableHTML={true}
-                  selectedClass="status-selected"
-                  buttonText={(options, select) => {
+                  ref={el => this.statusFilterDomNode = el}
+                  includeSelectAllOption multiple
+                  enableHTML
+                  buttonText={(options, _select) => {
                     if (options.length === 0) {
                       return 'None selected';
-                    } else {
-                      return `${options.length} selected`;
                     }
+
+                    return `${options.length} selected`;
                   }}
-                  ref={el => this.statusFilterDomNode = el}
+                  selectedClass='status-selected'
+                  id='status_filter'
+                  maxHeight={300}
+                  data={statusFilterOptions}
+                  onSelectAll={this._handleStatusFilterChange}
+                  onChange={this._handleStatusFilterChange}
+                  onDeselectAll={this._handleStatusFilterChange}
                 />
               </div>
             </div>
-            <div className="item">
-              <div className="flex-container tags-container clearfix">
+            <div className='item'>
+              <div className='flex-container tags-container clearfix'>
                 {
-                  filters.advanced.map((filter, i) =>
-                    <div key={i} className="item">
-                      <div className="tags">
-                        <span className="tag">{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
-                        <a onClick={this._handleDeleteFilter(filter)} className="tag is-delete"/>
+                  filters.advanced.map((filter, i) => (
+                    <div key={i} className='item'>
+                      <div className='tags'>
+                        <span className='tag'>{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
+                        <a className='tag is-delete' onClick={this._handleDeleteFilter(filter)}/>
                       </div>
                     </div>
-                  )
+                  ))
                 }
               </div>
-              <div className="flex-container filters">
-                <label className="item filters-label">Filters: </label>
-                <div className="item filters-select-container">
-                  <div className="row">
-                    <div className="col col-xs-5">
+              <div className='flex-container filters'>
+                <label className='item filters-label'>Filters: </label>
+                <div className='item filters-select-container'>
+                  <div className='row'>
+                    <div className='col col-xs-5'>
                       <Select
-                        test-attr="filter-column-name-dropdown"
+                        test-attr='filter-column-name-dropdown'
                         className={filterColumnNameError ? 'validation-error' : 'filter-name'}
-                        placeholder="Column Name"
+                        placeholder='Column Name'
                         options={filterColumnNameOptions}
-                        onChange={this._handleFilterColumnNameChange}
                         value={getSelectValue(filterColumnNameOptions, filterColumnName)}
                         clearable={false}
+                        onChange={this._handleFilterColumnNameChange}
                       />
                     </div>
-                    <div className="col col-xs-2">
+                    <div className='col col-xs-2'>
                       <Async
-                        test-attr="filter-column-operator-dropdown"
                         key={filterOperatorAsyncValueOptionsKey}
-                        placeholder="Operator"
-                        loadOptions={this._getColumnOperatorOptions}
                         defaultOptions
-                        onChange={this._handleFilterOperatorChange}
+                        test-attr='filter-column-operator-dropdown'
+                        placeholder='Operator'
+                        loadOptions={this._getColumnOperatorOptions}
                         value={getSelectValue(FILTER_OPERATOR_OPTIONS, filterColumnOperator)}
                         isOptionDisabled={this._isOperatorOptionDisabled}
                         clearable={false}
+                        onChange={this._handleFilterOperatorChange}
                       />
                     </div>
-                    <div className="col col-xs-5">
+                    <div className='col col-xs-5'>
                       <AsyncCreatableSelect
                         key={filterValueAsyncValueOptionsKey}
-                        test-attr="filter-column-value"
+                        defaultOptions
+                        test-attr='filter-column-value'
                         className={filterColumnValueError ? 'validation-error' : 'filter-value'}
-                        placeholder="Enter Value..."
+                        placeholder='Enter Value...'
                         loadOptions={this._getColumnValueOptions}
                         formatCreateLabel={getCreateLabel}
-                        onChange={this._handleFilterColumnValueChange}
-                        defaultOptions
-                        isMulti={filterColumnOperator === "$in"}
+                        isMulti={filterColumnOperator === '$in'}
                         value={getMultiSelectValue(currentColumnValueOptions, filterColumnValue)}
+                        onChange={this._handleFilterColumnValueChange}
                       />
                     </div>
                   </div>
                 </div>
-                <div className="item">
-                  <Button id={"add_filter"} onClick={this._handleAddFilterClick}>Add Filter</Button>
+                <div className='item'>
+                  <Button id='add_filter' onClick={this._handleAddFilterClick}>Add Filter</Button>
                 </div>
               </div>
             </div>
-            <div className="item">
-              <div className="show-hide-columns pull-right">
-                <Multiselect data={dropdownOptions} multiple
-                             includeSelectAllOption={true}
-                             maxHeight={300}
-                             ref={el => this.showHideColumnsDomNode = el}
-                             buttonText={(options, select) => 'Show/Hide Columns'}
-                             enableFiltering={true}
-                             dropRight={true}
-                             enableCaseInsensitiveFiltering={true}
-                             onChange={this._handleDropdownChange}
-                             onSelectAll={this._handleDropdownChange}
-                             onDeselectAll={this._handleDropdownChange}
+            <div className='item'>
+              <div className='show-hide-columns pull-right'>
+                <Multiselect ref={el => this.showHideColumnsDomNode = el} includeSelectAllOption
+                  enableFiltering
+                  enableCaseInsensitiveFiltering
+                  dropRight
+                  multiple
+                  buttonText={(_options, _select) => 'Show/Hide Columns'}
+                  data={dropdownOptions}
+                  maxHeight={300}
+                  onChange={this._handleShowHideColumnsDropdownChange}
+                  onSelectAll={this._handleShowHideColumnsDropdownChange}
+                  onDeselectAll={this._handleShowHideColumnsDropdownChange}
                 />
               </div>
-              <ButtonToolbar className="pull-right">
-                <div className="add-remove-metric-columns pull-right">
-                  <Button id={"add_remove_metric_columns"} onClick={this._handleAddRemoveMetricColumnsClick}>+/- Metric Columns</Button>
+              <ButtonToolbar className='pull-right'>
+                <div className='add-remove-metric-columns pull-right'>
+                  <Button id='add_remove_metric_columns' onClick={this._handleAddRemoveMetricColumnsClick}>+/- Metric Columns</Button>
                 </div>
               </ButtonToolbar>
-              <div className="clearfix"/>
+              <div className='clearfix'/>
             </div>
           </div>
         </div>
-        <div className="clearfix">
-          <div className="status-bar pull-left">
+        <div className='clearfix'>
+          <div className='status-bar pull-left'>
             <span className={countClass}>{runsCount} experiments</span>
           </div>
-          <div className="status-bar pull-right">
+          <div className='status-bar pull-right'>
             <label>
-              <span className="label-text">Auto Refresh</span>
+              <span className='label-text'>Auto Refresh</span>
               &nbsp;
-              <Switch onChange={this._handleAutoRefreshChange} checked={autoRefresh}
-                      width={32} height={16} className="switch-container" onColor="#33bd33"/>
+              <Switch checked={autoRefresh} width={32}
+                height={16} className='switch-container' onChange={this._handleAutoRefreshChange}
+                onColor='#33bd33'/>
               &nbsp;
             </label>
             <span>
             &nbsp;
-              <Glyphicon glyph="refresh" className={lastUpdateLoaderClass}/>
+              <Glyphicon glyph='refresh' className={lastUpdateLoaderClass}/>
               &nbsp;
               Last Update:
-            <span className="date-text"> {moment(lastUpdateTime).format('MMMM Do, hh:mm:ss A')}</span>
+              <span className='date-text'> {moment(lastUpdateTime).format('MMMM Do, hh:mm:ss A')}</span>
               &nbsp;
-          </span>
+            </span>
             &nbsp;
-            <Button bsStyle="success" className="reload-button" onClick={this.loadData}>
-              <Glyphicon glyph="repeat"/>
-              <span className="reload-text"> Reload</span>
+            <Button bsStyle='success' className='reload-button' onClick={this.loadData}>
+              <Glyphicon glyph='repeat'/>
+              <span className='reload-text'> Reload</span>
             </Button>
           </div>
         </div>
-        <div className="table-wrapper" ref={el => this.tableWrapperDomNode = el}>
+        <div ref={el => this.tableWrapperDomNode = el} className='table-wrapper'>
           {
-            isError
-            ?
-            <Alert bsStyle="danger">{errorMessage}</Alert>
-            :
-            <ProgressWrapper loading={isTableLoading}>
-              <Table
-                scrollToRow={scrollToRow}
-                ref={el => this.tableDom = el}
-                rowHeight={DEFAULT_ROW_HEIGHT}
-                headerHeight={DEFAULT_HEADER_HEIGHT}
-                subRowHeightGetter={this._subRowHeightGetter}
-                rowExpanded={this._rowExpandedGetter}
-                rowsCount={runsCount}
-                onColumnReorderEndCallback={this._onColumnReorderEndCallback}
-                isColumnReordering={false}
-                onColumnResizeEndCallback={this._onColumnResizeEndCallback}
-                isColumnResizing={false}
-                width={tableWidth}
-                height={tableHeight}>
-                <Column
-                  columnKey={"row_expander"}
-                  cell={<CollapseCell callback={this._handleCollapseClick} expandedRows={expandedRows}/>}
-                  fixed={true}
-                  width={30}
-                />
-                {columnOrder.map((columnKey, i) =>
+            isError ?
+              <Alert bsStyle='danger'>{errorMessage}</Alert> :
+              <ProgressWrapper loading={isTableLoading}>
+                <Table
+                  ref={el => this.tableDom = el}
+                  rowsCount={runsCount}
+                  rowHeight={DEFAULT_ROW_HEIGHT}
+                  headerHeight={DEFAULT_HEADER_HEIGHT}
+                  subRowHeightGetter={this._subRowHeightGetter}
+                  rowExpanded={this._rowExpandedGetter}
+                  scrollToRow={scrollToRow}
+                  width={tableWidth}
+                  isColumnReordering={false}
+                  isColumnResizing={false}
+                  height={tableHeight}
+                  onColumnResizeEndCallback={this._onColumnResizeEndCallback}
+                  onColumnReorderEndCallback={this._onColumnReorderEndCallback}
+                >
                   <Column
-                    allowCellsRecycling={true}
-                    columnKey={columnKey}
-                    key={dataVersion + i}
-                    isReorderable={true}
-                    fixed={isFixed(columnKey)}
-                    header={
-                      <HeaderCell
-                        test-attr={"header-" + columnKey}
-                        onSortChangeHandler={this._onSortChange}
-                        sortDir={sort[columnKey]}
-                        callback={this._handleColumnHide}>
-                        {headerText(columnKey)}
-                      </HeaderCell>
-                    }
-                    cell={this.getCell(columnKey, sortedData)}
-                    width={columnWidths[columnKey]}
-                    flexGrow={1}
-                    isResizable={true}
+                    fixed
+                    columnKey='row_expander'
+                    cell={<CollapseCell callback={this._handleCollapseClick} expandedRows={expandedRows}/>}
+                    width={30}
                   />
-                )}
-              </Table>
-            </ProgressWrapper>
+                  {columnOrder.map((columnKey, i) => (
+                    <Column
+                      key={dataVersion + i}
+                      allowCellsRecycling
+                      isReorderable
+                      isResizable
+                      columnKey={columnKey}
+                      fixed={isFixed(columnKey)}
+                      header={
+                        <HeaderCell
+                          test-attr={'header-' + columnKey}
+                          sortDir={sort[columnKey]}
+                          callback={this._handleColumnHide}
+                          onSortChangeHandler={this._onSortChange}
+                        >
+                          {headerText(columnKey)}
+                        </HeaderCell>
+                      }
+                      cell={this.getCell(columnKey, sortedData)}
+                      width={columnWidths[columnKey]}
+                      flexGrow={1}
+                    />
+                  ))}
+                </Table>
+              </ProgressWrapper>
           }
         </div>
         <MetricColumnModal show={showMetricColumnModal} handleClose={this._handleMetricColumnModalClose}
-                           handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
-        <ConfigColumnModal show={showConfigColumnModal} handleClose={handleConfigColumnModalClose}
-                           handleDataUpdate={this.loadData} handleDelete={this._handleColumnDelete}/>
+          handleDataUpdate={this._handleNewColumnAddition} handleDelete={this._handleColumnDelete}/>
+        <CustomColumnModal shouldShow={showCustomColumnModal} handleClose={handleCustomColumnModalClose}
+          handleDataUpdate={this._handleNewColumnAddition} handleDelete={this._handleColumnDelete}/>
         <SettingsModal show={showSettingsModal} handleClose={handleSettingsModalClose}
-                       handleAutoRefreshUpdate={this._handleAutoRefreshUpdate}/>
+          handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
       </div>
     );
   }

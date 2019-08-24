@@ -1,43 +1,42 @@
 import React from 'react';
-import { FilePreview, getLanguageFromFileName } from './filePreview';
-import { FILE_PREVIEW_LIMIT } from '../SourceFilesView/sourceFilesView';
+import {FILE_PREVIEW_LIMIT} from '../SourceFilesView/sourceFilesView';
+import {FilePreview, getLanguageFromFileName} from './filePreview';
 
 describe('FilePreview', () => {
   let wrapper = null;
   const sourceFiles = {
-    "1": {
-      data: "Hello World!"
+    1: {
+      data: 'Hello World!'
     },
-    "3": {
-      data: "svg_image"
+    3: {
+      data: 'svg_image'
     },
-    "4": {
-      data: "png_image"
+    4: {
+      data: 'png_image'
     },
-    "5": {
-      data: "",
+    5: {
+      data: '',
       fileLength: FILE_PREVIEW_LIMIT + 1
     },
-    "6": {
-      data: ""
+    6: {
+      data: ''
     }
   };
 
   beforeEach(() => {
     wrapper = shallow(
-      <FilePreview fileId="1" fileName="hello_world.py" sourceFiles={sourceFiles} isLoading={false}/>
+      <FilePreview fileId='1' fileName='hello_world.py' sourceFiles={sourceFiles} isLoading={false}/>
     );
   });
 
   describe('should render correctly', () => {
-
     it('text files', () => {
       expect(wrapper).toMatchSnapshot();
     });
 
     it('svg files', () => {
       wrapper = shallow(
-        <FilePreview fileId="3" fileName="test.svg" sourceFiles={sourceFiles} isLoading={false}/>
+        <FilePreview fileId='3' fileName='test.svg' sourceFiles={sourceFiles} isLoading={false}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -45,7 +44,7 @@ describe('FilePreview', () => {
 
     it('image files', () => {
       wrapper = shallow(
-        <FilePreview fileId="4" fileName="output.png" sourceFiles={sourceFiles} isLoading={false}/>
+        <FilePreview fileId='4' fileName='output.png' sourceFiles={sourceFiles} isLoading={false}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -53,7 +52,7 @@ describe('FilePreview', () => {
 
     it('when file size is too large', () => {
       wrapper = shallow(
-        <FilePreview fileId="5" fileName="out.txt" sourceFiles={sourceFiles} isLoading={false}/>
+        <FilePreview fileId='5' fileName='out.txt' sourceFiles={sourceFiles} isLoading={false}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -61,7 +60,7 @@ describe('FilePreview', () => {
 
     it('when there is error', () => {
       wrapper = shallow(
-        <FilePreview fileId="6" fileName="out.txt" sourceFiles={sourceFiles} errorMessage={"error"} isLoading={false}/>
+        <FilePreview fileId='6' fileName='out.txt' sourceFiles={sourceFiles} errorMessage='error' isLoading={false}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -76,5 +75,4 @@ describe('FilePreview', () => {
 
     expect(getLanguageFromFileName(fileName)).toEqual('');
   });
-
 });

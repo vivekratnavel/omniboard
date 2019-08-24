@@ -1,33 +1,33 @@
 import React from 'react';
-import { ConfigColumnModal } from './configColumnModal';
 import mockAxios from 'jest-mock-axios';
-import { parseServerError } from '../Helpers/utils';
+import {parseServerError} from '../Helpers/utils';
+import {CustomColumnModal} from './customColumnModal';
 
-describe('ConfigColumnModal', () => {
+describe('CustomColumnModal', () => {
   let wrapper = null;
-  const closeHandler = jest.fn(() => wrapper.setProps({show: false})),
-    dataUpdateHandler = jest.fn(),
-    deleteHandler = jest.fn();
+  const closeHandler = jest.fn(() => wrapper.setProps({show: false}));
+  const dataUpdateHandler = jest.fn();
+  const deleteHandler = jest.fn();
 
   const responseData = [
-    {"_id":"5c16204663dfd3fe6a193610","name":"batch_size","config_path":"train.batch_size","__v":0},
-    {"_id":"5c16ea82bea682411d7c0405","name":"settings_epochs","config_path":"train.settings.epochs","__v":0},
-    {"_id":"5c16ebd6bea682411d7c0407","name":"Lr","config_path":"train.lr","__v":0}
+    {_id: '5c16204663dfd3fe6a193610', name: 'batch_size', config_path: 'train.batch_size', __v: 0},
+    {_id: '5c16ea82bea682411d7c0405', name: 'settings_epochs', config_path: 'train.settings.epochs', __v: 0},
+    {_id: '5c16ebd6bea682411d7c0407', name: 'Lr', config_path: 'train.lr', __v: 0}
   ];
 
   const runsConfigResponse = [
-    {"message":"Hello world!","recipient":"world","seed":631323961,"train":{"batch_size":32,"epochs":100,"lr":0.01}},
-    {"seed":637090657,"recipient":"world","message":"Hello world!","train":{"batch_size":32,"settings":{"epochs":12},"epochs":100,"lr":0.01}}
+    {message: 'Hello world!', recipient: 'world', seed: 631323961, train: {batch_size: 32, epochs: 100, lr: 0.01}},
+    {seed: 637090657, recipient: 'world', message: 'Hello world!', train: {batch_size: 32, settings: {epochs: 12}, epochs: 100, lr: 0.01}}
   ];
 
   beforeEach(() => {
     wrapper = shallow(
-      <ConfigColumnModal handleClose={closeHandler} show={true} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
+      <CustomColumnModal show handleClose={closeHandler} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
     );
   });
 
   afterEach(() => {
-    // cleaning up the mess left behind the previous test
+    // Cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
   });
@@ -70,7 +70,7 @@ describe('ConfigColumnModal', () => {
         value: 'col_1'
       }
     });
-    
+
     expect(wrapper.state().columns[0].columnName).toEqual('col_1');
     // Test if apply button is not disabled
     expect(wrapper.find('[test-attr="apply-btn"]').props().disabled).toBeFalsy();
@@ -134,7 +134,7 @@ describe('ConfigColumnModal', () => {
 
       expect(mockAxios.delete).not.toHaveBeenCalled();
       expect(wrapper.state().columns).toHaveLength(3);
-    })
+    });
   });
 
   describe('should handle errors correctly', () => {
@@ -196,7 +196,7 @@ describe('ConfigColumnModal', () => {
       });
     });
 
-    it('for update', async() => {
+    it('for update', async () => {
       const errorResponse = {status: 400, message: 'unknown error'};
       mockAxios.mockResponse({status: 200, data: responseData});
       mockAxios.mockResponse({status: 200, data: runsConfigResponse});
@@ -268,7 +268,7 @@ describe('ConfigColumnModal', () => {
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
     wrapper.find('[test-attr="close-btn"]').simulate('click');
 
-    wrapper.setProps({ show: true });
+    wrapper.setProps({show: true});
 
     expect(wrapper.update().state().isLoadingColumns).toBeTruthy();
     expect(wrapper.state().isLoadingConfigs).toBeTruthy();

@@ -1,14 +1,16 @@
 class DataListWrapper {
-  constructor(data = [], size, fetchCallback) {
+  constructor(data = [], size, end, fetchCallback) {
     this._data = data;
     // When fetching we need to fetch the index missing + additional x-elements.
     // This specifies that we add 10% of the total size when fetching, the
     // maximum number of data-requests will then be 10.
     this._fetchSize = DataListWrapper._getFetchSize(size);
-    this._end = 50;
+    this._end = end;
     this._pending = false;
     this._size = size;
     this._fetchCallback = fetchCallback;
+    console.log('size:', size);
+    console.log('fetch_size:', this._fetchSize);
   }
 
   static _getFetchSize(size) {
@@ -35,15 +37,18 @@ class DataListWrapper {
       })
       .catch(error => {
         this._pending = false;
-        /* eslint-disable no-console */
         console.error(error);
       });
   }
 
   getObjectAt(index) {
-    if (index >= this._end) {
+    // Fetch data 15 rows ahead of end.
+    // This will improve user experience such that the user
+    // will not see pending status for a long time.
+    const numRowsAhead = 15;
+    if (index + numRowsAhead >= this._end) {
       this.fetchRange(Math.min(this.getSize(),
-        index + this._fetchSize));
+        index + numRowsAhead + this._fetchSize));
       return null;
     }
 

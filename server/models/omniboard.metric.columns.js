@@ -4,7 +4,7 @@ import {databaseConn} from '../config/database';
 const Schema = mongoose.Schema;
 mongoose.Promise = Promise;
 
-export const OmniboardColumnsSchema = new Schema({
+export const OmniboardMetricColumnsSchema = new Schema({
   name: {type: String},
   metric_name: {type: String},
   extrema: {type: String}
@@ -12,4 +12,4 @@ export const OmniboardColumnsSchema = new Schema({
   strict: false
 });
 
-export default databaseConn.model('omniboard.columns', OmniboardColumnsSchema);
+export default databaseConn.model('omniboard.metric.columns', OmniboardMetricColumnsSchema);

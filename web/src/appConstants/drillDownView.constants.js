@@ -14,12 +14,12 @@ export const DRILLDOWN_VIEW = {
 
 export const X_AXIS_VALUE = {
   STEPS: 'steps',
-  TIME : 'timestamps'
+  TIME: 'timestamps'
 };
 
 export const SCALE_VALUE = {
-  LINEAR:'linear',
-  LOGARITHMIC:'logarithmic'
+  LINEAR: 'linear',
+  LOGARITHMIC: 'logarithmic'
 };
 
 export const X_AXIS_VALUES = [X_AXIS_VALUE.STEPS, X_AXIS_VALUE.TIME];

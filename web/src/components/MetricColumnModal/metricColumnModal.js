@@ -1,11 +1,11 @@
-import PropTypes from 'prop-types'
-import React, { PureComponent } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert } from 'react-bootstrap';
+import PropTypes from 'prop-types';
+import React, {PureComponent} from 'react';
+import {Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert} from 'react-bootstrap';
 import './metricColumnModal.scss';
 import axios from 'axios';
 import Select from 'react-select';
-import { ProgressWrapper } from '../Helpers/hoc';
-import { parseServerError } from '../Helpers/utils';
+import {ProgressWrapper} from '../Helpers/hoc';
+import {parseServerError} from '../Helpers/utils';
 
 class MetricColumnModal extends PureComponent {
   static propTypes = {
@@ -24,10 +24,10 @@ class MetricColumnModal extends PureComponent {
       isLoadingMetricNames: false,
       isLoadingColumns: false,
       isInProgress: false
-    }
+    };
   }
 
-  static serializeColumn = (column) => {
+  static serializeColumn = column => {
     return {
       name: column.columnName,
       metric_name: column.metricName,
@@ -39,7 +39,7 @@ class MetricColumnModal extends PureComponent {
     this.props.handleDataUpdate();
   };
 
-  _handleDelete = (columnName) => {
+  _handleDelete = columnName => {
     this.props.handleDelete(columnName);
   };
 
@@ -48,30 +48,32 @@ class MetricColumnModal extends PureComponent {
     const columnsClone = columns.slice();
     const newColumns = columnsClone.filter(column => column.id === null);
     // Get columns that were edited/modified
-    const dirtyColumns = initialColumns.reduce( (accumulator, current, index) => {
+    const dirtyColumns = initialColumns.reduce((accumulator, current, index) => {
       // Exclude newly added columns with id as "null" and columns that did not go through any change
       if (columns[index].id && JSON.stringify(columns[index]) !== JSON.stringify(current)) {
         accumulator.push(columns[index]);
       }
+
       return accumulator;
     }, []);
-    const createRequests = newColumns.map(column => axios.post('/api/v1/Omniboard.Columns', MetricColumnModal.serializeColumn(column)));
-    const updateRequests = dirtyColumns.map(column => axios.post(`/api/v1/Omniboard.Columns/${column.id}`, MetricColumnModal.serializeColumn(column)));
+    const createRequests = newColumns.map(column => axios.post('/api/v1/Omniboard.Metric.Columns', MetricColumnModal.serializeColumn(column)));
+    const updateRequests = dirtyColumns.map(column => axios.post(`/api/v1/Omniboard.Metric.Columns/${column.id}`, MetricColumnModal.serializeColumn(column)));
     const requests = createRequests.concat(updateRequests);
     const closeModal = () => {
-      this.setState({ isInProgress: false });
+      this.setState({isInProgress: false});
       this.props.handleClose();
     };
+
     const sendUpdateRequests = () => {
       axios.all(updateRequests).then(
         res => {
           const errors = res.filter(response => response.status !== 200);
-          if (errors.length) {
+          if (errors.length > 0) {
             this.setState({
               isInProgress: false,
               error: parseServerError(errors[0])
             });
-          } else if (createRequests.length) {
+          } else if (createRequests.length > 0) {
             sendCreateRequests();
           } else {
             this.setState({
@@ -85,15 +87,16 @@ class MetricColumnModal extends PureComponent {
           isInProgress: false,
           error: parseServerError(error)
         });
-      })
+      });
     };
+
     const sendCreateRequests = () => {
       axios.all(createRequests).then(axios.spread((...res) => {
         const errors = res.filter(response => response.status !== 201);
         this.setState({
           isInProgress: false
         });
-        if (errors.length) {
+        if (errors.length > 0) {
           this.setState({
             error: parseServerError(errors[0])
           });
@@ -108,9 +111,10 @@ class MetricColumnModal extends PureComponent {
         });
       });
     };
-    if (requests.length) {
+
+    if (requests.length > 0) {
       this.setState({isInProgress: true, error: ''});
-      if (updateRequests.length) {
+      if (updateRequests.length > 0) {
         sendUpdateRequests();
       } else {
         sendCreateRequests();
@@ -122,16 +126,14 @@ class MetricColumnModal extends PureComponent {
     }
   };
 
-  _handleDeleteColumn = (key) => {
-    return (e) => {
+  _handleDeleteColumn = key => {
+    return _ => {
       const {columns} = this.state;
-      const columnsClone = columns.slice();
       if (columns[key].id) {
-        axios.delete('/api/v1/Omniboard.Columns/' + columns[key].id).then(response => {
+        axios.delete('/api/v1/Omniboard.Metric.Columns/' + columns[key].id).then(response => {
           if (response.status === 204) {
-            columnsClone.splice(key, 1);
-            this.setState({
-              columns: columnsClone
+            this.setState(prevState => {
+              return {columns: prevState.columns.slice().splice(key, 1)};
             });
             this._handleDelete(columns[key].columnName);
           } else {
@@ -142,44 +144,43 @@ class MetricColumnModal extends PureComponent {
         }).catch(error => {
           this.setState({
             error: parseServerError(error)
-          })
+          });
         });
       } else {
         // If id is null, it is not yet persisted in database and
         // should just be removed from the UI
-        columnsClone.splice(key, 1);
-        this.setState({
-          columns: columnsClone
+        this.setState(prevState => {
+          return {columns: prevState.columns.slice().splice(key, 1)};
         });
       }
-    }
+    };
   };
 
   _handleAddColumn = () => {
-    const columnsClone = this.state.columns.slice();
-    columnsClone.push({
-      id: null,
-      columnName: '',
-      metricName: '',
-      extrema: ''
-    });
-    this.setState({
-      columns: columnsClone
+    this.setState(prevState => {
+      const columnsClone = prevState.columns.slice();
+      columnsClone.push({
+        id: null,
+        columnName: '',
+        metricName: '',
+        extrema: ''
+      });
+      return {columns: columnsClone};
     });
   };
 
-  _handleColumnNameChange = (key) => {
-    return (e) => {
+  _handleColumnNameChange = key => {
+    return e => {
       const {columns} = this.state;
       const columnsClone = columns.slice();
       columnsClone[key].columnName = e.target.value;
       this.setState({
         columns: columnsClone
       });
-    }
+    };
   };
 
-  _handleMetricNameChange = (key) => {
+  _handleMetricNameChange = key => {
     return ({value}) => {
       const {columns} = this.state;
       const columnsClone = columns.slice();
@@ -187,10 +188,10 @@ class MetricColumnModal extends PureComponent {
       this.setState({
         columns: columnsClone
       });
-    }
+    };
   };
 
-  _handleExtremaChange = (key) => {
+  _handleExtremaChange = key => {
     return ({value}) => {
       const {columns} = this.state;
       const columnsClone = columns.slice();
@@ -198,7 +199,7 @@ class MetricColumnModal extends PureComponent {
       this.setState({
         columns: columnsClone
       });
-    }
+    };
   };
 
   get isFormDirty() {
@@ -211,14 +212,14 @@ class MetricColumnModal extends PureComponent {
       isLoadingColumns: true,
       error: ''
     });
-    axios.get('/api/v1/Omniboard.Columns').then( response => {
+    axios.get('/api/v1/Omniboard.Metric.Columns').then(response => {
       const columns = response.data.map(column => {
         return {
           id: column._id,
           columnName: column.name,
           metricName: column.metric_name,
           extrema: column.extrema
-        }
+        };
       });
       this.setState({
         columns,
@@ -242,7 +243,7 @@ class MetricColumnModal extends PureComponent {
       params: {
         distinct: 'name'
       }
-    }).then( response => {
+    }).then(response => {
       this.setState({
         metricNames: response.data,
         isLoadingMetricNames: false
@@ -253,15 +254,16 @@ class MetricColumnModal extends PureComponent {
   get isSubmitDisabled() {
     const {columns, isInProgress} = this.state;
     let isDisabled = false;
-    if (columns.length) {
+    if (columns.length > 0) {
       columns.forEach(c => {
         if (!c.columnName || !c.metricName || !c.extrema) {
           isDisabled = true;
         }
-      })
+      });
     } else {
       isDisabled = true;
     }
+
     return isDisabled || !this.isFormDirty || isInProgress;
   }
 
@@ -273,7 +275,7 @@ class MetricColumnModal extends PureComponent {
     }
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
+  componentDidUpdate(prevProps, _prevState, _snapshot) {
     // Load data every time this modal is being popped up
     if (prevProps.show !== this.props.show && this.props.show === true) {
       this.fetchMetricColumns();
@@ -285,24 +287,25 @@ class MetricColumnModal extends PureComponent {
     const {show, handleClose} = this.props;
     const {columns, metricNames, isLoadingMetricNames, isLoadingColumns, isInProgress, error} = this.state;
     const getValidationState = (columnRow, key) => {
-      return !columnRow[key] ? 'error' : 'success';
+      return columnRow[key] ? 'success' : 'error';
     };
+
     const metricNameOptions = metricNames.map(name => {
       return {
         label: name,
         value: name
-      }
+      };
     });
     const extremaOptions = [{
       label: 'average',
       value: 'average'
-    },{
+    }, {
       label: 'min',
       value: 'min'
     }, {
       label: 'max',
       value: 'max'
-    },{
+    }, {
       label: 'last',
       value: 'last'
     }];
@@ -310,57 +313,61 @@ class MetricColumnModal extends PureComponent {
       const selectValue = options.find(option => option.value === value);
       return selectValue ? selectValue : '';
     };
+
     const renderColumnRow = (columnRow, key) => {
       return (
-        <div className="row" key={key}>
-          <div className="col-xs-4">
+        <div key={key} className='row'>
+          <div className='col-xs-4'>
             <FormGroup
-              controlId="formColumnName"
+              controlId='formColumnName'
               validationState={getValidationState(columnRow, 'columnName')}
             >
               <FormControl
-                type="text"
-                test-attr={"column-name-text-" + key}
+                type='text'
+                test-attr={'column-name-text-' + key}
                 value={columnRow.columnName}
-                placeholder="Enter column name"
+                placeholder='Enter column name'
                 onChange={this._handleColumnNameChange(key)}
               />
             </FormGroup>
           </div>
-          <div className="col-xs-4">
+          <div className='col-xs-4'>
             <Select
-              test-attr={"metric-name-" + key}
+              test-attr={'metric-name-' + key}
               options={metricNameOptions}
-              onChange={this._handleMetricNameChange(key)}
               value={getSelectValue(metricNameOptions, columnRow.metricName)}
               isLoading={isLoadingMetricNames}
               clearable={false}
-              placeholder="Metric Name"
+              placeholder='Metric Name'
+              onChange={this._handleMetricNameChange(key)}
             />
           </div>
-          <div className="col-xs-3">
+          <div className='col-xs-3'>
             <Select
-              test-attr={"extrema-" + key}
+              test-attr={'extrema-' + key}
               options={extremaOptions}
-              onChange={this._handleExtremaChange(key)}
               value={getSelectValue(extremaOptions, columnRow.extrema)}
               clearable={false}
-              placeholder="Extrema"
+              placeholder='Extrema'
+              onChange={this._handleExtremaChange(key)}
             />
           </div>
-          <div className="col-xs-1">
-            <i className='glyphicon glyphicon-remove delete-icon' test-attr={"delete-" + key} onClick={this._handleDeleteColumn(key)}/>
+          <div className='col-xs-1'>
+            <i className='glyphicon glyphicon-remove delete-icon' test-attr={'delete-' + key} onClick={this._handleDeleteColumn(key)}/>
           </div>
         </div>
-      )
+      );
     };
 
-    const submitButtonText = isInProgress ? <span>
-      <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/> Applying...</span>: <span>Apply</span>;
+    const submitButtonText = isInProgress ? (
+      <span>
+        <i className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/> Applying...
+      </span>
+    ) : <span>Apply</span>;
 
-    const errorAlert = error ? <Alert bsStyle="danger">{error}</Alert> : '';
+    const errorAlert = error ? <Alert bsStyle='danger'>{error}</Alert> : '';
 
-    return(
+    return (
       <Modal show={show} onHide={handleClose}>
         <ModalHeader closeButton>
           <ModalTitle>Manage Metric Columns</ModalTitle>
@@ -373,30 +380,30 @@ class MetricColumnModal extends PureComponent {
           <ProgressWrapper loading={isLoadingColumns}>
             <div>
               <form>
-                <div className="row" style={{paddingBottom: '10px'}}>
-                  <div className="col-xs-4 text-center">
+                <div className='row' style={{paddingBottom: '10px'}}>
+                  <div className='col-xs-4 text-center'>
                     <strong>Column</strong>
                   </div>
-                  <div className="col-xs-4 text-center">
+                  <div className='col-xs-4 text-center'>
                     <strong>Metric</strong>
                   </div>
-                  <div className="col-xs-4 text-center">
+                  <div className='col-xs-4 text-center'>
                     <strong>Extrema</strong>
                   </div>
                 </div>
-                {columns.map( (columnRow, i) => renderColumnRow(columnRow, i))}
+                {columns.map((columnRow, i) => renderColumnRow(columnRow, i))}
               </form>
             </div>
           </ProgressWrapper>
           <div>
-            <Button test-attr="add-column-btn"  bsStyle="info" bsSize="small" onClick={this._handleAddColumn}>
-              <span className="glyphicon glyphicon-plus" aria-hidden="true"/> Add Column
+            <Button test-attr='add-column-btn' bsStyle='info' bsSize='small' onClick={this._handleAddColumn}>
+              <span className='glyphicon glyphicon-plus' aria-hidden='true'/> Add Column
             </Button>
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button test-attr="close-btn" onClick={handleClose}>Close</Button>
-          <Button test-attr="apply-btn" bsStyle="primary" onClick={this._handleApply} disabled={this.isSubmitDisabled}>
+          <Button test-attr='close-btn' onClick={handleClose}>Close</Button>
+          <Button test-attr='apply-btn' bsStyle='primary' disabled={this.isSubmitDisabled} onClick={this._handleApply}>
             {submitButtonText}
           </Button>
         </ModalFooter>

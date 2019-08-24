@@ -1,8 +1,8 @@
 import React from 'react';
-import { SourceFilesView } from './sourceFilesView';
 import mockAxios from 'jest-mock-axios';
-import { parseServerError } from '../Helpers/utils';
 import saveAs from 'file-saver';
+import {parseServerError} from '../Helpers/utils';
+import {SourceFilesView} from './sourceFilesView';
 
 describe('SourceFilesView', () => {
   let wrapper = null;
@@ -10,26 +10,26 @@ describe('SourceFilesView', () => {
   const runId = 1;
   const files = [
     {
-      name: "/src/hello_world.py",
-      file_id: "5a1bd242ca100c1a210b0d3a"
+      name: '/src/hello_world.py',
+      file_id: '5a1bd242ca100c1a210b0d3a'
     }
   ];
   const responseData = [
     {
-      "_id": "5a1bd242ca100c1a210b0d3a",
-      "uploadDate": "2017-11-27T08:52:18.562Z",
-      "md5": "6ef452da81287e70540ee3cf0bffd13e",
-      "length": 1646,
-      "chunkSize": 261120,
-      "filename": "/src/hello_world.py"
+      _id: '5a1bd242ca100c1a210b0d3a',
+      uploadDate: '2017-11-27T08:52:18.562Z',
+      md5: '6ef452da81287e70540ee3cf0bffd13e',
+      length: 1646,
+      chunkSize: 261120,
+      filename: '/src/hello_world.py'
     },
     {
-      "_id": "5a1bd242ca100c1a210b0d3b",
-      "uploadDate": "2017-11-27T08:53:18.562Z",
-      "md5": "6ef452da81287e70540ee3cf9bffd13e",
-      "length": 0,
-      "chunkSize": 0,
-      "filename": "/src/hello_world_2.py"
+      _id: '5a1bd242ca100c1a210b0d3b',
+      uploadDate: '2017-11-27T08:53:18.562Z',
+      md5: '6ef452da81287e70540ee3cf9bffd13e',
+      length: 0,
+      chunkSize: 0,
+      filename: '/src/hello_world_2.py'
     }
   ];
 
@@ -40,7 +40,7 @@ describe('SourceFilesView', () => {
   });
 
   afterEach(() => {
-    // cleaning up the mess left behind the previous test
+    // Cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
   });
@@ -110,7 +110,7 @@ describe('SourceFilesView', () => {
       await tick();
 
       expect(saveAs).not.toHaveBeenCalled();
-      expect(wrapper.state().error).toEqual("Error: No files are available to download");
+      expect(wrapper.state().error).toEqual('Error: No files are available to download');
     });
   });
 
@@ -135,10 +135,9 @@ describe('SourceFilesView', () => {
 
   it('should show warning message when there are no files', async () => {
     wrapper = shallow(
-      <SourceFilesView files={[]} runId={1} type="artifacts"/>
+      <SourceFilesView files={[]} runId={1} type='artifacts'/>
     );
 
     expect(wrapper.find('[test-attr="warn-alert"]')).toHaveLength(1);
   });
-
 });

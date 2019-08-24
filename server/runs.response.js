@@ -1,5 +1,5 @@
 import RunsModel from "./models/runs";
-import OmniboardColumnsModel from "./models/omniboard.columns";
+import OmniboardColumnsModel from "./models/omniboard.metric.columns";
 
 const PROBABLY_DEAD_TIMEOUT = 120000;
 

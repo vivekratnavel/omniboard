@@ -1,9 +1,9 @@
 import React from 'reactn';
-import { SettingsModal } from './settingsModal';
 import mockAxios from 'jest-mock-axios';
-import { toast } from 'react-toastify';
-import { parseServerError } from "../Helpers/utils";
-import * as appConstants from "../../appConstants/app.constants";
+import {toast} from 'react-toastify';
+import {parseServerError} from '../Helpers/utils';
+import * as appConstants from '../../appConstants/app.constants';
+import {SettingsModal} from './settingsModal';
 
 describe('SettingsModal', () => {
   let wrapper = null;
@@ -11,15 +11,14 @@ describe('SettingsModal', () => {
   const autoRefreshUpdateHandler = jest.fn();
   toast.success = jest.fn();
 
-
   beforeEach(() => {
     wrapper = shallow(
-      <SettingsModal handleClose={closeHandler} show={true} handleAutoRefreshUpdate={autoRefreshUpdateHandler}/>
+      <SettingsModal show handleClose={closeHandler} handleAutoRefreshUpdate={autoRefreshUpdateHandler}/>
     );
   });
 
   afterEach(() => {
-    // cleaning up the mess left behind the previous test
+    // Cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
     React.resetGlobal();
@@ -71,7 +70,7 @@ describe('SettingsModal', () => {
             name: appConstants.AUTO_REFRESH_INTERVAL,
             id: 2
           }
-        },
+        }
       });
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: newTimezone});
       wrapper.find('[test-attr="auto-refresh-interval"]').simulate('change', {target: {value: newRefreshInterval}});
@@ -107,7 +106,7 @@ describe('SettingsModal', () => {
         }
       }, expect.any(Function));
 
-      expect(toast.success).toHaveBeenCalledWith(`Settings saved successfully!`);
+      expect(toast.success).toHaveBeenCalledWith('Settings saved successfully!');
     });
 
     it('save error', async () => {
@@ -175,7 +174,7 @@ describe('SettingsModal', () => {
     });
     wrapper.find('[test-attr="close-btn"]').simulate('click');
 
-    wrapper.setProps({ show: true });
+    wrapper.setProps({show: true});
 
     expect(wrapper.update().state().settings).toEqual(undefined);
   });
