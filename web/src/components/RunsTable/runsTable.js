@@ -161,6 +161,8 @@ class RunsTable extends Component {
       customColumns: [],
       metricAndCustomColumns: [],
       runsCount: 0,
+      newRunsCount: 0,
+      newData: null,
       dataVersion: 0
     };
   }
@@ -185,7 +187,7 @@ class RunsTable extends Component {
 
   _startPolling = () => {
     this._stopPolling();
-    // This.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
+    this.interval = setTimeout(this._initPolling, Number(this.global.settings[AUTO_REFRESH_INTERVAL].value) * 1000);
   };
 
   _stopPolling = () => {
@@ -591,63 +593,87 @@ class RunsTable extends Component {
   };
 
   loadPartialUpdates = () => {
-    const {metricColumns, customColumns, data} = this.state;
+    const {metricColumns, customColumns, data, runsCount, sortedData} = this.state;
     const runQueryParams = this._buildRunsQuery(metricColumns);
-    let queryString = JSON.parse(runQueryParams.query);
-
-    // Find the maximum run Id
-    const maxRunId = data.reduce((acc, current) => Math.max(acc, current._id), 0);
-
-    // Find all the runs that are in "RUNNING" status
-    const runningExperiments = data.filter(run => run.status === STATUS.RUNNING);
-    const runningIds = runningExperiments.map(run => run[ID_COLUMN_KEY]);
-
-    // Build query to fetch only latest runs or runs that are in "RUNNING" status
-    const queryJson = {$and: [{
-      $or: [{
-        [ID_COLUMN_KEY]: {[OPERATOR.IN]: runningIds}
-      }, {
-        [ID_COLUMN_KEY]: {[OPERATOR.GREATER_THAN]: maxRunId}
-      }]
-    }]};
-
-    if ('$and' in queryString) {
-      queryString.$and.push(queryJson);
-    } else {
-      queryString = queryJson;
-    }
-
-    runQueryParams.query = queryString;
 
     this.setState({
       isFetchingUpdates: true
     });
 
-    axios.get('/api/v1/Runs', {
+    // Fetch count of runs
+    axios.get('/api/v1/Runs/count', {
       params: runQueryParams
-    }).then(runsResponse => {
-      let runsResponseData = runsResponse.data;
-
-      if (runsResponseData && runsResponseData.length > 0) {
-        const runIds = runsResponseData.map(run => run._id);
-        // Filter out runs from old data that overlap with runs in latest response
-        const oldData = data.filter(run => !runIds.includes(run._id));
-        const latestRuns = runsResponseData.concat(oldData);
-        runsResponseData = this._parseRunsResponseData(latestRuns, customColumns, metricColumns);
-
-        const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
-        this._updateRuns(latestColumnOrder);
-
+    }).then(runsCountResponse => {
+      const latestRunsCount = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
+      console.log('latestRunsCount:', latestRunsCount, 'runsCount:', runsCount);
+      if (latestRunsCount > runsCount) {
+        const newRunsCount = Number(latestRunsCount) - Number(runsCount);
+        axios.get('/api/v1/Runs', {
+          params: runQueryParams
+        }).then(runsResponse => {
+          const newData = this._parseRunsResponseData(runsResponse.data, customColumns, metricColumns);
+          this.setState({
+            newRunsCount,
+            newData,
+            lastUpdateTime: new Date(),
+            isFetchingUpdates: false
+          });
+        });
+      } else {
         this.setState({
-          data: runsResponseData
+          lastUpdateTime: new Date(),
+          isFetchingUpdates: false
         });
       }
+    });
+
+    // Find all the runs that are in "RUNNING" status
+    const runningExperiments = data.filter(run => run.status === STATUS.RUNNING);
+    const runningIds = runningExperiments.map(run => run[ID_COLUMN_KEY]);
+
+    if (runningExperiments.length > 0) {
+      // Build query to fetch only runs that are in "RUNNING" status
+      const queryJson = {
+        $and: [{
+          [ID_COLUMN_KEY]: {[OPERATOR.IN]: runningIds}
+        }]
+      };
+
+      runQueryParams.query = queryJson;
 
       this.setState({
-        lastUpdateTime: new Date(),
-        isFetchingUpdates: false
+        isFetchingUpdates: true
       });
-    });
+
+      axios.get('/api/v1/Runs', {
+        params: runQueryParams
+      }).then(runsResponse => {
+        let runsResponseData = runsResponse.data;
+
+        if (runsResponseData && runsResponseData.length > 0) {
+          runsResponseData = this._parseRunsResponseData(runsResponseData, customColumns, metricColumns);
+          const dataArray = sortedData.getDataArray();
+          runsResponseData.forEach(run => {
+            const rowIndex = dataArray.findIndex(data => data._id === run._id);
+            console.log('rowIndex:', rowIndex, 'run:', run);
+            if (rowIndex >= 0) {
+              sortedData.setObjectAt(rowIndex, {...run});
+              console.log('sortedData:', sortedData.getObjectAt(rowIndex));
+            }
+          });
+
+          this._refreshTableView();
+          this.setState({
+            data: sortedData.getDataArray()
+          });
+        }
+
+        this.setState({
+          lastUpdateTime: new Date(),
+          isFetchingUpdates: false
+        });
+      });
+    }
   };
 
   _refreshTableView = () => {
@@ -681,8 +707,7 @@ class RunsTable extends Component {
         this.setState({
           isSelectLoading: {...isSelectLoading, [rowIndex]: false},
           tags: newTags
-        });
-        this._refreshTableView();
+        }, this._refreshTableView);
       }
     }).catch(error => {
       this.setState(prevState => {
@@ -1180,6 +1205,22 @@ class RunsTable extends Component {
     }
   };
 
+  _handleLoadNewRuns = () => {
+    const {newData, newRunsCount, runsCount} = this.state;
+    console.log('New Data:', newData);
+    const totalRunsCount = newRunsCount + runsCount;
+    if (newData && newData.length > 0) {
+      const sortedData = new DataListWrapper(newData, totalRunsCount, this._getInitialFetchSize(), this._fetchRunsRange);
+      this.setState({
+        runsCount: totalRunsCount,
+        data: newData,
+        sortedData,
+        newRunsCount: 0,
+        newData: null
+      }, this._refreshTableView);
+    }
+  };
+
   _handleAutoRefreshUpdate = () => {
     const {autoRefresh} = this.state;
     // Restart polling if auto refresh is enabled
@@ -1239,7 +1280,7 @@ class RunsTable extends Component {
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
-      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion} = this.state;
+      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount} = this.state;
     const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
     if (sortedData && sortedData.getSize()) {
       sortedData.data = sortedData.getDataArray().map(row => {
@@ -1326,7 +1367,7 @@ class RunsTable extends Component {
                 />
               </div>
             </div>
-            <div className='item'>
+            <div className='item flex-grow'>
               <div className='flex-container tags-container clearfix'>
                 {
                   filters.advanced.map((filter, i) => (
@@ -1439,6 +1480,12 @@ class RunsTable extends Component {
               <span className='reload-text'> Reload</span>
             </Button>
           </div>
+          {
+            newRunsCount > 0 ?
+              <div className='new-runs-bar col-xs-3 text-center' onClick={this._handleLoadNewRuns}>
+                <span className='glyphicon glyphicon-arrow-up icon'/> {newRunsCount} New Runs
+              </div> : null
+          }
         </div>
         <div ref={el => this.tableWrapperDomNode = el} className='table-wrapper'>
           {

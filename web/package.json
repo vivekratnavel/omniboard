@@ -20,7 +20,7 @@
     "autoprefixer": "7.1.6",
     "axios": "^0.17.1",
     "babel-eslint": "^10.0.2",
-    "babel-jest": "20.0.3",
+    "babel-jest": "^24.9.0",
     "babel-loader": "^8.0.0-beta.6",
     "babel-preset-react-app": "^8.0.0-next.74",
     "babel-runtime": "^6.26.0",
@@ -151,7 +151,14 @@
   "babel": {
     "presets": [
       "react-app",
-      "@babel/preset-env",
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ],
       "@babel/preset-react"
     ],
     "plugins": [
@@ -317,6 +324,7 @@
     "@types/enzyme": "^3.9.1",
     "@types/jest": "^23.3.1",
     "@types/react": "^16.8.10",
+    "babel-core": "^7.0.0-bridge.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.11.2",
     "enzyme-to-json": "^3.3.4",

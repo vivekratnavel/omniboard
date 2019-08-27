@@ -36,7 +36,7 @@ class PendingCell extends React.PureComponent {
     const rowObject = data && data.getObjectAt(rowIndex);
     return (
       rowObject ?
-        <span data-version={dataVersion}>{React.cloneElement(children, {data, rowIndex, ...props})}</span> :
+        <span data-version={dataVersion}>{React.cloneElement(children, {data, rowIndex, dataversion: dataVersion, ...props})}</span> :
         <Cell>pending</Cell>
     );
   }
