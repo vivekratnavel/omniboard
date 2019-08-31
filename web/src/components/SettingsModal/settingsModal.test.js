@@ -3,17 +3,21 @@ import mockAxios from 'jest-mock-axios';
 import {toast} from 'react-toastify';
 import {parseServerError} from '../Helpers/utils';
 import * as appConstants from '../../appConstants/app.constants';
+import {generateMockResponse} from '../Helpers/testUtils';
 import {SettingsModal} from './settingsModal';
 
 describe('SettingsModal', () => {
   let wrapper = null;
   const closeHandler = jest.fn(() => wrapper.setProps({show: false}));
   const autoRefreshUpdateHandler = jest.fn();
+  const initialFetchSizeUpdateHandler = jest.fn();
   toast.success = jest.fn();
 
   beforeEach(() => {
     wrapper = shallow(
-      <SettingsModal show handleClose={closeHandler} handleAutoRefreshUpdate={autoRefreshUpdateHandler}/>
+      <SettingsModal show handleClose={closeHandler}
+        handleInitialFetchSizeUpdate={initialFetchSizeUpdateHandler}
+        handleAutoRefreshUpdate={autoRefreshUpdateHandler}/>
     );
   });
 
@@ -85,8 +89,7 @@ describe('SettingsModal', () => {
     it('save success', async () => {
       expect(wrapper.state().isInProgress).toBeTruthy();
       wrapper.instance().setGlobal = jest.fn();
-      mockAxios.mockResponse({status: 200});
-      mockAxios.mockResponse({status: 200});
+      generateMockResponse(200, 2);
 
       await tick();
 
@@ -129,8 +132,7 @@ describe('SettingsModal', () => {
     });
 
     it('save error - validation error', async () => {
-      mockAxios.mockResponse({status: 400});
-      mockAxios.mockResponse({status: 400});
+      generateMockResponse(400, 2);
       wrapper.find('[test-attr="auto-refresh-interval"]').simulate('change', {target: {value: '3'}});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
 
@@ -138,8 +140,7 @@ describe('SettingsModal', () => {
     });
 
     it('save when form is not dirty', async () => {
-      mockAxios.mockResponse({status: 400});
-      mockAxios.mockResponse({status: 400});
+      generateMockResponse(400, 2);
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: 'Atlantic/Reykjavik'});
       wrapper.find('[test-attr="auto-refresh-interval"]')
         .simulate('change', {target: {value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL}});

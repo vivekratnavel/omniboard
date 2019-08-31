@@ -62,7 +62,7 @@ describe('SourceFilesView', () => {
     expect(wrapper.state().error).toEqual(parseServerError(errorResponse));
   });
 
-  describe('should download file', async () => {
+  describe('should download file', () => {
     it('when source exists', async () => {
       const data = '}qXresultqX\fHello world!qs.';
       mockAxios.mockResponse({status: 200, data: responseData});
@@ -88,7 +88,7 @@ describe('SourceFilesView', () => {
     });
   });
 
-  describe('should download all files', async () => {
+  describe('should download all files', () => {
     it('when source exists', async () => {
       const data = '}qXresultqX\fHello world!qs.';
       mockAxios.mockResponse({status: 200, data: responseData});
@@ -114,7 +114,7 @@ describe('SourceFilesView', () => {
     });
   });
 
-  describe('should handle accordion change', async () => {
+  describe('should handle accordion change', () => {
     it('and handle error', async () => {
       const fileId = responseData[0]._id;
       const error = {message: 'errorMessage'};

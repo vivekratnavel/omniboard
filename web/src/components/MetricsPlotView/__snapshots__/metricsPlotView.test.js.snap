@@ -435,6 +435,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 className="rc-slider-handle"
                 onBlur={[Function]}
                 onKeyDown={[Function]}
+                onMouseDown={[Function]}
                 role="slider"
                 style={
                   Object {
@@ -581,6 +582,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   className="rc-slider-handle"
                   onBlur={[Function]}
                   onKeyDown={[Function]}
+                  onMouseDown={[Function]}
                   role="slider"
                   style={
                     Object {
@@ -721,6 +723,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   className="rc-slider-handle"
                   onBlur={[Function]}
                   onKeyDown={[Function]}
+                  onMouseDown={[Function]}
                   role="slider"
                   style={
                     Object {
@@ -760,7 +763,9 @@ exports[`MetricsPlotView should render correctly 1`] = `
         layout={
           Object {
             "height": 400,
-            "title": "Metrics Plot",
+            "title": Object {
+              "text": "Metrics Plot",
+            },
             "width": 800,
             "xaxis": Object {
               "autorange": true,

@@ -97,8 +97,6 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
       const isDurationRequired = selectAndFilterProjections.includes('duration');
       const isStatusRequired = selectAndFilterProjections.includes('status');
 
-      console.log('columnsWithFilters', columnsWithFilters);
-      console.log('isStatusRequired', isStatusRequired);
       if (metricColumnProjectionRequired) {
         // Add info.metrics to projection if not already present
         if (selectArray.length > 0 && !selectArray.includes('info')) {
@@ -155,7 +153,6 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
         }
       }
 
-      console.log('projection: ', projection);
       if (Object.keys(projection).length) {
         aggregatePipeline.push({
           "$project": projection
@@ -207,21 +204,28 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
         aggregatePipeline.push({
             // Deconstruct metrics array into several rows
             "$unwind": {
-              "path": "$info.metrics"
+              "path": "$info.metrics",
+              "preserveNullAndEmptyArrays" : true
             }
           },
           {
             // Limit the unwinded metrics to only required metrics
             "$match": {
               "$expr": {
-                "$and": [
-                  {
-                    "$in": [
-                      "$info.metrics.name",
-                      distinctMetricColumnNames
+                "$cond": {
+                  "if": "$info.metrics.name",
+                  "then": {
+                    "$and": [
+                      {
+                        "$in": [
+                          "$info.metrics.name",
+                          distinctMetricColumnNames
+                        ]
+                      }
                     ]
-                  }
-                ]
+                  },
+                  "else": true
+                }
               }
             }
           });
@@ -279,22 +283,42 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
               "_id": "$_id",
               "metrics": {
                 "$push": {
-                  "$cond": [
-                    {
-                      "$gt": [
-                        "$metrics",
-                        null
+                  "$let": {
+                    "vars": {
+                      "metric_name": {
+                        // Replace dots in metric names to "_"
+                        // Since mongodb doesn't support dot notation in field names
+                        "$reduce": {
+                          "input": {"$split": ["$metrics.name", "."]},
+                          "initialValue": "",
+                          "in": {
+                            "$concat": [
+                              "$$value",
+                              {"$cond": [{"$eq": ["$$value", ""]}, "", "_"]},
+                              "$$this"]
+                          }
+                        }
+                      }
+                    },
+                    "in": {
+                      "$cond": [
+                        {
+                          "$gt": [
+                            "$metrics",
+                            null
+                          ]
+                        },
+                        {
+                          "k": "$$metric_name",
+                          "v": "$metrics"
+                        },
+                        {
+                          "k": "empty",
+                          "v": ""
+                        }
                       ]
-                    },
-                    {
-                      "k": "$metrics.name",
-                      "v": "$metrics"
-                    },
-                    {
-                      "k": "empty",
-                      "v": ""
                     }
-                  ]
+                  }
                 }
               },
               "runs": {
@@ -327,7 +351,9 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
         metricColumnsResponse.forEach(metricColumn => {
           if (selectAndFilterProjections.includes(metricColumn.name)) {
             const aggregate = `$${metricColumn.extrema}`;
-            const metricValues = `$metrics.${metricColumn.metric_name}.values`;
+            // Replace dots in metric name with "_"
+            const metricName = metricColumn.metric_name.replace(/\./g,'_');
+            const metricValues = `$metrics.${metricName}.values`;
 
             // Handle $last as a special case
             // to return the last element of the array
@@ -412,10 +438,6 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
             });
           }
         }
-      }
-
-      if (isCount) {
-        console.log(JSON.stringify(aggregatePipeline));
       }
 
       const query = RunsModel.aggregate(

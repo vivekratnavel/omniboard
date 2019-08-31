@@ -5,14 +5,14 @@ import {CustomColumnModal} from './customColumnModal';
 
 describe('CustomColumnModal', () => {
   let wrapper = null;
-  const closeHandler = jest.fn(() => wrapper.setProps({show: false}));
+  const closeHandler = jest.fn(() => wrapper.setProps({shouldShow: false}));
   const dataUpdateHandler = jest.fn();
   const deleteHandler = jest.fn();
 
   const responseData = [
-    {_id: '5c16204663dfd3fe6a193610', name: 'batch_size', config_path: 'train.batch_size', __v: 0},
-    {_id: '5c16ea82bea682411d7c0405', name: 'settings_epochs', config_path: 'train.settings.epochs', __v: 0},
-    {_id: '5c16ebd6bea682411d7c0407', name: 'Lr', config_path: 'train.lr', __v: 0}
+    {_id: '5c16204663dfd3fe6a193610', name: 'batch_size', config_path: 'config.train.batch_size', __v: 0},
+    {_id: '5c16ea82bea682411d7c0405', name: 'settings_epochs', config_path: 'config.train.settings.epochs', __v: 0},
+    {_id: '5c16ebd6bea682411d7c0407', name: 'experiment_name', config_path: 'experiment.name', __v: 0}
   ];
 
   const runsConfigResponse = [
@@ -22,7 +22,7 @@ describe('CustomColumnModal', () => {
 
   beforeEach(() => {
     wrapper = shallow(
-      <CustomColumnModal show handleClose={closeHandler} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
+      <CustomColumnModal shouldShow handleClose={closeHandler} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
     );
   });
 
@@ -32,13 +32,16 @@ describe('CustomColumnModal', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('should render correctly', async () => {
     expect(wrapper).toMatchSnapshot();
     expect(wrapper.state().isLoadingColumns).toBeTruthy();
+    expect(wrapper.state().isLoadingConfigs).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
 
+    await tick();
     expect(wrapper.state().isLoadingColumns).toBeFalsy();
+    expect(wrapper.state().isLoadingConfigs).toBeFalsy();
     expect(wrapper.update()).toMatchSnapshot();
   });
 
@@ -50,7 +53,10 @@ describe('CustomColumnModal', () => {
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
 
     expect(wrapper.state().isLoadingConfigs).toBeFalsy();
-    expect(wrapper.state().configPaths).toHaveLength(4);
+    expect(wrapper.state().configPaths).toHaveLength(9);
+    expect(wrapper.state().configPaths).toEqual(
+      expect.arrayContaining(['config.train', 'config.train.epochs', 'config.train.settings.epochs'])
+    );
   });
 
   it('should handle close correctly', () => {
@@ -263,12 +269,13 @@ describe('CustomColumnModal', () => {
     expect(wrapper.state().columns[0].configPath).toEqual('train.epochs');
   });
 
-  it('should reload data when modal dialog is reopened', () => {
+  it('should reload data when modal dialog is reopened', async () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
     wrapper.find('[test-attr="close-btn"]').simulate('click');
 
-    wrapper.setProps({show: true});
+    expect(wrapper.instance().props.shouldShow).toBeFalsy();
+    wrapper.setProps({shouldShow: true});
 
     expect(wrapper.update().state().isLoadingColumns).toBeTruthy();
     expect(wrapper.state().isLoadingConfigs).toBeTruthy();

@@ -61,14 +61,16 @@ describe('App component', () => {
     expect(wrapper.state().showSettingsModal).toBeFalsy();
   });
 
-  describe('should fetch database name on mount', async () => {
+  describe('should fetch database name on mount', () => {
     it('and handle success', async () => {
       expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/database');
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: [{name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1}]});
+      mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
       await tick();
 
       expect(wrapper.update().state().dbName).toEqual('test_db');
+      expect(wrapper.update().state().appVersion).toEqual('v1.0.0');
     });
 
     it('and handle error', async () => {
@@ -81,26 +83,31 @@ describe('App component', () => {
     });
   });
 
-  describe('should write default settings for the first time', async () => {
+  describe('should write default settings for the first time', () => {
     it('when none of the settings are present', async () => {
       const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1};
       const autoRefreshSetting = {name: 'auto_refresh_interval', value: 30, _id: 2};
+      const initialFetchSize = {name: 'initial_fetch_size', value: 50, _id: 3};
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
       await tick();
 
-      expect(mockAxios.post).toHaveBeenCalledTimes(2);
+      expect(mockAxios.post).toHaveBeenCalledTimes(3);
       mockAxios.mockResponse({status: 201, data: setting});
       mockAxios.mockResponse({status: 201, data: autoRefreshSetting});
+      mockAxios.mockResponse({status: 201, data: initialFetchSize});
 
       await tick();
 
       expect(wrapper.update().instance().global.settings[appConstants.SETTING_TIMEZONE]).toEqual(setting);
       expect(wrapper.update().instance().global.settings[appConstants.AUTO_REFRESH_INTERVAL]).toEqual(autoRefreshSetting);
+      expect(wrapper.update().instance().global.settings[appConstants.INITIAL_FETCH_SIZE]).toEqual(initialFetchSize);
     });
 
     it('when only auto refresh setting is present', async () => {
       const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 2};
+      const initialFetchSize = {name: 'initial_fetch_size', value: 50, _id: 3};
       const autoRefreshSetting = {
         name: appConstants.AUTO_REFRESH_INTERVAL,
         value: 60,
@@ -108,15 +115,18 @@ describe('App component', () => {
       };
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: [autoRefreshSetting]});
+      mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
       await tick();
 
-      expect(mockAxios.post).toHaveBeenCalledTimes(1);
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
       mockAxios.mockResponse({status: 201, data: setting});
+      mockAxios.mockResponse({status: 201, data: initialFetchSize});
 
       await tick();
 
       expect(wrapper.update().instance().global.settings[appConstants.SETTING_TIMEZONE]).toEqual(setting);
       expect(wrapper.update().instance().global.settings[appConstants.AUTO_REFRESH_INTERVAL]).toEqual(autoRefreshSetting);
+      expect(wrapper.update().instance().global.settings[appConstants.INITIAL_FETCH_SIZE]).toEqual(initialFetchSize);
     });
   });
 });

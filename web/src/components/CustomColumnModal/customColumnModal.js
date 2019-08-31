@@ -246,7 +246,7 @@ class CustomColumnModal extends PureComponent {
 
               return acc;
             }, []);
-            const recursivePaths = getAllPaths(key, data[key]);
+            const recursivePaths = getAllPaths(`${prefix}.${key}`, data[key]);
             return [...paths, ...recursivePaths, ...newPaths];
           }
 

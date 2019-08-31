@@ -12,18 +12,22 @@ Omniboard is a web dashboard for the [Sacred](https://github.com/IDSIA/sacred)
 machine learning experiment management tool.
 
 It connects to the MongoDB database used by Sacred
-and helps in visualizing the experiments and metrics / logs collected in each experiment.
+and helps in visualizing the experiments and metrics / logs collected in each experiment. 
 
-Omniboard is written with React, Node.js, Express and Bootstrap
+Omniboard is written with React, Node.js, Express and Bootstrap.
+
+**Note:** Since v2.0, Omniboard only supports connecting to MongoDB > 4.0
 
 ## Features
 
 ### Experiment Management
 * List all experiment runs in a tabular format with columns that are sortable, reorderable and resizable
+* Configurable auto reload feature to fetch the latest experiments
 * Select which columns to show / hide 
 * Add metric columns to display rolled up metric value (e.g., minimum validation loss, maximum training accuracy, etc.)
+* Add custom columns (e.g., config.custom_config, experiment.base_dir, etc.)
 * Add tags or notes to each experiment to organize and guide your experiments 
-* Filter by all columns except metric columns
+* Sort & Filter by all columns
 
 ### Experiment Drill Down
 * Show metric graphs

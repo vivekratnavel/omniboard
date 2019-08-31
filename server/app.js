@@ -158,9 +158,7 @@ function depopulate(src, contextModel) {
 router.put('/api/v1/Runs/:id', function(req, res, next) {
   const filter = {_id: req.params.id};
 
-  console.log('body ', req.body);
   const update = moredots(depopulate(req.body));
-  console.log('depopulate ', update);
 
   RunsModel.findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
     if (err) {

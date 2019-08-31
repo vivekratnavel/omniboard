@@ -9,8 +9,6 @@ class DataListWrapper {
     this._pending = false;
     this._size = size;
     this._fetchCallback = fetchCallback;
-    console.log('size:', size);
-    console.log('fetch_size:', this._fetchSize);
   }
 
   static _getFetchSize(size) {
@@ -46,10 +44,10 @@ class DataListWrapper {
     // This will improve user experience such that the user
     // will not see pending status for a long time.
     const numRowsAhead = 15;
-    if (index + numRowsAhead >= this._end) {
+    if (index + numRowsAhead >= this._end && this._end < this.getSize()) {
       this.fetchRange(Math.min(this.getSize(),
         index + numRowsAhead + this._fetchSize));
-      return null;
+      return index < this._end ? this._data[index] : null;
     }
 
     return this._data[index];

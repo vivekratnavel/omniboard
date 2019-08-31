@@ -269,6 +269,27 @@ class RunsTable extends Component {
     if (dropdownOptions.length > 0) {
       select = dropdownOptions.filter(optionItem => optionItem.selected === true).map(option => {
         return option.value in columnNameMap ? columnNameMap[option.value] : option.value;
+      });
+      // Remove conflicting paths from select to avoid "Invalid project" error from the server.
+      // Example of conflicting path: config, config.settings or config.train, config.train.settings
+      // It is possible to have conflicting paths in projection with custom columns
+      select = select.filter(col => {
+        const colPaths = col.split('.');
+        if (colPaths.length > 1) {
+          // Add to select only if the path is not conflicting with parent path.
+          return colPaths.reduce((result, current, index) => {
+            // For config.train.settings
+            // we look if "config" or "config.train" is already present
+            // in the select array.
+            if (index < colPaths.length - 1) {
+              return result && !select.includes(colPaths.slice(0, index + 1).join('.'));
+            }
+
+            return result && true;
+          }, true);
+        }
+
+        return true;
       }).join(',');
     } else {
       // Load defaults for the first time
@@ -281,9 +302,10 @@ class RunsTable extends Component {
 
       if (customColumnsData.length > 0) {
         // Select those paths that are not already present in the select to avoid two conflicting paths error
-        const customColumnPaths = customColumnsData.filter(column => !select.split(',').some(col => col === column.config_path.split('.')[0]));
+        const customColumnPaths = customColumnsData.filter(column => !select.split(',')
+          .some(col => col === (column.config_path && column.config_path.split('.')[0])));
         if (customColumnPaths.length > 0) {
-          select = select + ',' + customColumnPaths.join(',');
+          select = select + ',' + customColumnPaths.map(col => col.config_path).join(',');
         }
       }
     }
@@ -297,7 +319,7 @@ class RunsTable extends Component {
     };
   };
 
-  _parseRunsResponseData = (runsResponseData, customColumnsData, _metricColumnsData) => {
+  _parseRunsResponseData = (runsResponseData, customColumnsData) => {
     /* eslint-disable react/no-access-state-in-setstate */
     let columnNameMap = {...this.state.columnNameMap};
     /* eslint-enable react/no-access-state-in-setstate */
@@ -348,6 +370,14 @@ class RunsTable extends Component {
         data = {...data, hostname: host.hostname};
         const hostMap = this._getColumnNameMap(host, 'host');
         columnNameMap = {...columnNameMap, ...hostMap};
+      }
+
+      // Convert config.tags into array
+      if ('tags' in data) {
+        const {tags} = data;
+        if (typeof tags === 'string' && tags.length > 0) {
+          data.tags = tags.split(',');
+        }
       }
 
       // Expand omniboard columns
@@ -444,7 +474,6 @@ class RunsTable extends Component {
     let newColumnWidths = {...columnWidths};
     // Avoid adding the same column twice
     columnsToAdd = columnsToAdd.filter(column => !newColumnOrder.includes(column.name));
-    console.log('columns to add:', columnsToAdd);
     if (columnsToAdd.length > 0) {
       newColumnOrder = newColumnOrder.concat(columnsToAdd.map(column => column.name));
       const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column.name));
@@ -509,7 +538,7 @@ class RunsTable extends Component {
         let runsResponseData = runsResponse.data;
         const runsCount = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
         if (runsResponseData && runsResponseData.length > 0) {
-          runsResponseData = this._parseRunsResponseData(runsResponseData, customColumnsData, metricColumnsData);
+          runsResponseData = this._parseRunsResponseData(runsResponseData, customColumnsData);
 
           const latestColumnOrder = this._getLatestColumnOrder(runsResponseData);
           const latestMetricAndCustomColumns = this._getLatestMetricAndCustomColumns(metricColumnsData, customColumnsData);
@@ -573,7 +602,6 @@ class RunsTable extends Component {
           runsCount
         });
       })).catch(error => {
-        console.log('ERROR', error);
         const errorMessage = parseServerError(error);
         this.setState({
           isTableLoading: false,
@@ -582,7 +610,6 @@ class RunsTable extends Component {
         });
       });
     }).catch(error => {
-      console.log('ERROR', error);
       const errorMessage = parseServerError(error);
       this.setState({
         isTableLoading: false,
@@ -605,13 +632,12 @@ class RunsTable extends Component {
       params: runQueryParams
     }).then(runsCountResponse => {
       const latestRunsCount = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
-      console.log('latestRunsCount:', latestRunsCount, 'runsCount:', runsCount);
       if (latestRunsCount > runsCount) {
         const newRunsCount = Number(latestRunsCount) - Number(runsCount);
         axios.get('/api/v1/Runs', {
           params: runQueryParams
         }).then(runsResponse => {
-          const newData = this._parseRunsResponseData(runsResponse.data, customColumns, metricColumns);
+          const newData = this._parseRunsResponseData(runsResponse.data, customColumns);
           this.setState({
             newRunsCount,
             newData,
@@ -651,14 +677,12 @@ class RunsTable extends Component {
         let runsResponseData = runsResponse.data;
 
         if (runsResponseData && runsResponseData.length > 0) {
-          runsResponseData = this._parseRunsResponseData(runsResponseData, customColumns, metricColumns);
+          runsResponseData = this._parseRunsResponseData(runsResponseData, customColumns);
           const dataArray = sortedData.getDataArray();
           runsResponseData.forEach(run => {
             const rowIndex = dataArray.findIndex(data => data._id === run._id);
-            console.log('rowIndex:', rowIndex, 'run:', run);
             if (rowIndex >= 0) {
               sortedData.setObjectAt(rowIndex, {...run});
-              console.log('sortedData:', sortedData.getObjectAt(rowIndex));
             }
           });
 
@@ -727,9 +751,7 @@ class RunsTable extends Component {
     }).then(response => {
       if (response.status === 200) {
         const {sortedData} = this.state;
-        console.log('data,', sortedData.getObjectAt(rowIndex), 'notes', notes);
         sortedData.setObjectAt(rowIndex, {...sortedData.getObjectAt(rowIndex), notes});
-        console.log(sortedData.getObjectAt(rowIndex).notes);
         this._refreshTableView();
       }
     }).catch(error => {
@@ -1019,7 +1041,7 @@ class RunsTable extends Component {
         this.resizeTable();
         this.loadData();
       });
-    } else if (filterColumnValue) {
+    } else if (filterColumnValue || !filterColumnName) {
       // FilterColumnName is empty or undefined.
       this.setState({
         filterColumnNameError: true
@@ -1207,7 +1229,6 @@ class RunsTable extends Component {
 
   _handleLoadNewRuns = () => {
     const {newData, newRunsCount, runsCount} = this.state;
-    console.log('New Data:', newData);
     const totalRunsCount = newRunsCount + runsCount;
     if (newData && newData.length > 0) {
       const sortedData = new DataListWrapper(newData, totalRunsCount, this._getInitialFetchSize(), this._fetchRunsRange);
@@ -1247,7 +1268,6 @@ class RunsTable extends Component {
   _fetchRunsRange = end => {
     const {metricColumns, dataVersion, customColumns} = this.state;
     const runQueryParams = this._buildRunsQuery(metricColumns, customColumns, end);
-    console.log('end:', end);
 
     return new Promise((resolve, reject) => {
       axios.all([
@@ -1260,10 +1280,9 @@ class RunsTable extends Component {
           }
         })
       ]).then(axios.spread((runsResponse, runsCountResponse) => {
-        const runsResponseData = this._parseRunsResponseData(runsResponse.data, customColumns, metricColumns);
+        const runsResponseData = this._parseRunsResponseData(runsResponse.data, customColumns);
         const count = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
 
-        console.log('count:', count);
         this.setState({
           data: runsResponseData,
           dataVersion: dataVersion + 1,
@@ -1337,8 +1356,6 @@ class RunsTable extends Component {
       'count-text': true,
       hide: isTableLoading
     });
-    console.log('sorted data:', sortedData);
-    console.log('version:', dataVersion);
     return (
       <div>
         <div className='table-header'>

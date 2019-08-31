@@ -133,7 +133,9 @@ class MetricColumnModal extends PureComponent {
         axios.delete('/api/v1/Omniboard.Metric.Columns/' + columns[key].id).then(response => {
           if (response.status === 204) {
             this.setState(prevState => {
-              return {columns: prevState.columns.slice().splice(key, 1)};
+              const updatedColumns = prevState.columns.slice();
+              updatedColumns.splice(key, 1);
+              return {columns: updatedColumns};
             });
             this._handleDelete(columns[key].columnName);
           } else {
@@ -150,7 +152,9 @@ class MetricColumnModal extends PureComponent {
         // If id is null, it is not yet persisted in database and
         // should just be removed from the UI
         this.setState(prevState => {
-          return {columns: prevState.columns.slice().splice(key, 1)};
+          const updatedColumns = prevState.columns.slice();
+          updatedColumns.splice(key, 1);
+          return {columns: updatedColumns};
         });
       }
     };

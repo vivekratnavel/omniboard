@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'reactn';
 import mockAxios from 'jest-mock-axios';
 import {toast} from 'react-toastify';
 import {STATUS} from '../../appConstants/status.constants';
@@ -19,6 +19,7 @@ describe('CapturedOutView', () => {
   jest.useFakeTimers();
 
   beforeEach(() => {
+    React.resetGlobal();
     wrapper = mount(
       <CapturedOutView initialStatus={STATUS.RUNNING} runId={16} initialOutput='Test output'/>
     );

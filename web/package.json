@@ -95,7 +95,7 @@
     "test": "TZ='America/New_York' node scripts/test.js --env=jsdom",
     "lint": "xo src/*",
     "lint:fix": "xo --fix src/*",
-    "coverage": "npm test -- --coverage",
+    "coverage": "yarn run test -- --coverage",
     "test:debug": "node --inspect-brk scripts/test.js --runInBand --env=jsdom",
     "report-coverage": "npm run coverage -- --coverageReporters=text-lcov | coveralls"
   },
@@ -322,7 +322,8 @@
   "proxy": "http://localhost:9000/",
   "devDependencies": {
     "@types/enzyme": "^3.9.1",
-    "@types/jest": "^23.3.1",
+    "@types/jest": "^24.0.18",
+    "@types/mocha": "^5.2.7",
     "@types/react": "^16.8.10",
     "babel-core": "^7.0.0-bridge.0",
     "enzyme": "^3.9.0",
