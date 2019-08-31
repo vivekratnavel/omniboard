@@ -56,7 +56,7 @@
     "test-ci": "cd web && npm run lint && CI=true npm run test",
     "prepare": "cd web && yarn install && cd .. && yarn run build",
     "report-coverage": "cd web && npm run report-coverage",
-    "cm": "git-cz -S"
+    "cm": "git-cz"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
