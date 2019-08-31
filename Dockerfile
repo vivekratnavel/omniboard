@@ -1,5 +1,5 @@
 # build environment
-FROM node:10.8.0 as builder
+FROM node:10.13.0 as builder
 
 RUN mkdir -p /usr/omniboard
 WORKDIR /usr/omniboard
@@ -27,4 +27,5 @@ ENV PATH /usr/omniboard/node_modules/.bin:$PATH
 COPY --from=builder /usr/omniboard/package.json /usr/omniboard/package.json
 COPY --from=builder /usr/omniboard/dist /usr/omniboard/dist
 COPY --from=builder /usr/omniboard/web/build /usr/omniboard/web/build
-RUN yarn install --production && yarn cache clean --force
+COPY --from=builder /usr/omniboard/node_modules /usr/omniboard/node_modules
+RUN yarn cache clean --force
