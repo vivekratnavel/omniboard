@@ -1,5 +1,6 @@
 {
   "tagFormat": "${version}",
+  "branches": ["master", {"name": "beta", "prerelease": true}, {"name": "alpha", "prerelease": true}],
   "plugins": [
     ["@semantic-release/commit-analyzer", {
       "preset": "angular",
