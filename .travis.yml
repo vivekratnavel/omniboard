@@ -16,6 +16,7 @@ after_success:
 branches:
   only:
   - master
+  - beta
 deploy:
   provider: script
   skip_cleanup: true
