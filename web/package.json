@@ -58,7 +58,7 @@
     "react-bootstrap": "^0.31.5",
     "react-bootstrap-multiselect": "^2.4.1",
     "react-bootstrap-xeditable": "^0.2.10",
-    "react-dev-utils": "^4.2.1",
+    "react-dev-utils": "^4.2.2",
     "react-dom": "16.8.6",
     "react-json-view": "^1.16.0",
     "react-list": "^0.8.11",
