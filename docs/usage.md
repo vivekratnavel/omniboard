@@ -42,7 +42,7 @@ new custom column, you can expand each of these nested configs into a separate c
 To add a new Custom Column:
 
 - Click on Cog/Settings icon located on the top right corner of the dashboard
-- Click on `+/- Config Columns`
+- Click on `+/- Custom Columns`
 - Click on `+ Add Column` button
 - Give a name to the new column and select a path from the list of options in the dropdown. You can also give a custom path that is not present in the dropdown. 
 - Click `Apply`
