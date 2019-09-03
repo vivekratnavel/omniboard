@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types'
-import React from "react";
+import PropTypes from 'prop-types';
+import React from 'react';
 import './hoc.scss';
 
 export class ProgressWrapper extends React.PureComponent {
@@ -12,13 +12,15 @@ export class ProgressWrapper extends React.PureComponent {
     const {loading, children} = this.props;
     let html = children;
     if (loading) {
-      html = <div className="table-display">
-        <div className="table-cell-display gray">
-          <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/>&nbsp;
-          Loading...
+      html = (
+        <div className='table-display'>
+          <div className='table-cell-display gray'>
+            <i className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/> Loading...
+          </div>
         </div>
-      </div>
+      );
     }
+
     return html;
   }
 }

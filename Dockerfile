@@ -1,5 +1,5 @@
 # build environment
-FROM node:10.8.0 as builder
+FROM node:10.13.0 as builder
 
 RUN mkdir -p /usr/omniboard
 WORKDIR /usr/omniboard

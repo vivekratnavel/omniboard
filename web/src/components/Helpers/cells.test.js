@@ -1,23 +1,23 @@
 import React from 'reactn';
-import { TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell, IdCell, DateCell } from './cells';
-import { DataListWrapper } from './dataListWrapper';
-import { toast } from "react-toastify";
+import {toast} from 'react-toastify';
 import mockAxios from 'jest-mock-axios';
+import {TextCell, SelectCell, HeaderCell, ExpandRowCell, EditableCell, IdCell, DateCell} from './cells';
+import {DataListWrapper} from './dataListWrapper';
+import {generateMockResponse} from './testUtils';
 
 describe('Cells', () => {
   let wrapper = null;
-  /* eslint-disable no-console */
   console.error = jest.fn();
 
   beforeEach(() => {
-    // resetGlobal();
+    // ResetGlobal();
   });
 
   describe('Header Cell', () => {
     const sortHandler = jest.fn();
 
     beforeEach(() => {
-      wrapper = shallow(<HeaderCell sortDir={"ASC"} columnKey={"col_1"} onSortChangeHandler={sortHandler}/>);
+      wrapper = shallow(<HeaderCell sortDir='ASC' columnKey='col_1' onSortChangeHandler={sortHandler}/>);
     });
 
     it('should render correctly', () => {
@@ -35,18 +35,18 @@ describe('Cells', () => {
   });
 
   describe('Select Cell', () => {
-    const tagHandler = jest.fn(),
-      options = [{value: 'opt1', label: 'Option 1'}, {value: 'opt2', label: 'Option 2'}],
-      data = new DataListWrapper([0,1], [{col_1: ['tag1']}, {col_2: ['tag2']}]),
-      isLoading = {0:true, 1:false};
+    const tagHandler = jest.fn();
+    const options = [{value: 'opt1', label: 'Option 1'}, {value: 'opt2', label: 'Option 2'}];
+    const data = new DataListWrapper([{col_1: ['tag1']}, {col_2: ['tag2']}], 2, 2);
+    const isLoading = {0: true, 1: false};
 
     beforeEach(() => {
-      wrapper = mount(<SelectCell columnKey={"col_1"} isLoading={isLoading} rowIndex={0} options={options} data={data}
-                                    tagChangeHandler={tagHandler}/>);
+      wrapper = mount(<SelectCell columnKey='col_1' isLoading={isLoading} rowIndex={0}
+        options={options} data={data}
+        tagChangeHandler={tagHandler}/>);
     });
 
     it('should render correctly', () => {
-
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -60,21 +60,21 @@ describe('Cells', () => {
     });
 
     it('should render select without options and data', () => {
-      wrapper = mount(<SelectCell columnKey={"col_1"} isLoading={isLoading} rowIndex={0} options={[]}
-                                  tagChangeHandler={tagHandler}/>);
+      wrapper = mount(<SelectCell columnKey='col_1' isLoading={isLoading} rowIndex={0}
+        options={[]}
+        tagChangeHandler={tagHandler}/>);
 
       expect(wrapper).toMatchSnapshot();
     });
   });
 
   describe('Text Cell', () => {
-    const data = new DataListWrapper([0,1], [{col_1: ['tag1']}, {col_2: ['tag2']}]);
+    const data = new DataListWrapper([{col_1: ['tag1']}, {col_2: ['tag2']}], 2, 2);
     beforeEach(() => {
-      wrapper = shallow(<TextCell rowIndex={1} columnKey={"col_1"} data={data}/>);
+      wrapper = shallow(<TextCell rowIndex={1} columnKey='col_1' data={data}/>);
     });
 
     it('should render correctly', () => {
-
       expect(wrapper).toMatchSnapshot();
     });
   });
@@ -86,7 +86,6 @@ describe('Cells', () => {
     });
 
     it('should render correctly', () => {
-
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -98,9 +97,9 @@ describe('Cells', () => {
   });
 
   describe('Date Cell', () => {
-    const data = new DataListWrapper([0], [{start_time: '2019-04-01T23:59:59'}]);
+    const data = new DataListWrapper([{start_time: '2019-04-01T23:59:59'}], 1, 1);
     beforeEach(() => {
-      wrapper = mount(<DateCell rowIndex={0} columnKey="start_time" data={data}/>);
+      wrapper = mount(<DateCell rowIndex={0} columnKey='start_time' data={data}/>);
     });
 
     afterEach(() => {
@@ -108,7 +107,6 @@ describe('Cells', () => {
     });
 
     it('should render correctly', () => {
-
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -122,20 +120,19 @@ describe('Cells', () => {
       });
 
       wrapper.unmount();
-      wrapper = mount(<DateCell rowIndex={0} columnKey="start_time" data={data}/>);
+      wrapper = mount(<DateCell rowIndex={0} columnKey='start_time' data={data}/>);
 
       expect(wrapper.update().find('[test-attr="date-cell"]').at(1).text()).toEqual('2019-04-01T16:59:59');
     });
   });
 
   describe('Editable Cell', () => {
-    const data = new DataListWrapper([0,1], [{col_1: ['tag1']}, {col_2: ['tag2']}]);
+    const data = new DataListWrapper([{col_1: ['tag1']}, {col_2: ['tag2']}], 2, 2);
     beforeEach(() => {
-      wrapper = mount(<EditableCell rowIndex={1} changeHandler={jest.fn()} columnKey={'col_1'} data={data}/>);
+      wrapper = mount(<EditableCell rowIndex={1} changeHandler={jest.fn()} columnKey='col_1' data={data}/>);
     });
 
     it('should render correctly', () => {
-
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -150,21 +147,21 @@ describe('Cells', () => {
   });
 
   describe('Id Cell', () => {
-    const data = new DataListWrapper([0,1], [{_id: 54}, {_id: 55}]);
+    let data = null;
     const dataUpdateHandler = jest.fn();
     const rowIndex = 1;
     beforeEach(() => {
-      wrapper = mount(<IdCell rowIndex={rowIndex} handleDataUpdate={dataUpdateHandler} columnKey={'_id'} data={data}/>);
+      data = new DataListWrapper([{_id: 54}, {_id: 55}], 2, 2);
+      wrapper = mount(<IdCell rowIndex={rowIndex} handleDataUpdate={dataUpdateHandler} columnKey='_id' data={data}/>);
     });
 
     afterEach(() => {
       jest.clearAllMocks();
-      // cleaning up the mess left behind the previous test
+      // Cleaning up the mess left behind the previous test
       mockAxios.reset();
     });
 
     it('should render correctly', () => {
-
       expect(wrapper).toMatchSnapshot();
     });
 
@@ -192,8 +189,17 @@ describe('Cells', () => {
       const event = {
         stopPropagation: jest.fn()
       };
-      const artifactsResponse = [{"file_id":"5c41711ea9eee738179295aa","name":"result.pickle"},{"file_id":"5c41711ea9eee738179295ac","name":"test.svg"},{"file_id":"5c41711ea9eee738179295ae","name":"output.png"}];
-      const metricsResponse = [{"_id":"5a2179f9fccf1dcc0ee39e63","name":"finetune.train.loss","run_id":54,"steps":[0,1,2],"timestamps":["2017-12-01T15:49:06.412Z","2017-12-01T15:51:27.910Z","2017-12-01T15:53:49.750Z"],"values":[0.9302947769183239,0.5418723183750066,0.505903509070725]},{"_id":"5a217a03fccf1dcc0ee39e74","name":"finetune.val.loss","run_id":54,"steps":[0,1,2,3],"timestamps":["2017-12-01T15:49:16.322Z","2017-12-01T15:51:37.849Z","2017-12-01T15:53:59.725Z"],"values":[0.6144198719169135,0.34360378449377804,0.4291475112023561]}];
+      const artifactsResponse = [{file_id: '5c41711ea9eee738179295aa', name: 'result.pickle'}, {file_id: '5c41711ea9eee738179295ac', name: 'test.svg'}, {file_id: '5c41711ea9eee738179295ae', name: 'output.png'}];
+      const sourcesResponse = [
+        [
+          'hello2.py',
+          '5d637fb55b192c78cf121928'
+        ],
+        [
+          'hello1.py',
+          '5d637fb55b192c78cf121929'
+        ]
+      ];
       toast.error = jest.fn();
       beforeEach(() => {
         wrapper.find('FixedDataTableCellDefault').simulate('mouseEnter');
@@ -201,81 +207,73 @@ describe('Cells', () => {
         wrapper.find('[test-attr="delete-btn"]').at(1).simulate('click', event);
       });
 
-      describe('success', () => {
-        it('for metrics', async () => {
-          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts":[],"metrics": metricsResponse}});
+      it('success for metrics', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 55, artifacts: [], experiment: {sources: []}}});
 
-          expect(wrapper.state().isDeleteInProgress).toBeTruthy();
-          expect(mockAxios.delete).toHaveBeenCalledTimes(2);
-          mockAxios.mockResponse({status: 204});
-          mockAxios.mockResponse({status: 204});
-          await tick();
+        expect(wrapper.state().isDeleteInProgress).toBeTruthy();
+        // Even if no metrics are present, a delete will be called on metrics
+        // since deletes are idempotent.
+        // The second delete is for the Run entry in Runs collection.
+        expect(mockAxios.delete).toHaveBeenCalledTimes(2);
+        expect(mockAxios.delete.mock.calls[0]).toEqual(['/api/v1/Metrics/', {params: {query: '{"run_id":55}'}}]);
+        generateMockResponse(204, 2);
+        await tick();
 
-          expect(wrapper.state().isDeleteInProgress).toBeFalsy();
-          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
-        });
+        expect(wrapper.state().isDeleteInProgress).toBeFalsy();
+        expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+      });
 
-        it('for artifacts', async () => {
-          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": artifactsResponse,"metrics": []}});
+      it('success for artifacts', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 55, artifacts: artifactsResponse, experiment: {sources: []}}});
 
-          expect(mockAxios.delete).toHaveBeenCalledTimes(3);
-          mockAxios.mockResponse({status: 204});
-          mockAxios.mockResponse({status: 204});
-          mockAxios.mockResponse({status: 204});
-          await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(4);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+              '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+              '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        generateMockResponse(204, 4);
+        await tick();
 
-          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
-        });
+        expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+      });
 
-        it('for both artifacts and metrics', async () => {
-          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": artifactsResponse,"metrics": metricsResponse}});
+      it('success for both artifacts and sources', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: sourcesResponse}}});
 
-          expect(mockAxios.delete).toHaveBeenCalledTimes(4);
-          mockAxios.mockResponse({status: 204});
-          mockAxios.mockResponse({status: 204});
-          mockAxios.mockResponse({status: 204});
-          mockAxios.mockResponse({status: 204});
-          await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(4);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+              '"5d637fb55b192c78cf121928"},{"files_id":"5d637fb55b192c78cf121929"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+              '"5d637fb55b192c78cf121928"},{"_id":"5d637fb55b192c78cf121929"}]}'}}]);
+        generateMockResponse(204, 4);
+        await tick();
 
-          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
-        });
-
-        it('for no artifacts or metrics', async () => {
-          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": [],"metrics": []}});
-
-          expect(mockAxios.delete).toHaveBeenCalledTimes(1);
-          mockAxios.mockResponse({status: 204});
-          await tick();
-
-          expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
-        });
+        expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
       });
 
       it('unknown error', async () => {
-        mockAxios.mockResponse({status: 200, data:{"_id":54,"artifacts":[],"metrics": metricsResponse}});
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
         mockAxios.mockResponse({status: 204});
         mockAxios.mockResponse({status: 400});
         await tick();
 
-        expect(toast.error).toHaveBeenCalledWith(`An unknown error occurred!`);
+        expect(toast.error).toHaveBeenCalledWith('An unknown error occurred!');
       });
 
-      describe('error', () => {
-        it('for get', () => {
-          const errResponse = {status: 500, message:'unknown error'};
-          mockAxios.mockError(errResponse);
+      it('error for get', () => {
+        const errResponse = {status: 500, message: 'unknown error'};
+        mockAxios.mockError(errResponse);
 
-          expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
-        });
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+      });
 
-        it('for delete calls', async () => {
-          mockAxios.mockResponse({status: 200, data: {"_id":54,"artifacts": [],"metrics": []}});
-          const errResponse = {status: 500, message:'unknown error'};
-          mockAxios.mockError(errResponse);
-          await tick();
+      it('error for delete calls', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        const errResponse = {status: 500, message: 'unknown error'};
+        mockAxios.mockError(errResponse);
+        await tick();
 
-          expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
-        });
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
       });
     });
   });

@@ -28,7 +28,7 @@ exports[`SourceFilesView should render correctly 1`] = `
           <i
             className="glyphicon glyphicon-refresh glyphicon-refresh-animate"
           />
-            Loading...
+           Loading...
         </div>
       </div>
     </ProgressWrapper>
@@ -94,173 +94,119 @@ exports[`SourceFilesView should render correctly 2`] = `
           onChange={[Function]}
         >
           <Provider
-            inject={
-              Array [
-                AccordionContainer {
-                  "_listeners": Array [
-                    [Function],
-                    [Function],
-                    [Function],
-                    [Function],
-                  ],
-                  "addItem": [Function],
-                  "removeItem": [Function],
-                  "setAccordion": [Function],
-                  "setExpanded": [Function],
-                  "setOnChange": [Function],
-                  "state": Object {
-                    "accordion": true,
-                    "items": Array [
-                      Object {
-                        "disabled": false,
-                        "expanded": false,
-                        "uuid": "5a1bd242ca100c1a210b0d3a",
-                      },
-                    ],
-                    "onChange": [Function],
-                  },
-                },
-              ]
-            }
+            accordion={true}
+            onChange={[Function]}
           >
             <Consumer>
-              <Provider
-                value={
-                  Map {
-                    [Function] => AccordionContainer {
-                      "_listeners": Array [
-                        [Function],
-                        [Function],
-                        [Function],
-                        [Function],
-                      ],
-                      "addItem": [Function],
-                      "removeItem": [Function],
-                      "setAccordion": [Function],
-                      "setExpanded": [Function],
-                      "setOnChange": [Function],
-                      "state": Object {
-                        "accordion": true,
-                        "items": Array [
-                          Object {
-                            "disabled": false,
-                            "expanded": false,
-                            "uuid": "5a1bd242ca100c1a210b0d3a",
-                          },
-                        ],
-                        "onChange": [Function],
-                      },
-                    },
-                  }
-                }
+              <Accordion
+                accordion={true}
+                className="accordion"
               >
-                <Subscribe
-                  to={
-                    Array [
-                      [Function],
-                    ]
-                  }
+                <div
+                  className="accordion"
+                  role="tablist"
                 >
-                  <Consumer>
-                    <Accordion
-                      accordion={true}
-                      className="accordion"
+                  <ReactList
+                    axis="y"
+                    itemRenderer={[Function]}
+                    itemSizeEstimator={[Function]}
+                    itemsRenderer={[Function]}
+                    length={1}
+                    minSize={20}
+                    pageSize={10}
+                    scrollParentGetter={[Function]}
+                    scrollParentViewportSizeGetter={[Function]}
+                    threshold={300}
+                    type="variable"
+                    useStaticSize={false}
+                    useTranslate3d={false}
+                  >
+                    <div
+                      style={
+                        Object {
+                          "height": 51,
+                          "position": "relative",
+                        }
+                      }
                     >
                       <div
-                        className="accordion"
-                        role="tablist"
+                        style={
+                          Object {
+                            "WebkitTransform": "translate(0px, 0px)",
+                            "msTransform": "translate(0px, 0px)",
+                            "transform": "translate(0px, 0px)",
+                          }
+                        }
                       >
-                        <ReactList
-                          axis="y"
-                          itemRenderer={[Function]}
-                          itemSizeEstimator={[Function]}
-                          itemsRenderer={[Function]}
-                          length={1}
-                          minSize={20}
-                          pageSize={10}
-                          scrollParentGetter={[Function]}
-                          scrollParentViewportSizeGetter={[Function]}
-                          threshold={300}
-                          type="variable"
-                          useStaticSize={false}
-                          useTranslate3d={false}
-                        >
-                          <div
-                            style={
-                              Object {
-                                "height": 51,
-                                "position": "relative",
-                              }
-                            }
+                        <div>
+                          <FromRenderProps
+                            key="5a1bd242ca100c1a210b0d3a"
+                            test-attr="acc-item-0"
+                            uuid="5a1bd242ca100c1a210b0d3a"
                           >
-                            <div
-                              style={
-                                Object {
-                                  "WebkitTransform": "translate(0px, 0px)",
-                                  "msTransform": "translate(0px, 0px)",
-                                  "transform": "translate(0px, 0px)",
-                                }
-                              }
-                            >
-                              <div>
-                                <AccordionItemWrapper
-                                  accordionStore={
-                                    AccordionContainer {
-                                      "_listeners": Array [],
-                                      "addItem": [Function],
-                                      "removeItem": [Function],
-                                      "setAccordion": [Function],
-                                      "setExpanded": [Function],
-                                      "setOnChange": [Function],
-                                      "state": Object {
-                                        "accordion": true,
-                                        "items": Array [],
-                                        "onChange": [Function],
+                            <Consumer>
+                              <AccordionItemWrapper
+                                accordionStore={
+                                  Object {
+                                    "accordion": true,
+                                    "addItem": [Function],
+                                    "items": Array [
+                                      Object {
+                                        "disabled": false,
+                                        "expanded": false,
+                                        "uuid": "5a1bd242ca100c1a210b0d3a",
                                       },
-                                    }
+                                    ],
+                                    "removeItem": [Function],
+                                    "setExpanded": [Function],
                                   }
-                                  className="accordion__item"
-                                  disabled={false}
-                                  expanded={false}
-                                  hideBodyClassName=""
-                                  key="5a1bd242ca100c1a210b0d3a"
-                                  test-attr="acc-item-0"
+                                }
+                                className="accordion__item"
+                                disabled={false}
+                                expanded={false}
+                                hideBodyClassName=""
+                                test-attr="acc-item-0"
+                                uuid="5a1bd242ca100c1a210b0d3a"
+                              >
+                                <Provider
                                   uuid="5a1bd242ca100c1a210b0d3a"
                                 >
-                                  <Provider
-                                    inject={
-                                      Array [
-                                        ItemContainer {
-                                          "_listeners": Array [
-                                            [Function],
-                                            [Function],
-                                            [Function],
-                                          ],
-                                          "state": Object {
+                                  <AccordionItem
+                                    accordionStore={
+                                      Object {
+                                        "accordion": true,
+                                        "addItem": [Function],
+                                        "items": Array [
+                                          Object {
+                                            "disabled": false,
+                                            "expanded": false,
                                             "uuid": "5a1bd242ca100c1a210b0d3a",
                                           },
-                                        },
-                                      ]
+                                        ],
+                                        "removeItem": [Function],
+                                        "setExpanded": [Function],
+                                      }
                                     }
+                                    className="accordion__item"
+                                    disabled={false}
+                                    expanded={false}
+                                    hideBodyClassName=""
+                                    test-attr="acc-item-0"
+                                    uuid="5a1bd242ca100c1a210b0d3a"
                                   >
-                                    <Consumer>
-                                      <Provider
-                                        value={
-                                          Map {
-                                            [Function] => AccordionContainer {
-                                              "_listeners": Array [
-                                                [Function],
-                                                [Function],
-                                                [Function],
-                                                [Function],
-                                              ],
-                                              "addItem": [Function],
-                                              "removeItem": [Function],
-                                              "setAccordion": [Function],
-                                              "setExpanded": [Function],
-                                              "setOnChange": [Function],
-                                              "state": Object {
+                                    <div
+                                      className="accordion__item"
+                                      test-attr="acc-item-0"
+                                    >
+                                      <FromRenderProps
+                                        className="accordion__title accordion__title--animated"
+                                      >
+                                        <Consumer>
+                                          <FromRenderProps
+                                            accordionStore={
+                                              Object {
                                                 "accordion": true,
+                                                "addItem": [Function],
                                                 "items": Array [
                                                   Object {
                                                     "disabled": false,
@@ -268,47 +214,18 @@ exports[`SourceFilesView should render correctly 2`] = `
                                                     "uuid": "5a1bd242ca100c1a210b0d3a",
                                                   },
                                                 ],
-                                                "onChange": [Function],
-                                              },
-                                            },
-                                            [Function] => ItemContainer {
-                                              "_listeners": Array [
-                                                [Function],
-                                                [Function],
-                                                [Function],
-                                              ],
-                                              "state": Object {
-                                                "uuid": "5a1bd242ca100c1a210b0d3a",
-                                              },
-                                            },
-                                          }
-                                        }
-                                      >
-                                        <Subscribe
-                                          to={
-                                            Array [
-                                              [Function],
-                                              [Function],
-                                            ]
-                                          }
-                                        >
-                                          <Consumer>
-                                            <AccordionItem
-                                              accordionStore={
-                                                AccordionContainer {
-                                                  "_listeners": Array [
-                                                    [Function],
-                                                    [Function],
-                                                    [Function],
-                                                    [Function],
-                                                  ],
-                                                  "addItem": [Function],
-                                                  "removeItem": [Function],
-                                                  "setAccordion": [Function],
-                                                  "setExpanded": [Function],
-                                                  "setOnChange": [Function],
-                                                  "state": Object {
+                                                "removeItem": [Function],
+                                                "setExpanded": [Function],
+                                              }
+                                            }
+                                            className="accordion__title accordion__title--animated"
+                                          >
+                                            <Consumer>
+                                              <AccordionItemTitleWrapper
+                                                accordionStore={
+                                                  Object {
                                                     "accordion": true,
+                                                    "addItem": [Function],
                                                     "items": Array [
                                                       Object {
                                                         "disabled": false,
@@ -316,188 +233,202 @@ exports[`SourceFilesView should render correctly 2`] = `
                                                         "uuid": "5a1bd242ca100c1a210b0d3a",
                                                       },
                                                     ],
-                                                    "onChange": [Function],
-                                                  },
+                                                    "removeItem": [Function],
+                                                    "setExpanded": [Function],
+                                                  }
                                                 }
-                                              }
-                                              className="accordion__item"
-                                              disabled={false}
-                                              expanded={false}
-                                              hideBodyClassName=""
-                                              test-attr="acc-item-0"
-                                              uuid="5a1bd242ca100c1a210b0d3a"
-                                            >
-                                              <div
-                                                className="accordion__item"
-                                                test-attr="acc-item-0"
+                                                className="accordion__title accordion__title--animated"
+                                                hideBodyClassName=""
+                                                itemStore={
+                                                  Object {
+                                                    "uuid": "5a1bd242ca100c1a210b0d3a",
+                                                  }
+                                                }
                                               >
-                                                <AccordionItemTitleWrapper
+                                                <AccordionItemTitle
+                                                  accordion={true}
                                                   className="accordion__title accordion__title--animated"
+                                                  disabled={false}
+                                                  expanded={false}
                                                   hideBodyClassName=""
+                                                  setExpanded={[Function]}
+                                                  uuid="5a1bd242ca100c1a210b0d3a"
                                                 >
-                                                  <Subscribe
-                                                    to={
-                                                      Array [
-                                                        [Function],
-                                                        [Function],
-                                                      ]
-                                                    }
+                                                  <div
+                                                    aria-controls="accordion__body-5a1bd242ca100c1a210b0d3a"
+                                                    aria-selected={false}
+                                                    className="accordion__title accordion__title--animated"
+                                                    disabled={false}
+                                                    id="accordion__title-5a1bd242ca100c1a210b0d3a"
+                                                    onClick={[Function]}
+                                                    onKeyPress={[Function]}
+                                                    role="tab"
+                                                    tabIndex="0"
                                                   >
-                                                    <Consumer>
-                                                      <AccordionItemTitle
-                                                        accordion={true}
-                                                        className="accordion__title accordion__title--animated"
-                                                        disabled={false}
-                                                        expanded={false}
-                                                        hideBodyClassName=""
-                                                        setExpanded={[Function]}
-                                                        uuid="5a1bd242ca100c1a210b0d3a"
-                                                      >
-                                                        <div
-                                                          aria-controls="accordion__body-5a1bd242ca100c1a210b0d3a"
-                                                          aria-selected={false}
-                                                          className="accordion__title accordion__title--animated"
-                                                          disabled={false}
-                                                          id="accordion__title-5a1bd242ca100c1a210b0d3a"
-                                                          onClick={[Function]}
-                                                          onKeyPress={[Function]}
-                                                          role="tab"
-                                                          tabIndex="0"
-                                                        >
-                                                          <h5
-                                                            className="u-position-relative"
-                                                          >
-                                                            /src/hello_world.py
-                                                            <div
-                                                              className="accordion__arrow"
-                                                              role="presentation"
-                                                            />
-                                                          </h5>
-                                                          <div>
-                                                            /src/hello_world.py
-                                                          </div>
-                                                        </div>
-                                                      </AccordionItemTitle>
-                                                    </Consumer>
-                                                  </Subscribe>
-                                                </AccordionItemTitleWrapper>
-                                                <AccordionItemBodyWrapper
+                                                    <h5
+                                                      className="u-position-relative"
+                                                    >
+                                                      /src/hello_world.py
+                                                      <div
+                                                        className="accordion__arrow"
+                                                        role="presentation"
+                                                      />
+                                                    </h5>
+                                                    <div>
+                                                      /src/hello_world.py
+                                                    </div>
+                                                  </div>
+                                                </AccordionItemTitle>
+                                              </AccordionItemTitleWrapper>
+                                            </Consumer>
+                                          </FromRenderProps>
+                                        </Consumer>
+                                      </FromRenderProps>
+                                      <FromRenderProps>
+                                        <Consumer>
+                                          <FromRenderProps
+                                            accordionStore={
+                                              Object {
+                                                "accordion": true,
+                                                "addItem": [Function],
+                                                "items": Array [
+                                                  Object {
+                                                    "disabled": false,
+                                                    "expanded": false,
+                                                    "uuid": "5a1bd242ca100c1a210b0d3a",
+                                                  },
+                                                ],
+                                                "removeItem": [Function],
+                                                "setExpanded": [Function],
+                                              }
+                                            }
+                                          >
+                                            <Consumer>
+                                              <AccordionItemBodyWrapper
+                                                accordionStore={
+                                                  Object {
+                                                    "accordion": true,
+                                                    "addItem": [Function],
+                                                    "items": Array [
+                                                      Object {
+                                                        "disabled": false,
+                                                        "expanded": false,
+                                                        "uuid": "5a1bd242ca100c1a210b0d3a",
+                                                      },
+                                                    ],
+                                                    "removeItem": [Function],
+                                                    "setExpanded": [Function],
+                                                  }
+                                                }
+                                                className="accordion__body"
+                                                hideBodyClassName="accordion__body--hidden"
+                                                itemStore={
+                                                  Object {
+                                                    "uuid": "5a1bd242ca100c1a210b0d3a",
+                                                  }
+                                                }
+                                              >
+                                                <AccordionItemBody
+                                                  accordion={true}
                                                   className="accordion__body"
+                                                  disabled={false}
+                                                  expanded={false}
                                                   hideBodyClassName="accordion__body--hidden"
+                                                  uuid="5a1bd242ca100c1a210b0d3a"
                                                 >
-                                                  <Subscribe
-                                                    to={
-                                                      Array [
-                                                        [Function],
-                                                        [Function],
-                                                      ]
-                                                    }
+                                                  <div
+                                                    aria-hidden={true}
+                                                    aria-labelledby="accordion__title-5a1bd242ca100c1a210b0d3a"
+                                                    className="accordion__body accordion__body--hidden"
+                                                    id="accordion__body-5a1bd242ca100c1a210b0d3a"
+                                                    role="tabpanel"
                                                   >
-                                                    <Consumer>
-                                                      <AccordionItemBody
-                                                        accordion={true}
-                                                        className="accordion__body"
-                                                        disabled={false}
-                                                        expanded={false}
-                                                        hideBodyClassName="accordion__body--hidden"
-                                                        uuid="5a1bd242ca100c1a210b0d3a"
+                                                    <div
+                                                      className="clearfix"
+                                                    >
+                                                      <div
+                                                        className="pull-left upload-date"
                                                       >
-                                                        <div
-                                                          aria-hidden={true}
-                                                          aria-labelledby="accordion__title-5a1bd242ca100c1a210b0d3a"
-                                                          className="accordion__body accordion__body--hidden"
-                                                          id="accordion__body-5a1bd242ca100c1a210b0d3a"
-                                                          role="tabpanel"
+                                                        Upload Date: 
+                                                        2017-11-27T08:52:18.562Z
+                                                      </div>
+                                                      <div
+                                                        className="pull-right"
+                                                      >
+                                                        <Button
+                                                          active={false}
+                                                          block={false}
+                                                          bsClass="btn"
+                                                          bsSize="xsmall"
+                                                          bsStyle="default"
+                                                          disabled={false}
+                                                          onClick={[Function]}
+                                                          test-attr="down-btn-/src/hello_world.py"
                                                         >
-                                                          <div
-                                                            className="clearfix"
+                                                          <button
+                                                            className="btn btn-xs btn-default"
+                                                            disabled={false}
+                                                            onClick={[Function]}
+                                                            test-attr="down-btn-/src/hello_world.py"
+                                                            type="button"
                                                           >
-                                                            <div
-                                                              className="pull-left upload-date"
-                                                            >
-                                                              Upload Date: 
-                                                              2017-11-27T08:52:18.562Z
-                                                            </div>
-                                                            <div
-                                                              className="pull-right"
-                                                            >
-                                                              <Button
-                                                                active={false}
-                                                                block={false}
-                                                                bsClass="btn"
-                                                                bsSize="xsmall"
-                                                                bsStyle="default"
-                                                                disabled={false}
-                                                                onClick={[Function]}
-                                                                test-attr="down-btn-/src/hello_world.py"
-                                                              >
-                                                                <button
-                                                                  className="btn btn-xs btn-default"
-                                                                  disabled={false}
-                                                                  onClick={[Function]}
-                                                                  test-attr="down-btn-/src/hello_world.py"
-                                                                  type="button"
-                                                                >
-                                                                  <i
-                                                                    className="glyphicon glyphicon-download-alt"
-                                                                  />
-                                                                   Download
-                                                                </button>
-                                                              </Button>
-                                                            </div>
-                                                          </div>
-                                                          <FilePreview
-                                                            errorMessage=""
-                                                            fileId="5a1bd242ca100c1a210b0d3a"
-                                                            fileName="/src/hello_world.py"
-                                                            isLoading={false}
-                                                            sourceFiles={
-                                                              Object {
-                                                                "5a1bd242ca100c1a210b0d3a": Object {
-                                                                  "chunkSize": 261120,
-                                                                  "fileLength": 1646,
-                                                                  "filepath": "/src/hello_world.py",
-                                                                  "id": "5a1bd242ca100c1a210b0d3a",
-                                                                  "uploadDate": "2017-11-27T08:52:18.562Z",
-                                                                },
-                                                                "5a1bd242ca100c1a210b0d3b": Object {
-                                                                  "chunkSize": 0,
-                                                                  "fileLength": 0,
-                                                                  "filepath": "/src/hello_world_2.py",
-                                                                  "id": "5a1bd242ca100c1a210b0d3b",
-                                                                  "uploadDate": "2017-11-27T08:53:18.562Z",
-                                                                },
-                                                              }
-                                                            }
-                                                          >
-                                                            <div>
-                                                              <ProgressWrapper
-                                                                loading={false}
-                                                              />
-                                                            </div>
-                                                          </FilePreview>
-                                                        </div>
-                                                      </AccordionItemBody>
-                                                    </Consumer>
-                                                  </Subscribe>
-                                                </AccordionItemBodyWrapper>
-                                              </div>
-                                            </AccordionItem>
-                                          </Consumer>
-                                        </Subscribe>
-                                      </Provider>
-                                    </Consumer>
-                                  </Provider>
-                                </AccordionItemWrapper>
-                              </div>
-                            </div>
-                          </div>
-                        </ReactList>
+                                                            <i
+                                                              className="glyphicon glyphicon-download-alt"
+                                                            />
+                                                             Download
+                                                          </button>
+                                                        </Button>
+                                                      </div>
+                                                    </div>
+                                                    <FilePreview
+                                                      errorMessage=""
+                                                      fileId="5a1bd242ca100c1a210b0d3a"
+                                                      fileName="/src/hello_world.py"
+                                                      isLoading={false}
+                                                      sourceFiles={
+                                                        Object {
+                                                          "5a1bd242ca100c1a210b0d3a": Object {
+                                                            "chunkSize": 261120,
+                                                            "fileLength": 1646,
+                                                            "filepath": "/src/hello_world.py",
+                                                            "id": "5a1bd242ca100c1a210b0d3a",
+                                                            "uploadDate": "2017-11-27T08:52:18.562Z",
+                                                          },
+                                                          "5a1bd242ca100c1a210b0d3b": Object {
+                                                            "chunkSize": 0,
+                                                            "fileLength": 0,
+                                                            "filepath": "/src/hello_world_2.py",
+                                                            "id": "5a1bd242ca100c1a210b0d3b",
+                                                            "uploadDate": "2017-11-27T08:53:18.562Z",
+                                                          },
+                                                        }
+                                                      }
+                                                    >
+                                                      <div>
+                                                        <ProgressWrapper
+                                                          loading={false}
+                                                        />
+                                                      </div>
+                                                    </FilePreview>
+                                                  </div>
+                                                </AccordionItemBody>
+                                              </AccordionItemBodyWrapper>
+                                            </Consumer>
+                                          </FromRenderProps>
+                                        </Consumer>
+                                      </FromRenderProps>
+                                    </div>
+                                  </AccordionItem>
+                                </Provider>
+                              </AccordionItemWrapper>
+                            </Consumer>
+                          </FromRenderProps>
+                        </div>
                       </div>
-                    </Accordion>
-                  </Consumer>
-                </Subscribe>
-              </Provider>
+                    </div>
+                  </ReactList>
+                </div>
+              </Accordion>
             </Consumer>
           </Provider>
         </AccordionWrapper>

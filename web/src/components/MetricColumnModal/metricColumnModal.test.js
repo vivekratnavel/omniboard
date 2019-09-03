@@ -1,29 +1,29 @@
 import React from 'react';
-import { MetricColumnModal } from './metricColumnModal';
 import mockAxios from 'jest-mock-axios';
-import { parseServerError } from '../Helpers/utils';
+import {parseServerError} from '../Helpers/utils';
+import {MetricColumnModal} from './metricColumnModal';
 
 describe('MetricColumnModal', () => {
   let wrapper = null;
-  const closeHandler = jest.fn(),
-    dataUpdateHandler = jest.fn(),
-    deleteHandler = jest.fn();
+  const closeHandler = jest.fn();
+  const dataUpdateHandler = jest.fn();
+  const deleteHandler = jest.fn();
 
   const responseData = [
-    {"_id":"5b5430c2893f17812d823d85","name":"train_loss_min","metric_name":"pretrain.train.loss","extrema":"min"},
-    {"_id":"5b54eeb0893f17812d823d88","name":"val_loss_max","metric_name":"pretrain.val.loss","extrema":"max"}
+    {_id: '5b5430c2893f17812d823d85', name: 'train_loss_min', metric_name: 'pretrain.train.loss', extrema: 'min'},
+    {_id: '5b54eeb0893f17812d823d88', name: 'val_loss_max', metric_name: 'pretrain.val.loss', extrema: 'max'}
   ];
 
-  const metricNamesResponse = ["pretrain.train.loss","pretrain.val.loss","finetune.train.loss","finetune.val.loss"];
+  const metricNamesResponse = ['pretrain.train.loss', 'pretrain.val.loss', 'finetune.train.loss', 'finetune.val.loss'];
 
   beforeEach(() => {
     wrapper = shallow(
-      <MetricColumnModal handleClose={closeHandler} show={true} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
+      <MetricColumnModal show handleClose={closeHandler} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
     );
   });
 
   afterEach(() => {
-    // cleaning up the mess left behind the previous test
+    // Cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
   });
@@ -114,7 +114,7 @@ describe('MetricColumnModal', () => {
       wrapper.find('[test-attr="delete-0"]').simulate('click');
       mockAxios.mockResponse({status: 204, data: []});
 
-      expect(deleteHandler).toHaveBeenCalledWith("train_loss_min");
+      expect(deleteHandler).toHaveBeenCalledWith('train_loss_min');
       expect(wrapper.state().columns).toHaveLength(1);
       expect(wrapper.state().columns[0].id).toEqual(responseData[1]._id);
     });
@@ -127,7 +127,7 @@ describe('MetricColumnModal', () => {
 
       expect(mockAxios.delete).not.toHaveBeenCalled();
       expect(wrapper.state().columns).toHaveLength(0);
-    })
+    });
   });
 
   describe('should handle errors correctly', () => {
@@ -181,7 +181,7 @@ describe('MetricColumnModal', () => {
       });
     });
 
-    it('for update', async() => {
+    it('for update', async () => {
       const errorResponse = {status: 400, message: 'unknown error'};
       mockAxios.mockResponse({status: 200, data: responseData});
       mockAxios.mockResponse({status: 200, data: metricNamesResponse});
@@ -196,7 +196,6 @@ describe('MetricColumnModal', () => {
 
       expect(wrapper.state().error).toEqual(parseServerError(errorResponse));
     });
-
   });
 
   describe('should add columns correctly', () => {

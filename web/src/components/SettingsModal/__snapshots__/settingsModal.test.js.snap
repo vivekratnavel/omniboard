@@ -1278,6 +1278,10 @@ exports[`SettingsModal should render correctly 1`] = `
                       "value": "Asia/Qatar",
                     },
                     Object {
+                      "label": "Asia/Qostanay",
+                      "value": "Asia/Qostanay",
+                    },
+                    Object {
                       "label": "Asia/Qyzylorda",
                       "value": "Asia/Qyzylorda",
                     },
@@ -2474,12 +2478,47 @@ exports[`SettingsModal should render correctly 1`] = `
                   placeholder="Enter auto refresh interval"
                   test-attr="auto-refresh-interval"
                   type="text"
-                  value={0.03}
+                  value=""
                 />
                 <InputGroupAddon
                   bsClass="input-group-addon"
                 >
                   Seconds
+                </InputGroupAddon>
+              </InputGroup>
+            </Col>
+          </FormGroup>
+          <FormGroup
+            bsClass="form-group"
+          >
+            <Col
+              bsClass="col"
+              componentClass={[Function]}
+              sm={4}
+            >
+              Initial No. of Rows to Fetch
+            </Col>
+            <Col
+              bsClass="col"
+              componentClass="div"
+              sm={4}
+            >
+              <InputGroup
+                bsClass="input-group"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter initial fetch size"
+                  test-attr="initial-fetch-size"
+                  type="number"
+                  value=""
+                />
+                <InputGroupAddon
+                  bsClass="input-group-addon"
+                >
+                  Rows
                 </InputGroupAddon>
               </InputGroup>
             </Col>

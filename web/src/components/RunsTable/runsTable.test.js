@@ -1,32 +1,40 @@
 import React from 'reactn';
-import RunsTable, { FILTER_OPERATOR_LABELS } from './runsTable';
 import mockAxios from 'jest-mock-axios';
-import { parseServerError } from '../Helpers/utils';
-import { STATUS, PROBABLY_DEAD_TIMEOUT } from '../../appConstants/status.constants';
-import { toast } from "react-toastify";
-import { SortTypes } from "../Helpers/cells";
+import {toast} from 'react-toastify';
+import {parseServerError} from '../Helpers/utils';
+import {STATUS} from '../../appConstants/status.constants';
 import * as appConstants from '../../appConstants/app.constants';
+import RunsTable, {DEFAULT_COLUMN_WIDTH, FILTER_OPERATOR_LABELS} from './runsTable';
 
 describe('RunsTable', () => {
   let wrapper = null;
   let runsResponse = null;
-  const tagsResponse = ["test"],
-    metricColumnsResponse = [{"_id":"5b7ef4714232e2d5bec00e2f","name":"pretrain_loss_min","metric_name":"pretrain.train.loss","extrema":"min","__v":0}],
-    configColumnsResponse = [
-      {"_id":"5c16204663dfd3fe6a193610","name":"batch_size","config_path":"train.batch_size","__v":0},
-      {"_id":"5c16ea82bea682411d7c0405","name":"settings_epochs","config_path":"train.settings.epochs","__v":0},
-      {"_id":"5c16ebd6bea682411d7c0407","name":"Lr","config_path":"train.lr","__v":0}
-    ],
-    RealDate = Date,
-    constantDate = new Date(2018),
-    configColumnModalCloseHandler = jest.fn(),
-    settingsModalCloseHandler = jest.fn();
-  /* eslint-disable global-assign */
+  const tagsResponse = ['test'];
+  const countResponse = {count: 4};
+  let metricColumnsResponse = null;
+  let customColumnsResponse = null;
+  const RealDate = Date;
+  const constantDate = new Date(2018);
+  const customColumnModalCloseHandler = jest.fn();
+  const settingsModalCloseHandler = jest.fn();
+  const initialSelect = '_id,heartbeat,experiment,command,host,stop_time,config,duration,' +
+    'result,start_time,resources,format,status,omniboard,metrics,meta,pretrain_loss_min';
+  const subsequentSelect = '_id,experiment.name,host.hostname,format,command,start_time,status,omniboard.tags,omniboard.notes,' +
+    'resources,heartbeat,duration,result,stop_time,pretrain_loss_min,config.message,config.recipient,config.seed,' +
+    'config.train';
   toast.error = jest.fn();
-  /* eslint-disable no-console */
   console.warn = jest.fn();
 
   beforeEach(async () => {
+    // RunsTable deletes certain keys in this data and it produces unexpected results
+    // That's why assigning data every time in "beforeEach" block
+    runsResponse = [{_id: 12, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:15:27.640Z', config: {message: 'Hello world!', recipient: 'world', seed: 748452106, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:16:13.734Z', result: 'Hello world!', stop_time: '2019-08-26T10:16:13.731Z', omniboard: {tags: ['test', 'test2', 'test3']}, duration: 46094, pretrain_loss_min: 1}, {_id: 11, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:09:15.417Z', config: {message: 'Hello world!', recipient: 'world', seed: 63143030, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:10:12.073Z', result: 'Hello world!', stop_time: '2019-08-26T10:10:12.070Z', duration: 56656, pretrain_loss_min: 3}, {_id: 10, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:04:57.446Z', config: {message: 'Hello world!', recipient: 'world', seed: 87987508, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:05:51.044Z', result: 'Hello world!', stop_time: '2019-08-26T10:05:51.040Z', duration: 53598, pretrain_loss_min: 2}, {_id: 9, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T09:58:54.573Z', config: {message: 'Hello world!', recipient: 'world', seed: 240075121, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T09:59:49.354Z', result: 'Hello world!', stop_time: '2019-08-26T09:59:49.352Z', duration: 54781, pretrain_loss_min: 1}];
+    metricColumnsResponse = [{_id: '5b7ef4714232e2d5bec00e2f', name: 'pretrain_loss_min', metric_name: 'pretrain.train.loss', extrema: 'min', __v: 0}];
+    customColumnsResponse = [
+      {_id: '5c16204663dfd3fe6a193610', name: 'batch_size', config_path: 'config.train.batch_size', __v: 0},
+      {_id: '5c16ea82bea682411d7c0405', name: 'settings_epochs', config_path: 'config.train.settings.epochs', __v: 0},
+      {_id: '5c16ebd6bea682411d7c0407', name: 'Lr', config_path: 'config.train.lr', __v: 0}
+    ];
     // Set an initial global state directly:
     React.setGlobal({
       settings: {
@@ -35,19 +43,19 @@ describe('RunsTable', () => {
         },
         [appConstants.AUTO_REFRESH_INTERVAL]: {
           value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL
+        },
+        [appConstants.INITIAL_FETCH_SIZE]: {
+          value: runsResponse.length
         }
       }
     });
 
     await tick();
     wrapper = mount(
-      <RunsTable showConfigColumnModal={false} handleConfigColumnModalClose={configColumnModalCloseHandler}
-                 showSettingsModal={false}
-                 handleSettingsModalClose={settingsModalCloseHandler}/>
+      <RunsTable showCustomColumnModal={false} handleCustomColumnModalClose={customColumnModalCloseHandler}
+        showSettingsModal={false}
+        handleSettingsModalClose={settingsModalCloseHandler}/>
     );
-    // runsTable deletes certain keys in this data and it produces unexpected results
-    // That's why assigning data everytime in "beforeEach" block
-    runsResponse = [{"_id":226,"config":{"degree_increment":15,"lr_drop_rate":0.1,"model_name":"vgg16","num_views":12,"resume":null,"random_rotate":false,"pretrain_epochs":5,"comment":"","batch_size":10,"keep_cnn2_lr":false,"method":"max","val_label_csv":null,"seed":577224600,"finetune_learning_rate":0.0002,"random_y_flip":false,"debug":false,"save_images":false,"finetune_layers":12,"dim":227,"gpu_device_ids":[0],"optimizer_name":"SGD","learning_rate":0.00033,"dataset":"train","epochs_per_lr_drop":100,"split_id":2,"cnn1_pretrained":true,"part_name":"waist","random_x_flip":true,"dropout_p":0.4,"random_crop":false,"weight_decay":0.0001,"num_classes":1,"finetune_epochs":150,"run_id":"vgg16-waist-split-2","is_grayscale":false},"format":"MongoObserver-0.7.0","stop_time":"2017-12-09T19:02:33.588Z","command":"main","resources":[],"meta":{"command":"main","options":{"--help":false,"--debug":false,"--sql":null,"UPDATE":["learning_rate=0.00033","degree_increment=15","run_id=vgg16-waist-split-2","batch_size=10","split_id=2","part_name=waist","model_name=vgg16","num_classes=1","finetune_learning_rate=0.0002","num_views=12","dropout_p=0.4","method=max","finetune_epochs=150","gpu_device_ids=[0]"],"--print_config":false,"--enforce_clean":true,"COMMAND":null,"--queue":false,"--name":null,"--mongo_db":"nyabuntu:27017:sacred","help":false,"--pdb":false,"--comment":null,"--file_storage":null,"--beat_interval":null,"with":true,"--capture":null,"--unobserved":false,"--tiny_db":null,"--loglevel":null,"--force":false,"--priority":null}},"status":"COMPLETED","host":{"os":["Linux","Linux-4.4.0-101-generic-x86_64-with-debian-stretch-sid"],"hostname":"ketone","gpus":{"driver_version":"384.90","gpus":[{"persistence_mode":false,"total_memory":11172,"model":"GeForce GTX 1080 Ti"},{"persistence_mode":false,"total_memory":11172,"model":"GeForce GTX 1080 Ti"},{"persistence_mode":false,"total_memory":11167,"model":"GeForce GTX 1080 Ti"}]},"cpu":"AMD Ryzen Threadripper 1950X 16-Core Processor","ENV":{},"python_version":"3.5.3"},"result":null,"experiment":{"base_dir":"/home/sample/test/src","repositories":[{"commit":"19b0eeaeb9487fa83092bafed90c9ef7632f5875","dirty":false,"url":"git@gitlab.com:test/test.git"}],"dependencies":["numpy==1.12.1","sacred==0.7.2","torch==0.2.0.post4"],"mainfile":"train_mvcnn.py","sources":[["config.py","5a2b28fb613551c8336c1ad7"],["data.py","5a290e6cca100c1e26d9b0f2"]],"name":"train_mvcnn"},"start_time":"2017-12-09T03:52:27.032Z","heartbeat":"2017-12-09T19:02:33.590Z","omniboard":{"notes":"testing note!","tags":["tag1","test"]},"metrics":[{"_id":"5a2b5f639c7a505a652f686a","name":"pretrain.train.loss","run_id":226,"timestamps":["2017-12-09T03:58:17.844Z","2017-12-09T04:06:20.027Z","2017-12-09T04:14:22.382Z","2017-12-09T04:22:20.467Z","2017-12-09T04:30:18.968Z"],"values":[0.5324579061182472,0.2914960329687301,0.23130620609884442,0.20769643091361042,0.16022304643890112],"steps":[0,1,2,3,4]},{"_id":"5a2b5f819c7a505a652f68a0","name":"pretrain.val.loss","run_id":226,"timestamps":["2017-12-09T03:58:52.649Z","2017-12-09T04:06:54.233Z","2017-12-09T04:14:55.985Z","2017-12-09T04:22:54.501Z","2017-12-09T04:30:53.225Z"],"values":[0.5495098043664547,0.49541433053454015,0.3766315503759878,0.32450790044486005,0.34349719718795324],"steps":[0,1,2,3,4]}]}, {"_id":222,"config":{"batch_size":10,"dropout_p":0.4,"comment":"","random_y_flip":false,"epochs_per_lr_drop":100,"optimizer_name":"SGD","finetune_epochs":150,"random_crop":false,"lr_drop_rate":0.1,"degree_increment":30,"resume":null,"finetune_layers":12,"model_name":"vgg16","debug":false,"val_label_csv":null,"dim":227,"weight_decay":0.0001,"seed":166636088,"is_grayscale":false,"finetune_learning_rate":0.0002,"keep_cnn2_lr":false,"pretrain_epochs":5,"part_name":"arms","gpu_device_ids":[0],"random_rotate":false,"random_x_flip":true,"run_id":"vgg16-arms-cog-split-2","dataset":"train","num_classes":2,"learning_rate":0.00033,"method":"cog","cnn1_pretrained":true,"split_id":2,"num_views":12,"save_images":false},"result":null,"format":"MongoObserver-0.7.0","heartbeat":"2017-12-09T14:08:02.176Z","stop_time":"2017-12-09T14:08:02.175Z","status":"COMPLETED","start_time":"2017-12-09T03:33:38.375Z","meta":{"options":{"--tiny_db":null,"--comment":null,"--enforce_clean":false,"UPDATE":["split_id=2","finetune_learning_rate=0.0002","model_name=vgg16","num_classes=2","degree_increment=30","num_views=12","dropout_p=0.4","part_name=arms","learning_rate=0.00033","method=cog","run_id=vgg16-arms-cog-split-2","batch_size=10","finetune_epochs=150","gpu_device_ids=[0]"],"--sql":null,"--pdb":false,"help":false,"--file_storage":null,"--beat_interval":null,"--debug":false,"--mongo_db":"sacred","--queue":false,"--print_config":false,"--capture":null,"--name":null,"COMMAND":null,"--loglevel":null,"--priority":null,"--help":false,"with":true,"--unobserved":false,"--force":false},"command":"main"},"resources":[],"host":{"hostname":"nyabuntu","ENV":{},"python_version":"3.5.3","gpus":{"gpus":[{"persistence_mode":false,"model":"GeForce GTX 1080 Ti","total_memory":11172},{"persistence_mode":false,"model":"GeForce GTX 1080 Ti","total_memory":11172},{"persistence_mode":false,"model":"TITAN X (Pascal)","total_memory":12188}],"driver_version":"384.90"},"os":["Linux","Linux-4.4.0-103-generic-x86_64-with-debian-stretch-sid"],"cpu":"Intel(R) Core(TM) i7-6850K CPU @ 3.60GHz"},"experiment":{"sources":[["config.py","5a2aeaffca100c076c7fa525"],["data.py","5a290e6cca100c1e26d9b0f2"]],"mainfile":"train_mvcnn.py","repositories":[{"dirty":true,"url":"git@gitlab.com:test/test.git","commit":"8bd4f6e8765376f4ad01cce8c285f9563bc19512"}],"dependencies":["numpy==1.12.1","sacred==0.7.2","torch==0.2.0.post4"],"base_dir":"/home/sample/test/src","name":"train_mvcnn"},"command":"main","omniboard":{"notes":"notes for 222","tags":["tag1","test1"]},"metrics":[{"_id":"5a2b5a8c9c7a505a652f6127","name":"pretrain.train.loss","run_id":222,"values":[0.7159541824544438,0.3840367944955761,0.3469185283233073,0.30483262065173106,0.28915774130337507],"steps":[0,1,2,3,4],"timestamps":["2017-12-09T03:37:44.425Z","2017-12-09T03:41:54.414Z","2017-12-09T03:46:01.766Z","2017-12-09T03:50:07.365Z","2017-12-09T03:54:12.560Z"]},{"_id":"5a2b5aa09c7a505a652f6146","name":"pretrain.val.loss","run_id":222,"values":[0.32177006650114165,0.23237958704995795,0.23340759051386187,0.21925230575196739,0.20541178824900605],"steps":[0,1,2,3,4],"timestamps":["2017-12-09T03:38:01.945Z","2017-12-09T03:42:11.673Z","2017-12-09T03:46:18.843Z","2017-12-09T03:50:24.377Z","2017-12-09T03:54:29.752Z"]}]}];
     global.Date = class extends RealDate {
       constructor(dateString) {
         super();
@@ -58,28 +66,31 @@ describe('RunsTable', () => {
   });
 
   afterEach(() => {
-    // cleaning up the mess left behind the previous test
+    // Cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
     global.Date = RealDate;
-    // reset localStorage
-    /* eslint-disable no-global-assign */
+    // Reset localStorage
     localStorage.clear();
     React.resetGlobal();
   });
 
-  it('should render', async () => {
-    expect(wrapper.state().isTableLoading).toBeTruthy();
+  const initialRequestResponse = async () => {
     mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+    mockAxios.mockResponse({status: 200, data: customColumnsResponse});
     await tick();
 
     mockAxios.mockResponse({status: 200, data: runsResponse});
     mockAxios.mockResponse({status: 200, data: tagsResponse});
-    mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+    mockAxios.mockResponse({status: 200, data: countResponse});
     await tick();
+  };
+
+  it('should render', async () => {
+    expect(wrapper.state().isTableLoading).toBeTruthy();
+    await initialRequestResponse();
 
     expect(wrapper.state().isTableLoading).toBeFalsy();
-    expect(wrapper.update()).toMatchSnapshot();
   });
 
   it('should open add remove metric columns modal', () => {
@@ -91,196 +102,202 @@ describe('RunsTable', () => {
     expect(wrapper.state().showMetricColumnModal).toBeFalsy();
   });
 
-  describe('should load data', async () => {
-    const getAPIArguments = (queryString) => {
+  describe('should load data', () => {
+    const getAPIArguments = (select, queryString) => {
       return ['/api/v1/Runs', {
         params: {
-          select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
-            'result,start_time,resources,format,status,omniboard,metrics,meta',
-          sort: '-_id',
+          select,
+          sort_by: '_id',
+          order_by: '-1',
           query: queryString,
-          populate: {
-            match: {
-              name: {
-                $in: [
-                  "pretrain.train.loss"
-                ],
-              },
-            },
-            path: "metrics",
-          }
+          limit: React.getGlobal().settings[appConstants.INITIAL_FETCH_SIZE].value
         }
-      }]
+      }];
     };
 
     it('with status filter query', async () => {
       let queryString = {};
 
       mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: customColumnsResponse});
       await tick();
 
-      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(JSON.stringify(queryString)));
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(initialSelect, JSON.stringify(queryString)));
       mockAxios.mockResponse({status: 200, data: runsResponse});
       mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: countResponse});
       mockAxios.reset();
       wrapper.instance().statusFilterDomNode = {
         $multiselect: {
           val: () => ['running']
         }
       };
-      queryString = JSON.stringify({'$and': [{'$or': [{'status': {'$eq': 'running'}}]}]});
+      queryString = JSON.stringify({$and: [{$or: [{status: {$eq: 'running'}}]}]});
       wrapper.instance()._handleStatusFilterChange({});
 
       mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: customColumnsResponse});
       await tick();
 
-      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(queryString));
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
     });
 
     it('with status filter as running', async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+      await initialRequestResponse();
       mockAxios.reset();
       wrapper.instance().statusFilterDomNode = {
         $multiselect: {
           val: () => [STATUS.RUNNING]
         }
       };
-      const heartbeatTimeout = constantDate - PROBABLY_DEAD_TIMEOUT;
-      const queryString = JSON.stringify({'$and': [{'$or': [{'$and': [{'status': STATUS.RUNNING}, {'heartbeat': `>${heartbeatTimeout}`}]}]}]});
+      const queryString = JSON.stringify({$and: [{$or: [{status: {$eq: STATUS.RUNNING}}]}]});
       wrapper.instance()._handleStatusFilterChange({});
 
       mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: customColumnsResponse});
       await tick();
 
-      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(queryString));
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
     });
 
-    it('with status filter as probably_dead', async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
+    it('with status filter as running and probably_dead', async () => {
+      await initialRequestResponse();
 
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
       mockAxios.reset();
       wrapper.instance().statusFilterDomNode = {
         $multiselect: {
-          val: () => [STATUS.PROBABLY_DEAD]
+          val: () => [STATUS.PROBABLY_DEAD, STATUS.RUNNING]
         }
       };
-      const heartbeatTimeout = constantDate - PROBABLY_DEAD_TIMEOUT;
-      const queryString = JSON.stringify({'$and': [{'$or': [{'$and': [{'status': STATUS.RUNNING}, {'heartbeat': `<${heartbeatTimeout}`}]}]}]});
+      const queryString = JSON.stringify({$and: [{$or: [{status: {$eq: STATUS.PROBABLY_DEAD}}, {status: {$eq: STATUS.RUNNING}}]}]});
       wrapper.instance()._handleStatusFilterChange({});
 
       mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: customColumnsResponse});
       await tick();
 
-      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(queryString));
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
     });
 
     it('the second time when other states are retrieved from local storage', async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+      await initialRequestResponse();
       wrapper.instance().loadData();
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
+      await initialRequestResponse();
 
       expect(wrapper.state().isTableLoading).toBeFalsy();
-    })
+    });
+
+    it('with empty response', async () => {
+      await initialRequestResponse();
+      wrapper.instance().loadData();
+      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: customColumnsResponse});
+      await tick();
+
+      mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: countResponse});
+      await tick();
+
+      expect(wrapper.update().state().isTableLoading).toBeFalsy();
+      expect(wrapper.update().state().data).toHaveLength(0);
+      expect(wrapper.update().state().sortedData.getSize()).toEqual(0);
+    });
   });
 
-  describe('should load partial updates', async () => {
-    const getAPIArguments = (queryString) => {
-      return ['/api/v1/Runs', {
+  describe('should load partial updates', () => {
+    const getAPIArguments = (api, select, queryString) => {
+      return [api, {
         params: {
-          select: '_id,heartbeat,experiment,command,host,stop_time,config,' +
-            'result,start_time,resources,format,status,omniboard,metrics,meta',
-          sort: '-_id',
+          select,
+          sort_by: '_id',
+          order_by: '-1',
           query: queryString,
-          populate: {
-            match: {
-              name: {
-                $in: [
-                  "pretrain.train.loss"
-                ],
-              },
-            },
-            path: "metrics",
-          }
+          limit: React.getGlobal().settings[appConstants.INITIAL_FETCH_SIZE].value
         }
-      }]
+      }];
     };
 
-    beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
+    const runsApi = '/api/v1/Runs';
+    const countApi = '/api/v1/Runs/count';
 
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
+    beforeEach(async () => {
+      await initialRequestResponse();
       mockAxios.reset();
     });
 
     it('and render correctly', async () => {
-      // it should query runs > max Run Id or
-      // runs with RUNNING status
-      const queryString = {$and: [{
-        $or: [{
-          _id: {$in: []}
-        }, {
-          _id: {$gt: 226}
-        }]
-        }]};
+      // It should fetch count with the same filter query
+      const queryString = '{}';
       const updateResponse = [
-        {"_id":227,"status":"RUNNING","result":null,"start_time":"2017-12-09T03:52:27.032Z","heartbeat":"2017-12-09T19:02:33.590Z","omniboard":{"notes":"testing note!","tags":["tag1","test"]},"metrics":[]},
-        {"_id":226,"status":"COMPLETED","result":null,"start_time":"2017-12-09T03:52:27.032Z","heartbeat":"2017-12-09T19:02:33.590Z","omniboard":{"notes":"UPDATED NOTE","tags":["tag1","test"]},"metrics":[]}
-        ];
+        {_id: 227, status: 'RUNNING', result: null, start_time: '2017-12-09T03:52:27.032Z', heartbeat: '2017-12-09T19:02:33.590Z', omniboard: {notes: 'testing note!', tags: ['tag1', 'test']}, metrics: []},
+        {_id: 226, status: 'COMPLETED', result: null, start_time: '2017-12-09T03:52:27.032Z', heartbeat: '2017-12-09T19:02:33.590Z', omniboard: {notes: 'UPDATED NOTE', tags: ['tag1', 'test']}, metrics: []}
+      ];
+      const updateCountResponse = {count: 6};
       wrapper.instance().loadPartialUpdates();
 
-      expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(queryString));
-      expect(wrapper.state().data).toHaveLength(2);
+      expect(wrapper.state().isFetchingUpdates).toBeTruthy();
+      expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments(countApi, subsequentSelect, queryString));
+      expect(wrapper.state().data).toHaveLength(4);
+      expect(wrapper.state().sortedData.getSize()).toEqual(4);
+      mockAxios.mockResponse({status: 200, data: updateCountResponse});
+
+      await tick();
+
+      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(runsApi, subsequentSelect, queryString));
       mockAxios.mockResponse({status: 200, data: updateResponse});
 
       await tick();
 
-      expect(wrapper.state().data).toHaveLength(3);
-      expect(wrapper.state().data.filter(run => run._id === 227)).toHaveLength(1);
-      expect(wrapper.state().data.find(run => run._id === 226).notes).toEqual('UPDATED NOTE');
+      expect(wrapper.state().data).toHaveLength(4);
+      expect(wrapper.state().sortedData.getSize()).toEqual(4);
+      expect(wrapper.state().newData).toHaveLength(2);
+      expect(wrapper.state().newRunsCount).toEqual(2);
+      expect(wrapper.state().newData.filter(run => run._id === 227)).toHaveLength(1);
+      expect(wrapper.state().newData.find(run => run._id === 226).notes).toEqual('UPDATED NOTE');
+    });
+
+    it('for running experiments', async () => {
+      const {data, sortedData} = wrapper.state();
+      data.push({_id: 20, status: 'RUNNING'});
+      sortedData.data = data;
+      wrapper.setState({data, sortedData});
+      const updateCountResponse = {count: 4};
+      wrapper.instance().loadPartialUpdates();
+
+      mockAxios.mockResponse({status: 200, data: updateCountResponse});
+
+      const queryString = {
+        $and: [{
+          _id: {$in: [20]}
+        }]
+      };
+      expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments(runsApi, subsequentSelect, queryString));
+      mockAxios.mockResponse({status: 200, data: [{_id: 20, status: 'COMPLETED'}]});
+
+      expect(wrapper.update().state().isFetchingUpdates).toBeFalsy();
+      expect(wrapper.update().state().dataVersion).toEqual(1);
+      expect(wrapper.update().state().data.find(run => run._id === 20).status).toEqual('COMPLETED');
     });
   });
 
-  it('should initialize empty note with comment', async() => {
-    runsResponse = [{"_id":226,"config":{"degree_increment":15,"lr_drop_rate":0.1,"model_name":"vgg16","num_views":12,"resume":null,"random_rotate":false,"pretrain_epochs":5,"comment":"","batch_size":10,"keep_cnn2_lr":false,"method":"max","val_label_csv":null,"seed":577224600,"finetune_learning_rate":0.0002,"random_y_flip":false,"debug":false,"save_images":false,"finetune_layers":12,"dim":227,"gpu_device_ids":[0],"optimizer_name":"SGD","learning_rate":0.00033,"dataset":"train","epochs_per_lr_drop":100,"split_id":2,"cnn1_pretrained":true,"part_name":"waist","random_x_flip":true,"dropout_p":0.4,"random_crop":false,"weight_decay":0.0001,"num_classes":1,"finetune_epochs":150,"run_id":"vgg16-waist-split-2","is_grayscale":false},"format":"MongoObserver-0.7.0","stop_time":"2017-12-09T19:02:33.588Z","command":"main","resources":[],"meta":{"command":"main","comment":"test comment"},"status":"COMPLETED","result":null,"heartbeat":"2017-12-09T19:02:33.590Z","metrics":[]}];
+  it('should initialize empty note with comment', async () => {
+    runsResponse = [{_id: 226, config: {degree_increment: 15, lr_drop_rate: 0.1, model_name: 'vgg16', num_views: 12, resume: null, random_rotate: false, pretrain_epochs: 5, comment: '', batch_size: 10, keep_cnn2_lr: false, method: 'max', val_label_csv: null, seed: 577224600, finetune_learning_rate: 0.0002, random_y_flip: false, debug: false, save_images: false, finetune_layers: 12, dim: 227, gpu_device_ids: [0], optimizer_name: 'SGD', learning_rate: 0.00033, dataset: 'train', epochs_per_lr_drop: 100, split_id: 2, cnn1_pretrained: true, part_name: 'waist', random_x_flip: true, dropout_p: 0.4, random_crop: false, weight_decay: 0.0001, num_classes: 1, finetune_epochs: 150, run_id: 'vgg16-waist-split-2', is_grayscale: false}, format: 'MongoObserver-0.7.0', stop_time: '2017-12-09T19:02:33.588Z', command: 'main', resources: [], meta: {command: 'main', comment: 'test comment'}, status: 'COMPLETED', result: null, heartbeat: '2017-12-09T19:02:33.590Z', metrics: []}];
+    mockAxios.mockResponse({status: 200, data: []});
     mockAxios.mockResponse({status: 200, data: []});
     await tick();
 
     mockAxios.mockResponse({status: 200, data: runsResponse});
     mockAxios.mockResponse({status: 200, data: tagsResponse});
-    mockAxios.mockResponse({status: 200, data: []});
+    mockAxios.mockResponse({status: 200, data: countResponse});
     await tick();
 
     expect(wrapper.state().data[0].notes).toEqual('test comment');
   });
 
   describe('should handle errors correctly', () => {
-    describe('for error in initial load', async () => {
-      const errResponse = {status: 500, message:'unknown error'};
+    describe('for error in initial load', () => {
+      const errResponse = {status: 500, message: 'unknown error'};
       it('metrics response', async () => {
         mockAxios.mockError(errResponse);
         await tick();
@@ -291,11 +308,12 @@ describe('RunsTable', () => {
 
       it('runs response', async () => {
         mockAxios.mockResponse({status: 200, data: []});
+        mockAxios.mockResponse({status: 200, data: []});
         await tick();
 
         mockAxios.mockError(errResponse);
         mockAxios.mockResponse({status: 200, data: tagsResponse});
-        mockAxios.mockResponse({status: 200, data: configColumnsResponse});
+        mockAxios.mockResponse({status: 200, data: countResponse});
         await tick();
 
         expect(wrapper.state().isError).toBeTruthy();
@@ -305,13 +323,7 @@ describe('RunsTable', () => {
   });
 
   it('should expand row correctly', async () => {
-    mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-    await tick();
-
-    mockAxios.mockResponse({status: 200, data: runsResponse});
-    mockAxios.mockResponse({status: 200, data: tagsResponse});
-    mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-    await tick();
+    await initialRequestResponse();
     wrapper.update().find('[test-attr="cell-row_expander-0"]').simulate('click');
 
     expect(wrapper.state().expandedRows).toContain(0);
@@ -326,14 +338,7 @@ describe('RunsTable', () => {
   describe('should handle tag change correctly', () => {
     const rowIndex = 0;
     beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
-
+      await initialRequestResponse();
       wrapper.instance()._handleTagChange(rowIndex)([{value: 'tag1'}, {value: 'tag2'}]);
     });
 
@@ -351,7 +356,7 @@ describe('RunsTable', () => {
     it('for success response', () => {
       expect(mockAxios.put).toHaveBeenCalledWith('/api/v1/Runs/' + runsResponse[rowIndex]._id, {
         omniboard: {
-          tags: ['tag1','tag2']
+          tags: ['tag1', 'tag2']
         }
       });
 
@@ -370,14 +375,7 @@ describe('RunsTable', () => {
     const notes = 'test notes';
 
     beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
-
+      await initialRequestResponse();
       wrapper.instance()._handleNotesChange(rowIndex)('name', notes);
     });
 
@@ -401,15 +399,9 @@ describe('RunsTable', () => {
   });
 
   describe('should handle delete experiment run', () => {
-    let runId = 222;
+    let runId = 12;
     beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
+      await initialRequestResponse();
     });
 
     it('when run is present', () => {
@@ -417,20 +409,6 @@ describe('RunsTable', () => {
       wrapper.instance()._handleDeleteExperimentRun(runId);
 
       expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(0);
-    });
-
-    it('when run is present and sort enabled', () => {
-      runId = runsResponse[0]._id;
-      wrapper.setState({
-        sort: {
-          _id: SortTypes.DESC
-        }
-      }, () => {
-        wrapper.update().instance()._handleDeleteExperimentRun(runId);
-      });
-
-      expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(0);
-      expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(runsResponse[1]._id);
     });
 
     it('when run is not present', () => {
@@ -443,13 +421,19 @@ describe('RunsTable', () => {
   });
 
   it('should handle sort change correctly', async () => {
-    mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-    await tick();
+    const getAPIArguments = (select, sortBy, orderBy) => {
+      return ['/api/v1/Runs', {
+        params: {
+          select,
+          sort_by: sortBy,
+          order_by: orderBy,
+          query: '{}',
+          limit: React.getGlobal().settings[appConstants.INITIAL_FETCH_SIZE].value
+        }
+      }];
+    };
 
-    mockAxios.mockResponse({status: 200, data: runsResponse});
-    mockAxios.mockResponse({status: 200, data: tagsResponse});
-    mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-    await tick();
+    await initialRequestResponse();
 
     const event = {
       preventDefault: jest.fn()
@@ -457,23 +441,24 @@ describe('RunsTable', () => {
     wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
 
     expect(event.preventDefault).toHaveBeenCalledWith();
-    expect(wrapper.state().sort['_id']).toEqual('ASC');
-    expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(222);
-    wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
+    expect(wrapper.state().sort._id).toEqual('DESC');
 
-    expect(wrapper.state().sort['_id']).toEqual('DESC');
-    expect(wrapper.state().sortedData.getObjectAt(0)._id).toEqual(226);
+    let sortBy = '_id';
+    let orderBy = '-1';
+    expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(initialSelect, sortBy, orderBy));
+
+    await initialRequestResponse();
+
+    wrapper.update().find('[test-attr="header-sort-_id"]').simulate('click', event);
+    sortBy = '_id';
+    orderBy = '-1';
+    expect(wrapper.state().sort._id).toEqual('ASC');
+    expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(initialSelect, sortBy, orderBy));
   });
 
   describe('should handle column show/hide correctly', () => {
     beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
+      await initialRequestResponse();
     });
 
     afterEach(() => {
@@ -499,7 +484,7 @@ describe('RunsTable', () => {
       };
 
       expect(wrapper.state().dropdownOptions.find(option => option.value === '_id').selected).toBeTruthy();
-      wrapper.instance()._handleDropdownChange({});
+      wrapper.instance()._handleShowHideColumnsDropdownChange({});
 
       expect(wrapper.state().dropdownOptions.find(option => option.value === '_id').selected).toBeFalsy();
       expect(wrapper.state().columnOrder).not.toContain('_id');
@@ -510,13 +495,7 @@ describe('RunsTable', () => {
 
   describe('should handle column reorder correctly', () => {
     beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
+      await initialRequestResponse();
     });
 
     it('when columnAfter is present', () => {
@@ -544,13 +523,7 @@ describe('RunsTable', () => {
   });
 
   it('should handle metric column delete correctly', async () => {
-    mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-    await tick();
-
-    mockAxios.mockResponse({status: 200, data: runsResponse});
-    mockAxios.mockResponse({status: 200, data: tagsResponse});
-    mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-    await tick();
+    await initialRequestResponse();
     wrapper.instance()._handleColumnDelete('_id');
 
     expect(wrapper.state().columnOrder.indexOf('_id')).toEqual(-1);
@@ -560,13 +533,7 @@ describe('RunsTable', () => {
 
   describe('should add or remove filters', () => {
     beforeEach(async () => {
-      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
-      await tick();
-
-      mockAxios.mockResponse({status: 200, data: runsResponse});
-      mockAxios.mockResponse({status: 200, data: tagsResponse});
-      mockAxios.mockResponse({status: 200, data: configColumnsResponse});
-      await tick();
+      await initialRequestResponse();
     });
 
     afterEach(() => {
@@ -581,7 +548,7 @@ describe('RunsTable', () => {
       });
     });
 
-    it('should add filter', async() => {
+    it('should add filter', async () => {
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       mockAxios.mockResponse({status: 200, data: []});
       await tick();
@@ -594,10 +561,10 @@ describe('RunsTable', () => {
       expect(wrapper.state().filterColumnName).toEqual('');
       expect(wrapper.state().filterColumnOperator).toEqual('$eq');
       expect(wrapper.state().filterColumnValue).toEqual('');
-      expect(wrapper.find('.tags-container').find('.item').find('.tag').at(0).text()).toEqual(`Hostname ${FILTER_OPERATOR_LABELS['$eq']} host1`);
+      expect(wrapper.find('.tags-container').find('.item').find('.tag').at(0).text()).toEqual(`Hostname ${FILTER_OPERATOR_LABELS.$eq} host1`);
     });
 
-    it('should add filter with $in operator', async() => {
+    it('should add filter with $in operator', async () => {
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       await tick();
       mockAxios.mockResponse({status: 200, data: []});
@@ -610,10 +577,10 @@ describe('RunsTable', () => {
       expect(wrapper.state().filterColumnName).toEqual('');
       expect(wrapper.state().filterColumnOperator).toEqual('$eq');
       expect(wrapper.state().filterColumnValue).toEqual('');
-      expect(wrapper.find('.tags-container').find('.item').find('.tag').at(0).text()).toEqual(`Hostname ${FILTER_OPERATOR_LABELS['$in']} host1,host2`);
+      expect(wrapper.find('.tags-container').find('.item').find('.tag').at(0).text()).toEqual(`Hostname ${FILTER_OPERATOR_LABELS.$in} host1,host2`);
     });
 
-    it('should handle add filter errors', async() => {
+    it('should handle add filter errors', async () => {
       expect(wrapper.state().filterColumnNameError).toBeFalsy();
       expect(wrapper.state().filterColumnValueError).toBeFalsy();
       wrapper.find('#add_filter').at(1).simulate('click');
@@ -627,56 +594,71 @@ describe('RunsTable', () => {
       expect(wrapper.state().filterColumnValueError).toBeTruthy();
     });
 
-    it('should load value dropdown options', async() => {
-      const response = ["host1", "host2"];
+    it('should load value dropdown options', async () => {
+      const response = ['host1', 'host2'];
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       await tick();
       mockAxios.mockResponse({status: 200, data: response});
       await tick();
-      const expectedOptions = response.map(value => { return {label: value, value} });
+      const expectedOptions = response.map(value => {
+        return {label: value, value};
+      });
       const dropdownOptions = wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options;
 
       expect(dropdownOptions).toEqual(expectedOptions);
     });
 
-    it('should load value dropdown options for status', async() => {
-      const response = ["completed", "interrupted"];
+    it('should load value dropdown options for status', async () => {
+      mockAxios.reset();
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'status'});
+      expect(mockAxios.get.mock.calls).toHaveLength(0);
+
       await tick();
-      mockAxios.mockResponse({status: 200, data: response});
-      await tick();
-      const expectedOptions = response.map(value => { return {label: value, value} });
-      expectedOptions.push({label: STATUS.PROBABLY_DEAD, value: STATUS.PROBABLY_DEAD});
       const dropdownOptions = wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options;
 
-      expect(dropdownOptions).toEqual(expectedOptions);
+      expect(dropdownOptions).toHaveLength(7);
+      expect(dropdownOptions.some(option => option.value === STATUS.PROBABLY_DEAD)).toBeTruthy();
     });
 
-    it('should change value dropdown to multiselect', async() => {
+    it('should load value dropdown options for duration', async () => {
+      mockAxios.reset();
+      wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'duration'});
+      expect(mockAxios.get.mock.calls).toHaveLength(0);
+
+      await tick();
+      const dropdownOptions = wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options;
+
+      expect(dropdownOptions).toHaveLength(7);
+      expect(dropdownOptions.some(option => option.value === '1h')).toBeTruthy();
+    });
+
+    it('should change value dropdown to multiselect', async () => {
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       await tick();
 
       expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().isMulti).toBeFalsy();
 
-      mockAxios.mockResponse({status: 200, data: ["host1", "host2"]});
+      mockAxios.mockResponse({status: 200, data: ['host1', 'host2']});
       wrapper.find('[test-attr="filter-column-operator-dropdown"]').at(1).prop('onChange')({value: '$in'});
 
       expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().isMulti).toBeTruthy();
     });
 
-    it('value dropdown should allow multiple values', async() => {
-      const response = ["host1", "host2"];
+    it('value dropdown should allow multiple values', async () => {
+      const response = ['host1', 'host2'];
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       await tick();
       mockAxios.mockResponse({status: 200, data: response});
       wrapper.find('[test-attr="filter-column-operator-dropdown"]').at(1).prop('onChange')({value: '$in'});
       wrapper.update().find('[test-attr="filter-column-value"]').at(1).prop('onChange')([{value: 'host1'}, {value: 'host2'}]);
-      const expectedValues = response.map(value => { return {label: value, value} });
+      const expectedValues = response.map(value => {
+        return {label: value, value};
+      });
 
       expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().value).toEqual(expectedValues);
     });
 
-    it('should handle value dropdown options error', async() => {
+    it('should handle value dropdown options error', async () => {
       wrapper.find('[test-attr="filter-column-name-dropdown"]').at(1).prop('onChange')({value: 'host.hostname'});
       await tick();
       mockAxios.mockResponse({status: 400});
@@ -684,17 +666,17 @@ describe('RunsTable', () => {
       expect(wrapper.update().find('[test-attr="filter-column-value"]').at(1).props().options).toHaveLength(0);
     });
 
-    it('should remove a filter', async() => {
+    it('should remove a filter', async () => {
       wrapper.setState({
         filterColumnName: '_id',
         filterColumnOperator: '$gt',
-        filterColumnValue: '7',
+        filterColumnValue: '7'
       });
       wrapper.instance()._handleAddFilterClick();
       wrapper.setState({
         filterColumnName: 'bool',
         filterColumnOperator: '$eq',
-        filterColumnValue: 'true',
+        filterColumnValue: 'true'
       });
       wrapper.instance()._handleAddFilterClick();
 
@@ -705,5 +687,139 @@ describe('RunsTable', () => {
       expect(wrapper.update().state().filters.advanced).toHaveLength(1);
       expect(wrapper.state().filters.advanced[0].value).toEqual('true');
     });
+  });
+
+  describe('should fetch next set of runs', () => {
+    let fetchRunsRangePromise = null;
+    beforeEach(async () => {
+      await initialRequestResponse();
+      mockAxios.reset();
+      fetchRunsRangePromise = wrapper.instance()._fetchRunsRange(5);
+    });
+
+    it('and handle success', async () => {
+      runsResponse.push({_id: 20});
+      const countResponse = {count: 5};
+
+      expect(mockAxios.get.mock.calls).toHaveLength(2);
+      expect(wrapper.state().dataVersion).toEqual(0);
+
+      mockAxios.mockResponse({status: 200, data: runsResponse});
+      mockAxios.mockResponse({status: 200, data: countResponse});
+
+      await tick();
+      expect(wrapper.update().state().data).toHaveLength(5);
+      expect(wrapper.update().state().dataVersion).toEqual(1);
+      expect(wrapper.update().state().runsCount).toEqual(5);
+      expect(wrapper.update().state().data.some(col => col._id === 20)).toBeTruthy();
+    });
+
+    it('and handle error', async () => {
+      const errResponse = {status: 500, message: 'unknown error'};
+      mockAxios.mockError(errResponse);
+      let error = null;
+      await fetchRunsRangePromise.catch(error2 => {
+        error = error2;
+      });
+
+      expect(error).toEqual(errResponse);
+      expect(wrapper.update().state().dataVersion).toEqual(0);
+    });
+  });
+
+  it('should handle autoRefreshUpdate', async () => {
+    await initialRequestResponse();
+
+    wrapper.instance()._startPolling = jest.fn();
+    wrapper.instance()._handleAutoRefreshUpdate();
+
+    expect(wrapper.instance()._startPolling).toHaveBeenCalledTimes(1);
+
+    wrapper.setState({autoRefresh: false});
+
+    await tick();
+    expect(wrapper.instance()._startPolling).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle loadNewRuns', async () => {
+    await initialRequestResponse();
+    runsResponse = runsResponse.concat([{_id: 20}, {_id: 21}, {_id: 22}]);
+    wrapper.setState({
+      newData: runsResponse,
+      newRunsCount: 3
+    });
+
+    wrapper.instance()._handleLoadNewRuns();
+
+    expect(wrapper.update().state().runsCount).toEqual(7);
+    expect(wrapper.update().state().sortedData.getSize()).toEqual(7);
+    expect(wrapper.update().state().sortedData.getDataArray()).toHaveLength(7);
+    expect(wrapper.update().state().sortedData.getDataArray().some(col => col._id === 22)).toBeTruthy();
+    expect(wrapper.update().state().newData).toEqual(null);
+    expect(wrapper.update().state().newRunsCount).toEqual(0);
+    expect(wrapper.update().state().data).toEqual(runsResponse);
+    expect(wrapper.update().state().dataVersion).toEqual(1);
+  });
+
+  describe('should handle updateRuns', () => {
+    beforeEach(async () => {
+      await initialRequestResponse();
+    });
+    it('for deletion of columns', async () => {
+      const {dropdownOptions, columnOrder, columnWidths} = wrapper.state();
+      wrapper.instance().loadData();
+
+      // When empty response is sent for custom columns,
+      // the previous 3 custom columns should be deleted
+      mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+      mockAxios.mockResponse({status: 200, data: []});
+      await tick();
+
+      mockAxios.mockResponse({status: 200, data: runsResponse});
+      mockAxios.mockResponse({status: 200, data: tagsResponse});
+      mockAxios.mockResponse({status: 200, data: countResponse});
+      await tick();
+
+      expect(wrapper.update().state().dropdownOptions).toHaveLength(dropdownOptions.length - 3);
+      expect(wrapper.update().state().columnOrder).toHaveLength(columnOrder.length - 3);
+      expect(Object.keys(wrapper.update().state().columnWidths)).toHaveLength(Object.keys(columnWidths).length - 3);
+      expect(wrapper.update().state().columnOrder).not.toContain('batch_size');
+      expect(wrapper.update().state().dropdownOptions.find(option => option.value === 'batch_size')).toEqual(undefined);
+      expect(wrapper.update().state().columnWidths.batch_size).toEqual(undefined);
+    });
+
+    it('for addition of columns', async () => {
+      customColumnsResponse.push({_id: '5c16ebd6bea682411d7c0410', name: 'sample', config_path: 'config.train.sample'});
+      const {dropdownOptions, columnOrder, columnWidths} = wrapper.state();
+      wrapper.instance().loadData();
+
+      await initialRequestResponse();
+
+      expect(wrapper.update().state().dropdownOptions).toHaveLength(dropdownOptions.length + 1);
+      expect(wrapper.update().state().columnOrder).toHaveLength(columnOrder.length + 1);
+      expect(Object.keys(wrapper.update().state().columnWidths)).toHaveLength(Object.keys(columnWidths).length + 1);
+      expect(wrapper.update().state().columnOrder).toContain('sample');
+      expect(wrapper.update().state().dropdownOptions.some(option => option.value === 'sample')).toBeTruthy();
+      expect(wrapper.update().state().columnWidths.sample).toEqual(DEFAULT_COLUMN_WIDTH);
+    });
+  });
+
+  it('should handle newColumnAddition', async () => {
+    await initialRequestResponse();
+    customColumnsResponse.push({_id: '5c16ebd6bea682411d7c0410', name: 'sample', config_path: 'config.train.sample'});
+    const {dropdownOptions, columnOrder, columnWidths} = wrapper.state();
+    wrapper.instance()._handleNewColumnAddition();
+
+    mockAxios.mockResponse({status: 200, data: metricColumnsResponse});
+    mockAxios.mockResponse({status: 200, data: customColumnsResponse});
+
+    await tick();
+
+    expect(wrapper.update().state().dropdownOptions).toHaveLength(dropdownOptions.length + 1);
+    expect(wrapper.update().state().columnOrder).toHaveLength(columnOrder.length + 1);
+    expect(Object.keys(wrapper.update().state().columnWidths)).toHaveLength(Object.keys(columnWidths).length + 1);
+    expect(wrapper.update().state().columnOrder).toContain('sample');
+    expect(wrapper.update().state().dropdownOptions.some(option => option.value === 'sample')).toBeTruthy();
+    expect(wrapper.update().state().columnWidths.sample).toEqual(DEFAULT_COLUMN_WIDTH);
   });
 });

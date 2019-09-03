@@ -1,24 +1,24 @@
-import React, { PureComponent } from "react";
-import { imageExtensions } from "./imageExtensions";
-import { tomorrow } from 'react-syntax-highlighter/styles/prism';
-import PropTypes from 'prop-types'
-import SyntaxHighlighter, { registerLanguage } from "react-syntax-highlighter/prism-light";
+import React, {PureComponent} from 'react';
+import {tomorrow} from 'react-syntax-highlighter/styles/prism';
+import PropTypes from 'prop-types';
+import SyntaxHighlighter, {registerLanguage} from 'react-syntax-highlighter/prism-light';
 import json from 'react-syntax-highlighter/languages/prism/json';
 import python from 'react-syntax-highlighter/languages/prism/python';
-import { Alert } from 'react-bootstrap';
-import { ProgressWrapper } from "../Helpers/hoc";
-import { FILE_PREVIEW_LIMIT } from '../SourceFilesView/sourceFilesView';
-import { getFileExtension } from "../Helpers/utils";
+import {Alert} from 'react-bootstrap';
+import {ProgressWrapper} from '../Helpers/hoc';
+import {FILE_PREVIEW_LIMIT} from '../SourceFilesView/sourceFilesView';
+import {getFileExtension} from '../Helpers/utils';
+import {imageExtensions} from './imageExtensions';
 
 registerLanguage('json', json);
 registerLanguage('python', python);
 
-const getLanguageFromFileName = (fileName) => {
+const getLanguageFromFileName = fileName => {
   const languageMapping = {
-    'py': 'python',
-    'json': 'json'
+    py: 'python',
+    json: 'json'
   };
-  const extension = fileName.split(".").splice(-1)[0];
+  const extension = fileName.split('.').splice(-1)[0];
   return languageMapping[extension] || '';
 };
 
@@ -36,29 +36,32 @@ class FilePreview extends PureComponent {
     const extension = getFileExtension(fileName);
     const fileInfo = sourceFiles[fileId];
     const isFileTooLarge = fileInfo && fileInfo.fileLength && fileInfo.fileLength > FILE_PREVIEW_LIMIT;
-    const warningMessage = `File is too large to be previewed. Only files less than ${FILE_PREVIEW_LIMIT/1024/1024}MB can be previewed.`;
+    const warningMessage = `File is too large to be previewed. Only files less than ${FILE_PREVIEW_LIMIT / 1024 / 1024}MB can be previewed.`;
     const formattedFilePreview = () => {
       if (isFileTooLarge) {
-        return (<Alert bsStyle="warning">{warningMessage}</Alert>);
+        return (<Alert bsStyle='warning'>{warningMessage}</Alert>);
       }
+
       if (imageExtensions.includes(extension) && fileId) {
-        let imgSource = `/api/v1/files/download/${fileId}/${fileName}`;
-        return(<img src={imgSource} alt='image'/>);
-      } else if (fileInfo && fileInfo.data) {
+        const imgSource = `/api/v1/files/download/${fileId}/${fileName}`;
+        return (<img src={imgSource} alt='image'/>);
+      }
+
+      if (fileInfo && fileInfo.data) {
         return (<SyntaxHighlighter language={getLanguageFromFileName(fileName)} style={tomorrow}>{fileInfo.data}</SyntaxHighlighter>);
       }
+
       return null;
     };
+
     return (
       <div>
         <ProgressWrapper loading={isLoading}>
-        {
-          errorMessage
-          ?
-          <Alert bsStyle="danger">{errorMessage}</Alert>
-          :
-          formattedFilePreview()
-        }
+          {
+            errorMessage ?
+              <Alert bsStyle='danger'>{errorMessage}</Alert> :
+              formattedFilePreview()
+          }
         </ProgressWrapper>
       </div>
     );

@@ -1,8 +1,8 @@
-import Enzyme, { shallow, render, mount } from 'enzyme';
+import Enzyme, {shallow, render, mount} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 
 // React 16 Enzyme adapter
-Enzyme.configure({ adapter: new Adapter() });
+Enzyme.configure({adapter: new Adapter()});
 
 // Make Enzyme functions available in all test files without importing
 global.shallow = shallow;
@@ -19,11 +19,11 @@ global.fetch = require('jest-fetch-mock');
 global.tick = () => {
   return new Promise(resolve => {
     setTimeout(resolve, 0);
-  })
+  });
 };
 
 // Workaround to resolve "TypeError: window.URL.createObjectURL is not a function" thrown by plotly.js
 const noOp = () => {};
 if (typeof window.URL.createObjectURL === 'undefined') {
-  Object.defineProperty(window.URL, 'createObjectURL', { value: noOp})
+  Object.defineProperty(window.URL, 'createObjectURL', {value: noOp});
 }

@@ -331,7 +331,7 @@ exports[`DrillDownView should render correctly 1`] = `
                 <i
                   className="glyphicon glyphicon-refresh glyphicon-refresh-animate"
                 />
-                  Loading...
+                 Loading...
               </div>
             </div>
           </ProgressWrapper>

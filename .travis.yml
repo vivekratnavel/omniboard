@@ -22,3 +22,6 @@ deploy:
   skip_cleanup: true
   script:
   - npx travis-deploy-once --pro "npx semantic-release"
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^(master|beta)$

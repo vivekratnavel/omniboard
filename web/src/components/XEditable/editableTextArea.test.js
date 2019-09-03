@@ -7,8 +7,9 @@ describe('EditableTextArea', () => {
 
   beforeEach(() => {
     wrapper = mount(
-      <EditableTextArea onUpdate={updateHandler} value={"test note"} className={"text-area"} cols={50} rows={50}
-                        name={"text-area-name"} id={"text_area_id"}/>
+      <EditableTextArea value='test note' className='text-area' cols={50}
+        rows={50} name='text-area-name'
+        id='text_area_id' onUpdate={updateHandler}/>
     );
   });
 
@@ -30,7 +31,7 @@ describe('EditableTextArea', () => {
     expect(event.preventDefault).toHaveBeenCalledWith();
     const value = wrapper.update().find('#text_area_id').text();
 
-    expect(updateHandler).toHaveBeenCalledWith("text-area-name", value);
+    expect(updateHandler).toHaveBeenCalledWith('text-area-name', value);
   });
 
   it('should handle cancel correctly', () => {

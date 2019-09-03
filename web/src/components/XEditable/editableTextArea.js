@@ -12,7 +12,8 @@ export default class EditableTextArea extends React.Component {
     cols: PropTypes.number,
     placeholder: PropTypes.string,
     onUpdate: PropTypes.func.isRequired,
-    defaultText: PropTypes.node
+    defaultText: PropTypes.node,
+    dataVersion: PropTypes.number
   };
 
   _textAreaDom = null;
@@ -22,48 +23,56 @@ export default class EditableTextArea extends React.Component {
     this.state = {
       isEditing: false,
       value: this.props.value,
-      defaultText: this.props.defaultText || 'Empty',
+      defaultText: this.props.defaultText || 'Empty'
     };
     this.setState = this.setState.bind(this);
   }
-  componentWillReceiveProps(props, context) {
-    this.setState({value: props.value});
+
+  static getDerivedStateFromProps(props, _state) {
+    return {value: props.value};
   }
-  save = (event) => {
+
+  save = event => {
     event.preventDefault();
     this.props.onUpdate(this.props.name, this._textAreaDom.value);
     this.setState({isEditing: false, value: this._textAreaDom.value});
   };
-  cancel = (e) => {
+
+  cancel = _e => {
     this.setState({isEditing: false});
   };
-  handleLinkClick = (e) => {
+
+  handleLinkClick = _e => {
     this.setState({isEditing: true});
   };
+
   render() {
     if (this.state.isEditing) {
       const textareaClassName = `form-control ${this.props.className}`;
       return (
         <XEditable isLoading={false} save={this.save} cancel={this.cancel}>
           <textarea ref={node => this._textAreaDom = node} id={this.props.id}
-                    className={textareaClassName}
-                    rows={this.props.rows}
-                    cols={this.props.cols}
-                    name={this.props.name}
-                    defaultValue={this.props.value}
-                    placeholder={this.props.placeholder}/>
+            className={textareaClassName}
+            rows={this.props.rows}
+            cols={this.props.cols}
+            name={this.props.name}
+            defaultValue={this.props.value}
+            placeholder={this.props.placeholder}/>
         </XEditable>
       );
-    } else {
-      let aClassName = 'editable editable-click';
-      let content = <pre>{this.state.value}</pre>;
-      if (!this.state.value) {
-        aClassName += ' editable-empty';
-        content = this.state.defaultText;
-      }
-      return <a test-attr="edit-button" role="button" className={aClassName} style={this.state.textStyle} onClick={this.handleLinkClick}>
-        {content}
-      </a>;
     }
+
+    let aClassName = 'editable editable-click';
+    let content = <pre>{this.state.value}</pre>;
+    if (!this.state.value) {
+      aClassName += ' editable-empty';
+      content = this.state.defaultText;
+    }
+
+    return (
+      <a test-attr='edit-button' data-version={this.props.dataVersion} role='button' className={aClassName} style={this.state.textStyle} onClick={this.handleLinkClick}>
+        {content}
+      </a>
+    );
   }
 }

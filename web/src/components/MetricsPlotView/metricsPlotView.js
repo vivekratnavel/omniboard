@@ -1,14 +1,14 @@
 import React, {Component} from 'react';
-import { SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES } from '../../appConstants/drillDownView.constants';
-import { capitalize } from '../Helpers/utils';
 import Plot from 'react-plotly.js';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import Slider from 'rc-slider';
 import LocalStorageMixin from 'react-localstorage';
 import NumericInput from 'react-numeric-input';
+import {capitalize} from '../Helpers/utils';
+import {SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES} from '../../appConstants/drillDownView.constants';
 
-const DEFAULT_SELECTION_KEY = "MetricsPlotView|default";
+const DEFAULT_SELECTION_KEY = 'MetricsPlotView|default';
 const DEFAULT_PLOT_WIDTH = 800;
 const DEFAULT_PLOT_HEIGHT = 400;
 const DEFAULT_PLOT_SMOOTHING = 0;
@@ -36,28 +36,28 @@ class MetricsPlotView extends Component {
     };
   }
 
-  _handleXAxisChange = (event) => {
-    const value = event.target.value;
+  _handleXAxisChange = event => {
+    const {value} = event.target;
     this.setState({
       selectedXAxis: value
     });
-    // update local storage
+    // Update local storage
     this._updateDefaultSelection({selectedXAxis: value});
   };
 
-  _handleYAxisChange = (event) => {
-    const value = event.target.value;
+  _handleYAxisChange = event => {
+    const {value} = event.target;
     this.setState({
       selectedYAxis: value
     });
-    // update local storage
+    // Update local storage
     this._updateDefaultSelection({selectedYAxis: value});
   };
 
-  _handleMetricNamesChange = (event) => {
+  _handleMetricNamesChange = event => {
     const {selectedMetricNames} = this.state;
     let newMetricNames = Object.assign([], selectedMetricNames);
-    const value = event.target.value;
+    const {value} = event.target;
     if (event.target.checked) {
       if (!newMetricNames.includes(value)) {
         newMetricNames.push(value);
@@ -65,20 +65,21 @@ class MetricsPlotView extends Component {
     } else {
       newMetricNames = newMetricNames.filter(metricName => metricName !== value);
     }
+
     this.setState({
       selectedMetricNames: newMetricNames
     });
-    // update local storage
+    // Update local storage
     this._updateDefaultSelection({selectedMetricNames: newMetricNames});
   };
 
   /**
    * Update the default selection of metrics plot in local storage
-   * @param selection
+   * @param {object} selection the default axis and type selection
    * @private
    */
-  _updateDefaultSelection = (selection) => {
-    const value = Object.assign({}, JSON.parse(localStorage.getItem(DEFAULT_SELECTION_KEY)), selection);
+  _updateDefaultSelection = selection => {
+    const value = {...JSON.parse(localStorage.getItem(DEFAULT_SELECTION_KEY)), ...selection};
     localStorage.setItem(DEFAULT_SELECTION_KEY, JSON.stringify(value));
   };
 
@@ -102,46 +103,47 @@ class MetricsPlotView extends Component {
     this._setDefaultSelection();
   }
 
-  _plotWidthChangeHandler = (value) => {
+  _plotWidthChangeHandler = value => {
     this.setState({
       plotWidth: value
     });
-    // update local storage to set default width
+    // Update local storage to set default width
     this._updateDefaultSelection({plotWidth: value});
   };
 
-  _plotHeightChangeHandler = (value) => {
+  _plotHeightChangeHandler = value => {
     this.setState({
       plotHeight: value
     });
-    // update local storage to set default height
+    // Update local storage to set default height
     this._updateDefaultSelection({plotHeight: value});
   };
 
-  _plotSmoothingChangeHandler = (value) => {
+  _plotSmoothingChangeHandler = value => {
     this.setState({
       smoothing: value
     });
-    // update local storage to set default smoothing
+    // Update local storage to set default smoothing
     this._updateDefaultSelection({smoothing: value});
   };
 
   render() {
     const {metricsResponse, runId} = this.props;
     const {selectedMetricNames, selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing} = this.state;
-    let metricsResponseMap = {},
-      metricNames = [];
-    if (metricsResponse && metricsResponse.length) {
+    let metricsResponseMap = {};
+    let metricNames = [];
+    if (metricsResponse && metricsResponse.length > 0) {
       metricsResponseMap = metricsResponse.reduce((map, metric) => {
         map[metric.name] = metric;
         return map;
       }, {});
       metricNames = Object.keys(metricsResponseMap);
     }
-    if (!metricNames.length) {
+
+    if (!metricNames.length > 0) {
       return (
-        <div className="alert alert-warning">No metrics are available to plot</div>
-      )
+        <div className='alert alert-warning'>No metrics are available to plot</div>
+      );
     }
 
     const colors = [
@@ -155,32 +157,32 @@ class MetricsPlotView extends Component {
       '#7f7f7f',
       '#bcbd22',
       '#17becf'
-    ]
+    ];
 
-    const plotData = Array.from(selectedMetricNames).reduce((r, metricName) => {
-      // original data
-      let colorindex = (r.length / 2) % colors.length
+    const plotData = [...selectedMetricNames].reduce((r, metricName) => {
+      // Original data
+      const colorindex = (r.length / 2) % colors.length;
       r.push({
         type: 'scatter',
         mode: 'lines+points',
         name: metricName + '.unsmoothed',
         x: metricsResponseMap[metricName][selectedXAxis],
-        y: metricsResponseMap[metricName]['values'],
+        y: metricsResponseMap[metricName].values,
         opacity: 0.2,
         marker: {color: colors[colorindex]},
         showlegend: false,
         hoverinfo: 'none'
       });
 
-      // calculate smoothed graph
-      let smoothed = []
-      let ravg = metricsResponseMap[metricName]['values'][0]
-      for (let v of metricsResponseMap[metricName]['values']) {
-        ravg = ravg * smoothing + (1 - smoothing) * v
-        smoothed.push(ravg)
+      // Calculate smoothed graph
+      const smoothed = [];
+      let ravg = metricsResponseMap[metricName].values[0];
+      for (const v of metricsResponseMap[metricName].values) {
+        ravg = (ravg * smoothing) + ((1 - smoothing) * v);
+        smoothed.push(ravg);
       }
 
-      // smoothed data
+      // Smoothed data
       r.push({
         type: 'scatter',
         mode: 'lines+points',
@@ -195,67 +197,67 @@ class MetricsPlotView extends Component {
     }, []);
 
     const yAxisLayout = selectedYAxis === SCALE_VALUE.LOGARITHMIC ? {type: 'log', autorange: true} : {};
-    const wrapperStyle = { width: 120, margin: 0 };
+    const wrapperStyle = {width: 120, margin: 0};
 
     return (
       <div>
-        <div className="metrics-plot-left">
+        <div className='metrics-plot-left'>
           <h4>Metrics to plot</h4>
-          <div id="plot-metric-names">
-            {metricNames.map( (metricName, i) => {
+          <div id='plot-metric-names'>
+            {metricNames.map((metricName, i) => {
               return (
-                <div key={"MetricName" + runId + i} className="checkbox">
+                <div key={'MetricName' + runId + i} className='checkbox'>
                   <label>
-                    <input test-attr={"plot-metric-name-" + i} type="checkbox" value={metricName} checked={selectedMetricNames.includes(metricName)} onChange={this._handleMetricNamesChange}/>
+                    <input test-attr={'plot-metric-name-' + i} type='checkbox' value={metricName} checked={selectedMetricNames.includes(metricName)} onChange={this._handleMetricNamesChange}/>
                     {metricName}
                   </label>
                 </div>
-              )
+              );
             })}
           </div>
           <h4>X-Axis Type</h4>
-          <div id="plot-x-axis-types">
-            {X_AXIS_VALUES.map( (value, i) => {
+          <div id='plot-x-axis-types'>
+            {X_AXIS_VALUES.map((value, i) => {
               return (
-                <div key={"XAxisPlot" + runId + i} className="radio">
+                <div key={'XAxisPlot' + runId + i} className='radio'>
                   <label>
-                    <input test-attr={"plot-x-axis-" + i} key={"XAxisPlotInput" + runId + i} type="radio" value={value} checked={selectedXAxis === value} onChange={this._handleXAxisChange} />
+                    <input key={'XAxisPlotInput' + runId + i} test-attr={'plot-x-axis-' + i} type='radio' value={value} checked={selectedXAxis === value} onChange={this._handleXAxisChange}/>
                     {capitalize(value)}
                   </label>
                 </div>
-              )
+              );
             })}
           </div>
           <h4>Y-Axis Type</h4>
-          <div id="plot-y-axis-types">
-            {SCALE_VALUES.map( (value, i) => {
+          <div id='plot-y-axis-types'>
+            {SCALE_VALUES.map((value, i) => {
               return (
-                <div key={"YAxisPlot" + runId + i} className="radio">
+                <div key={'YAxisPlot' + runId + i} className='radio'>
                   <label>
-                    <input test-attr={"plot-y-axis-" + i} key={"YAxisPlotInput" + runId + i} type="radio" value={value} checked={selectedYAxis === value} onChange={this._handleYAxisChange} />
+                    <input key={'YAxisPlotInput' + runId + i} test-attr={'plot-y-axis-' + i} type='radio' value={value} checked={selectedYAxis === value} onChange={this._handleYAxisChange}/>
                     {capitalize(value)}
                   </label>
                 </div>
-              )
+              );
             })}
           </div>
           <div style={wrapperStyle}>
-            <div>Smoothing: <NumericInput min={0} max={0.999} step={0.001} value={smoothing} onChange={this._plotSmoothingChangeHandler} /></div>
-            <Slider test-attr={"plot-smoothing-slider"} min={0} max={0.999} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
+            <div>Smoothing: <NumericInput min={0} max={0.999} step={0.001} value={smoothing} onChange={this._plotSmoothingChangeHandler}/></div>
+            <Slider test-attr='plot-smoothing-slider' min={0} max={0.999} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
           </div>
           <h4>Plot Size</h4>
-          <div id="plot-size">
+          <div id='plot-size'>
             <div style={wrapperStyle}>
               <div>Width: {plotWidth}px</div>
-              <Slider test-attr={"plot-width-slider"} min={700} max={1200} value={plotWidth} step={50} onChange={this._plotWidthChangeHandler}/>
+              <Slider test-attr='plot-width-slider' min={700} max={1200} value={plotWidth} step={50} onChange={this._plotWidthChangeHandler}/>
             </div>
             <div style={wrapperStyle}>
               <div>Height: {plotHeight}px</div>
-              <Slider test-attr={"plot-height-slider"} min={300} max={600} value={plotHeight} step={50} onChange={this._plotHeightChangeHandler}/>
+              <Slider test-attr='plot-height-slider' min={300} max={600} value={plotHeight} step={50} onChange={this._plotHeightChangeHandler}/>
             </div>
           </div>
         </div>
-        <div className="metrics-plot-content">
+        <div className='metrics-plot-content'>
           <Plot
             data={plotData}
             layout={{

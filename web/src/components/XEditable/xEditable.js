@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export default class XEditable extends React.Component {
-
   static defaultProps = {
     isLoading: false
   };
@@ -19,17 +18,18 @@ export default class XEditable extends React.Component {
     return (
       <span className='editable-container editable-inline'>
         <div>
-          {isLoading
-            ? (
+          {isLoading ?
+            (
               <div className='editableform-loading'/>
-            )
-            : (
+            ) :
+            (
               <form className='form-inline editableform' onSubmit={save}>
                 <div className='control-group form-group'>
                   <div>
                     <div className='editable-input' style={{
                       position: 'relative'
-                    }}>
+                    }}
+                    >
                       {children}
                     </div>
                     <div className='editable-buttons'>
