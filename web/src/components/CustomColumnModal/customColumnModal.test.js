@@ -20,6 +20,9 @@ describe('CustomColumnModal', () => {
     {seed: 637090657, recipient: 'world', message: 'Hello world!', train: {batch_size: 32, settings: {epochs: 12}, epochs: 100, lr: 0.01}}
   ];
 
+  const hostResponse = [{hostname: 'viveks-imac.lan', os: ['Darwin', 'Darwin-18.6.0-x86_64-i386-64bit'], python_version: '3.7.4', cpu: 'AMD Ryzen Six-Core Processor', ENV: {}}];
+  const experimentResponse = [{name: 'hello_config', base_dir: '/Users/vivekratnavel/Documents/sacred_experiment'}];
+
   beforeEach(() => {
     wrapper = shallow(
       <CustomColumnModal shouldShow handleClose={closeHandler} handleDataUpdate={dataUpdateHandler} handleDelete={deleteHandler}/>
@@ -38,6 +41,8 @@ describe('CustomColumnModal', () => {
     expect(wrapper.state().isLoadingConfigs).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+    mockAxios.mockResponse({status: 200, data: hostResponse});
+    mockAxios.mockResponse({status: 200, data: experimentResponse});
 
     await tick();
     expect(wrapper.state().isLoadingColumns).toBeFalsy();
@@ -45,17 +50,26 @@ describe('CustomColumnModal', () => {
     expect(wrapper.update()).toMatchSnapshot();
   });
 
-  it('should fetch config columns on mount', () => {
+  it('should fetch config columns on mount', async () => {
     mockAxios.mockResponse({status: 200, data: responseData});
 
     expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/Runs', {params: {distinct: 'config'}});
     expect(wrapper.state().isLoadingConfigs).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+    mockAxios.mockResponse({status: 200, data: hostResponse});
+    mockAxios.mockResponse({status: 200, data: experimentResponse});
 
+    await tick();
     expect(wrapper.state().isLoadingConfigs).toBeFalsy();
-    expect(wrapper.state().configPaths).toHaveLength(9);
+    expect(wrapper.state().configPaths).toHaveLength(16);
     expect(wrapper.state().configPaths).toEqual(
-      expect.arrayContaining(['config.train', 'config.train.epochs', 'config.train.settings.epochs'])
+      expect.arrayContaining([
+        'config.train',
+        'config.train.epochs',
+        'config.train.settings.epochs',
+        'host.hostname',
+        'experiment.base_dir'
+      ])
     );
   });
 
@@ -68,6 +82,8 @@ describe('CustomColumnModal', () => {
   it('should handle data update correctly', done => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+    mockAxios.mockResponse({status: 200, data: hostResponse});
+    mockAxios.mockResponse({status: 200, data: experimentResponse});
 
     expect(wrapper.state().columns[0].id).toEqual(responseData[0]._id);
     expect(wrapper.find('[test-attr="apply-btn"]').props().disabled).toBeTruthy();
@@ -95,6 +111,8 @@ describe('CustomColumnModal', () => {
     it('and handle create requests', async () => {
       mockAxios.mockResponse({status: 200, data: responseData});
       mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+      mockAxios.mockResponse({status: 200, data: hostResponse});
+      mockAxios.mockResponse({status: 200, data: experimentResponse});
       wrapper.find('[test-attr="column-name-text-0"]').simulate('change', {
         target: {
           value: 'col_1'
@@ -121,9 +139,13 @@ describe('CustomColumnModal', () => {
   });
 
   describe('should handle delete correctly', () => {
-    it('for server side delete', () => {
+    beforeEach(() => {
       mockAxios.mockResponse({status: 200, data: responseData});
       mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+      mockAxios.mockResponse({status: 200, data: hostResponse});
+      mockAxios.mockResponse({status: 200, data: experimentResponse});
+    });
+    it('for server side delete', () => {
       wrapper.find('[test-attr="delete-0"]').simulate('click');
       mockAxios.mockResponse({status: 204, data: []});
 
@@ -133,8 +155,6 @@ describe('CustomColumnModal', () => {
     });
 
     it('for client side delete', () => {
-      mockAxios.mockResponse({status: 200, data: responseData});
-      mockAxios.mockResponse({status: 200, data: runsConfigResponse});
       wrapper.find('[test-attr="add-column-btn"]').simulate('click');
       wrapper.find('[test-attr="delete-3"]').simulate('click');
 
@@ -145,10 +165,14 @@ describe('CustomColumnModal', () => {
 
   describe('should handle errors correctly', () => {
     describe('for delete', () => {
-      const errorResponse = {status: 404, message: 'unknown error'};
-      it('server error', async () => {
+      beforeEach(() => {
         mockAxios.mockResponse({status: 200, data: responseData});
         mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+        mockAxios.mockResponse({status: 200, data: hostResponse});
+        mockAxios.mockResponse({status: 200, data: experimentResponse});
+      });
+      const errorResponse = {status: 404, message: 'unknown error'};
+      it('server error', async () => {
         wrapper.find('[test-attr="delete-0"]').simulate('click');
         mockAxios.mockResponse(errorResponse);
         await tick();
@@ -158,8 +182,6 @@ describe('CustomColumnModal', () => {
       });
 
       it('client error', () => {
-        mockAxios.mockResponse({status: 200, data: responseData});
-        mockAxios.mockResponse({status: 200, data: runsConfigResponse});
         wrapper.find('[test-attr="delete-0"]').simulate('click');
         mockAxios.mockError(errorResponse);
 
@@ -173,17 +195,24 @@ describe('CustomColumnModal', () => {
       expect(wrapper.state().error).toEqual(parseServerError({status: 400, message: 'not found'}));
     });
 
-    it('when there are no config paths', () => {
+    it('when there are no config paths', async () => {
       mockAxios.mockResponse({status: 200, data: responseData});
       mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: []});
 
+      await tick();
       expect(wrapper.state().error).toEqual('There are no nested config parameters available to add a new column');
     });
 
     describe('for apply', () => {
-      it('client error', () => {
+      beforeEach(() => {
         mockAxios.mockResponse({status: 200, data: responseData});
         mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+        mockAxios.mockResponse({status: 200, data: hostResponse});
+        mockAxios.mockResponse({status: 200, data: experimentResponse});
+      });
+      it('client error', () => {
         wrapper.find('[test-attr="apply-btn"]').simulate('click');
 
         expect(wrapper.state().error).toEqual('There are no changes to be applied');
@@ -191,8 +220,6 @@ describe('CustomColumnModal', () => {
 
       it('server error', async () => {
         const errorResponse = {status: 400, response: {data: {message: 'cannot update'}}};
-        mockAxios.mockResponse({status: 200, data: responseData});
-        mockAxios.mockResponse({status: 200, data: runsConfigResponse});
         wrapper.find('[test-attr="config-path-0"]').simulate('change', {value: 'train.epochs'});
         wrapper.find('[test-attr="apply-btn"]').simulate('click');
         mockAxios.mockError(errorResponse);
@@ -206,6 +233,8 @@ describe('CustomColumnModal', () => {
       const errorResponse = {status: 400, message: 'unknown error'};
       mockAxios.mockResponse({status: 200, data: responseData});
       mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+      mockAxios.mockResponse({status: 200, data: hostResponse});
+      mockAxios.mockResponse({status: 200, data: experimentResponse});
       wrapper.find('[test-attr="column-name-text-0"]').simulate('change', {
         target: {
           value: 'col_1'
@@ -223,6 +252,8 @@ describe('CustomColumnModal', () => {
     beforeEach(() => {
       mockAxios.mockResponse({status: 200, data: []});
       mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+      mockAxios.mockResponse({status: 200, data: hostResponse});
+      mockAxios.mockResponse({status: 200, data: experimentResponse});
       wrapper.find('[test-attr="add-column-btn"]').simulate('click');
       wrapper.find('[test-attr="column-name-text-0"]').simulate('change', {
         target: {
@@ -256,6 +287,8 @@ describe('CustomColumnModal', () => {
   it('should detect correctly if form is dirty', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+    mockAxios.mockResponse({status: 200, data: hostResponse});
+    mockAxios.mockResponse({status: 200, data: experimentResponse});
     wrapper.find('[test-attr="add-column-btn"]').simulate('click');
 
     expect(wrapper.instance().isFormDirty).toBeTruthy();
@@ -264,6 +297,8 @@ describe('CustomColumnModal', () => {
   it('should handle config path change correctly', () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+    mockAxios.mockResponse({status: 200, data: hostResponse});
+    mockAxios.mockResponse({status: 200, data: experimentResponse});
     wrapper.find('[test-attr="config-path-0"]').simulate('change', {value: 'train.epochs'});
 
     expect(wrapper.state().columns[0].configPath).toEqual('train.epochs');
@@ -272,6 +307,8 @@ describe('CustomColumnModal', () => {
   it('should reload data when modal dialog is reopened', async () => {
     mockAxios.mockResponse({status: 200, data: responseData});
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
+    mockAxios.mockResponse({status: 200, data: hostResponse});
+    mockAxios.mockResponse({status: 200, data: experimentResponse});
     wrapper.find('[test-attr="close-btn"]').simulate('click');
 
     expect(wrapper.instance().props.shouldShow).toBeFalsy();

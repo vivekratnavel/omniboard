@@ -465,37 +465,49 @@ class RunsTable extends Component {
   };
 
   _updateRuns = latestMetricAndCustomColumns => {
-    const {columnOrder, dropdownOptions, columnWidths, metricAndCustomColumns} = this.state;
+    const {metricAndCustomColumns} = this.state;
 
     // Handle addition/deletion of metric/custom columns
     let columnsToAdd = arrayDiffColumns(latestMetricAndCustomColumns, metricAndCustomColumns);
     const columnsToDelete = arrayDiffColumns(metricAndCustomColumns, latestMetricAndCustomColumns);
-    let newColumnOrder = columnOrder.slice();
-    let newDropdownOptions = dropdownOptions.slice();
-    let newColumnWidths = {...columnWidths};
-    // Avoid adding the same column twice
-    columnsToAdd = columnsToAdd.filter(column => !newColumnOrder.includes(column.name));
-    if (columnsToAdd.length > 0) {
-      newColumnOrder = newColumnOrder.concat(columnsToAdd.map(column => column.name));
-      const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column.name));
-      newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
-      const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
-        const columnName = column.name;
-        return {...columnWidths, [columnName]: DEFAULT_COLUMN_WIDTH};
-      }, {});
-      newColumnWidths = {...newColumnWidths, ...columnWidthsToAdd};
-    }
 
-    this.setState({
-      columnOrder: newColumnOrder,
-      columnWidths: newColumnWidths,
-      dropdownOptions: newDropdownOptions,
-      metricAndCustomColumns: latestMetricAndCustomColumns
-    });
-
+    // Delete first and then add column to handle updates correctly
+    // e.g. column name remains the same but only value changes
     if (columnsToDelete.length > 0) {
       columnsToDelete.map(col => col.name).map(this._handleColumnDelete);
     }
+
+    this.setState(prevState => {
+      let newColumnOrder = prevState.columnOrder.slice();
+      let newDropdownOptions = prevState.dropdownOptions.slice();
+      let newColumnWidths = {...prevState.columnWidths};
+      let newColumnNameMap = {...prevState.columnNameMap};
+
+      // Avoid adding the same column twice
+      columnsToAdd = columnsToAdd.filter(column => !newColumnOrder.includes(column.name));
+      if (columnsToAdd.length > 0) {
+        newColumnOrder = newColumnOrder.concat(columnsToAdd.map(column => column.name));
+        const dropDownOptionsToAdd = columnsToAdd.map(column => this.createDropdownOption(column.name));
+        newDropdownOptions = newDropdownOptions.concat(dropDownOptionsToAdd);
+        const columnWidthsToAdd = columnsToAdd.reduce((columnWidths, column) => {
+          const columnName = column.name;
+          return {...columnWidths, [columnName]: DEFAULT_COLUMN_WIDTH};
+        }, {});
+        const columnNameMapToAdd = columnsToAdd.reduce((columnMap, column) => {
+          return {...columnMap, [column.name]: column.value};
+        }, {});
+        newColumnWidths = {...newColumnWidths, ...columnWidthsToAdd};
+        newColumnNameMap = {...newColumnNameMap, ...columnNameMapToAdd};
+      }
+
+      return {
+        columnOrder: newColumnOrder,
+        columnWidths: newColumnWidths,
+        dropdownOptions: newDropdownOptions,
+        metricAndCustomColumns: latestMetricAndCustomColumns,
+        columnNameMap: newColumnNameMap
+      };
+    });
   };
 
   loadData = () => {
@@ -1062,21 +1074,30 @@ class RunsTable extends Component {
   };
 
   _handleColumnDelete = columnName => {
-    const {columnOrder, dropdownOptions, columnWidths} = this.state;
+    const {columnOrder, dropdownOptions, columnWidths, metricAndCustomColumns, columnNameMap} = this.state;
     let newColumnOrder = columnOrder.slice();
     let newDropdownOptions = dropdownOptions.slice();
+    let newMetricAndCustomColumns = metricAndCustomColumns.slice();
     const newColumnWidths = {...columnWidths};
+    const newColumnNameMap = {...columnNameMap};
     if (columnName) {
       newColumnOrder = newColumnOrder.filter(column => column !== columnName);
       newDropdownOptions = newDropdownOptions.filter(option => option.value !== columnName);
+      newMetricAndCustomColumns = newMetricAndCustomColumns.filter(column => column.name !== columnName);
       if (columnName in newColumnWidths) {
         delete newColumnWidths[columnName];
+      }
+
+      if (columnName in columnNameMap) {
+        delete newColumnNameMap[columnName];
       }
 
       this.setState({
         columnOrder: newColumnOrder,
         dropdownOptions: newDropdownOptions,
-        columnWidths: newColumnWidths
+        columnWidths: newColumnWidths,
+        metricAndCustomColumns: newMetricAndCustomColumns,
+        columnNameMap: newColumnNameMap
       });
     }
   };

@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react';
 import {Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormControl, FormGroup, Alert} from 'react-bootstrap';
 import './customColumnModal.scss';
 import axios from 'axios';
-import Select from 'react-select';
+import CreatableSelect from 'react-select/lib/Creatable';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {parseServerError} from '../Helpers/utils';
 
@@ -49,7 +49,8 @@ class CustomColumnModal extends PureComponent {
     // Get columns that were edited/modified
     const dirtyColumns = initialColumns.reduce((accumulator, current, index) => {
       // Exclude newly added columns with id as "null" and columns that did not go through any change
-      if (columns[index].id && JSON.stringify(columns[index]) !== JSON.stringify(current)) {
+      const column = columnsClone.find(column => column.id === current.id);
+      if (column && JSON.stringify(column) !== JSON.stringify(current)) {
         accumulator.push(columns[index]);
       }
 
@@ -228,44 +229,69 @@ class CustomColumnModal extends PureComponent {
     this.setState({
       isLoadingConfigs: true
     });
-    axios.get('/api/v1/Runs', {
-      params: {
-        distinct: 'config'
-      }
-    }).then(response => {
+    const getAllPaths = (prefix, data) => {
+      return Object.keys(data).reduce((paths, key) => {
+        paths = [...paths, `${prefix}.${key}`];
+        if (typeof data[key] === 'object' && !Array.isArray(data[key]) && data[key]) {
+          const newPaths = Object.keys(data[key]).reduce((acc, item) => {
+            if (typeof data[key][item] !== 'object' && data[key][item]) {
+              const path = prefix ? `${prefix}.${key}.${item}` : `${key}.${item}`;
+              acc.push(path);
+            }
+
+            return acc;
+          }, []);
+          const recursivePaths = getAllPaths(`${prefix}.${key}`, data[key]);
+          return [...paths, ...recursivePaths, ...newPaths];
+        }
+
+        return paths;
+      }, []);
+    };
+
+    axios.all([
+      axios.get('/api/v1/Runs', {
+        params: {
+          distinct: 'config'
+        }
+      }),
+      axios.get('/api/v1/Runs', {
+        params: {
+          distinct: 'host'
+        }
+      }),
+      axios.get('/api/v1/Runs', {
+        params: {
+          distinct: 'experiment'
+        }
+      })
+    ]).then(axios.spread((configResponse, hostResponse, experimentResponse) => {
       // Recursively get all config paths
-      const getAllPaths = (prefix, data) => {
-        return Object.keys(data).reduce((paths, key) => {
-          paths = [...paths, `${prefix}.${key}`];
-          if (typeof data[key] === 'object' && !Array.isArray(data[key]) && data[key]) {
-            const newPaths = Object.keys(data[key]).reduce((acc, item) => {
-              if (typeof data[key][item] !== 'object' && data[key][item]) {
-                const path = prefix ? `${prefix}.${key}.${item}` : `${key}.${item}`;
-                acc.push(path);
-              }
-
-              return acc;
-            }, []);
-            const recursivePaths = getAllPaths(`${prefix}.${key}`, data[key]);
-            return [...paths, ...recursivePaths, ...newPaths];
-          }
-
-          return paths;
-        }, []);
-      };
-
-      const configPaths = response.data.reduce((acc, current) => {
+      const configPaths = configResponse.data.reduce((acc, current) => {
         const keys = getAllPaths('config', current);
         return [...new Set([...acc, ...keys])];
       }, []);
 
-      const error = configPaths.length > 0 ? '' : 'There are no nested config parameters available to add a new column';
+      // Recursively get all host paths
+      const hostPaths = hostResponse.data.reduce((acc, current) => {
+        const keys = getAllPaths('host', current);
+        return [...new Set([...acc, ...keys])];
+      }, []);
+
+      // Recursively get all experiment paths
+      const experimentPaths = experimentResponse.data.reduce((acc, current) => {
+        const keys = getAllPaths('experiment', current);
+        return [...new Set([...acc, ...keys])];
+      }, []);
+
+      const paths = [...configPaths, ...hostPaths, ...experimentPaths];
+      const error = paths.length > 0 ? '' : 'There are no nested config parameters available to add a new column';
       this.setState({
-        configPaths,
+        configPaths: paths,
         error,
         isLoadingConfigs: false
       });
-    });
+    }));
   };
 
   get isSubmitDisabled() {
@@ -313,9 +339,9 @@ class CustomColumnModal extends PureComponent {
         value: name
       };
     });
-    const getSelectValue = (options, value) => {
-      const selectValue = options.find(option => option.value === value);
-      return selectValue ? selectValue : '';
+    const getCreateLabel = input => input;
+    const getSelectValue = value => {
+      return {label: value, value};
     };
 
     const renderColumnRow = (columnRow, key) => {
@@ -336,13 +362,14 @@ class CustomColumnModal extends PureComponent {
             </FormGroup>
           </div>
           <div className='col col-xs-5'>
-            <Select
+            <CreatableSelect
               test-attr={'config-path-' + key}
               options={configPathOptions}
-              value={getSelectValue(configPathOptions, columnRow.configPath)}
+              value={getSelectValue(columnRow.configPath)}
+              formatCreateLabel={getCreateLabel}
               isLoading={isLoadingConfigs}
               clearable={false}
-              placeholder='Config Path'
+              placeholder='Path'
               onChange={this._handleConfigPathChange(key)}
             />
           </div>

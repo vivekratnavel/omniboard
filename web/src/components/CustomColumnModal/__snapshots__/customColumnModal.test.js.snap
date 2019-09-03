@@ -196,6 +196,7 @@ exports[`CustomColumnModal should render correctly 2`] = `
                 defaultInputValue=""
                 defaultMenuIsOpen={false}
                 defaultValue={null}
+                formatCreateLabel={[Function]}
                 isLoading={false}
                 onChange={[Function]}
                 options={
@@ -236,9 +237,37 @@ exports[`CustomColumnModal should render correctly 2`] = `
                       "label": "config.train.settings.epochs",
                       "value": "config.train.settings.epochs",
                     },
+                    Object {
+                      "label": "host.hostname",
+                      "value": "host.hostname",
+                    },
+                    Object {
+                      "label": "host.os",
+                      "value": "host.os",
+                    },
+                    Object {
+                      "label": "host.python_version",
+                      "value": "host.python_version",
+                    },
+                    Object {
+                      "label": "host.cpu",
+                      "value": "host.cpu",
+                    },
+                    Object {
+                      "label": "host.ENV",
+                      "value": "host.ENV",
+                    },
+                    Object {
+                      "label": "experiment.name",
+                      "value": "experiment.name",
+                    },
+                    Object {
+                      "label": "experiment.base_dir",
+                      "value": "experiment.base_dir",
+                    },
                   ]
                 }
-                placeholder="Config Path"
+                placeholder="Path"
                 test-attr="config-path-0"
                 value={
                   Object {
@@ -289,6 +318,7 @@ exports[`CustomColumnModal should render correctly 2`] = `
                 defaultInputValue=""
                 defaultMenuIsOpen={false}
                 defaultValue={null}
+                formatCreateLabel={[Function]}
                 isLoading={false}
                 onChange={[Function]}
                 options={
@@ -329,9 +359,37 @@ exports[`CustomColumnModal should render correctly 2`] = `
                       "label": "config.train.settings.epochs",
                       "value": "config.train.settings.epochs",
                     },
+                    Object {
+                      "label": "host.hostname",
+                      "value": "host.hostname",
+                    },
+                    Object {
+                      "label": "host.os",
+                      "value": "host.os",
+                    },
+                    Object {
+                      "label": "host.python_version",
+                      "value": "host.python_version",
+                    },
+                    Object {
+                      "label": "host.cpu",
+                      "value": "host.cpu",
+                    },
+                    Object {
+                      "label": "host.ENV",
+                      "value": "host.ENV",
+                    },
+                    Object {
+                      "label": "experiment.name",
+                      "value": "experiment.name",
+                    },
+                    Object {
+                      "label": "experiment.base_dir",
+                      "value": "experiment.base_dir",
+                    },
                   ]
                 }
-                placeholder="Config Path"
+                placeholder="Path"
                 test-attr="config-path-1"
                 value={
                   Object {
@@ -382,6 +440,7 @@ exports[`CustomColumnModal should render correctly 2`] = `
                 defaultInputValue=""
                 defaultMenuIsOpen={false}
                 defaultValue={null}
+                formatCreateLabel={[Function]}
                 isLoading={false}
                 onChange={[Function]}
                 options={
@@ -422,11 +481,44 @@ exports[`CustomColumnModal should render correctly 2`] = `
                       "label": "config.train.settings.epochs",
                       "value": "config.train.settings.epochs",
                     },
+                    Object {
+                      "label": "host.hostname",
+                      "value": "host.hostname",
+                    },
+                    Object {
+                      "label": "host.os",
+                      "value": "host.os",
+                    },
+                    Object {
+                      "label": "host.python_version",
+                      "value": "host.python_version",
+                    },
+                    Object {
+                      "label": "host.cpu",
+                      "value": "host.cpu",
+                    },
+                    Object {
+                      "label": "host.ENV",
+                      "value": "host.ENV",
+                    },
+                    Object {
+                      "label": "experiment.name",
+                      "value": "experiment.name",
+                    },
+                    Object {
+                      "label": "experiment.base_dir",
+                      "value": "experiment.base_dir",
+                    },
                   ]
                 }
-                placeholder="Config Path"
+                placeholder="Path"
                 test-attr="config-path-2"
-                value=""
+                value={
+                  Object {
+                    "label": "experiment.name",
+                    "value": "experiment.name",
+                  }
+                }
               />
             </div>
             <div
