@@ -28,7 +28,7 @@ import {CustomColumnModal} from '../CustomColumnModal/customColumnModal';
 import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE} from '../../appConstants/app.constants';
 import {SettingsModal} from '../SettingsModal/settingsModal';
 
-const DEFAULT_COLUMN_WIDTH = 150;
+export const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
 const DEFAULT_ROW_HEIGHT = 70;
 const DEFAULT_EXPANDED_ROW_HEIGHT = Number(EXPANDED_ROW_HEIGHT);
@@ -37,6 +37,7 @@ const NOTES_COLUMN_HEADER = 'notes';
 const EXPERIMENT_NAME = 'experiment_name';
 const ID_COLUMN_KEY = '_id';
 const DURATION_COLUMN_KEY = 'duration';
+const STATUS_COLUMN_KEY = 'status';
 const START_TIME_KEY = 'start_time';
 const STOP_TIME_KEY = 'stop_time';
 const HEARTBEAT_KEY = 'heartbeat';
@@ -1136,7 +1137,7 @@ class RunsTable extends Component {
     return new Promise(resolve => {
       // Get suggestions for columns of types other than Date or Number
       // Since Date type Number type doesn't support regex
-      if (filterColumnName.length > 0 && ![ID_COLUMN_KEY, START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY, DURATION_COLUMN_KEY].includes(filterColumnName)) {
+      if (filterColumnName.length > 0 && ![ID_COLUMN_KEY, START_TIME_KEY, STOP_TIME_KEY, HEARTBEAT_KEY, DURATION_COLUMN_KEY, STATUS_COLUMN_KEY].includes(filterColumnName)) {
         const operator = inputValue && !isNaN(inputValue) ? '$eq' : '$regex';
         const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
         const queryJson = {[filterColumnName]: {[operator]: value}};
@@ -1155,10 +1156,6 @@ class RunsTable extends Component {
 
               return result;
             }, []);
-            // Include Probably Dead status for status options
-            if (filterColumnName === 'status') {
-              options.push({label: STATUS.PROBABLY_DEAD, value: STATUS.PROBABLY_DEAD});
-            }
 
             this.setState({
               currentColumnValueOptions: options
@@ -1168,13 +1165,20 @@ class RunsTable extends Component {
             resolve([]);
           }
         });
-      } else if (filterColumnName.length > 0 && filterColumnName === DURATION_COLUMN_KEY) {
+      } else if (filterColumnName === DURATION_COLUMN_KEY) {
         // Suggest duration options.
         const options = ['30s', '1m', '5m', '10m', '30m', '1h', '2h'].map(key => {
           return {
             label: key,
             value: key
           };
+        });
+        resolve(options);
+      } else if (filterColumnName === STATUS_COLUMN_KEY) {
+        // Include all the status options
+        const options = [];
+        Object.keys(STATUS).forEach(statusKey => {
+          options.push({label: STATUS[statusKey], value: STATUS[statusKey]});
         });
         resolve(options);
       } else {

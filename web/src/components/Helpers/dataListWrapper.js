@@ -16,7 +16,7 @@ class DataListWrapper {
   }
 
   getSize() {
-    return this._size;
+    return this._size || 0;
   }
 
   fetchRange(end) {

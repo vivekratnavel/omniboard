@@ -129,5 +129,15 @@ describe('MetricsPlotView', () => {
 
       expect(wrapper.update().state().plotHeight).toEqual(350);
     });
+
+    it('plot smoothing change correctly', async () => {
+      const sliderWrapper = wrapper.find('[test-attr="plot-smoothing-slider"]');
+      const sliderHandleWrapper = sliderWrapper.find('.rc-slider-handle').at(1);
+      wrapper.instance().setState({smoothing: 0.5});
+      sliderWrapper.simulate('focus');
+      sliderHandleWrapper.simulate('keyDown', {keyCode: keyCode.UP});
+
+      expect(wrapper.update().state().smoothing).toEqual(0.501);
+    });
   });
 });

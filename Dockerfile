@@ -27,5 +27,4 @@ ENV PATH /usr/omniboard/node_modules/.bin:$PATH
 COPY --from=builder /usr/omniboard/package.json /usr/omniboard/package.json
 COPY --from=builder /usr/omniboard/dist /usr/omniboard/dist
 COPY --from=builder /usr/omniboard/web/build /usr/omniboard/web/build
-COPY --from=builder /usr/omniboard/node_modules /usr/omniboard/node_modules
-RUN yarn cache clean --force
+RUN yarn install --production && yarn cache clean --force

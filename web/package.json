@@ -96,7 +96,7 @@
     "lint": "xo src/*",
     "lint:fix": "xo --fix src/*",
     "coverage": "yarn run test -- --coverage",
-    "test:debug": "node --inspect-brk scripts/test.js --runInBand --env=jsdom",
+    "test:debug": "TZ='America/New_York' node --inspect-brk scripts/test.js --runInBand --env=jsdom",
     "report-coverage": "npm run coverage -- --coverageReporters=text-lcov | coveralls"
   },
   "lint-staged": {
@@ -164,7 +164,8 @@
     "plugins": [
       "react-hot-loader/babel",
       "@babel/plugin-proposal-class-properties"
-    ]
+    ],
+    "sourceMap": "inline"
   },
   "xo": {
     "space": true,
