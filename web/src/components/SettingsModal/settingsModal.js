@@ -12,7 +12,7 @@ import {parseServerError} from '../Helpers/utils';
 import {
   SETTING_TIMEZONE,
   AUTO_REFRESH_INTERVAL,
-  INITIAL_FETCH_SIZE
+  INITIAL_FETCH_SIZE, ROW_HEIGHT
 } from '../../appConstants/app.constants';
 
 class SettingsModal extends PureComponent {
@@ -37,9 +37,14 @@ class SettingsModal extends PureComponent {
     const {settings, initialSettings} = this.state;
     const {handleAutoRefreshUpdate, handleInitialFetchSizeUpdate} = this.props;
     const autoRefreshInterval = Number(settings[AUTO_REFRESH_INTERVAL].value);
+    const rowHeight = Number(settings[ROW_HEIGHT].value);
     if (isNaN(autoRefreshInterval) || autoRefreshInterval < 5) {
       this.setState({
         error: 'Auto Refresh Interval must be a Number >= 5'
+      });
+    } else if (isNaN(rowHeight)) {
+      this.setState({
+        error: 'Row Height must be a number'
       });
     } else {
       // Get columns that were edited/modified
@@ -130,6 +135,11 @@ class SettingsModal extends PureComponent {
     this._handleSettingValueChange(INITIAL_FETCH_SIZE, value);
   };
 
+  _handleRowHeightChange = event => {
+    const {value} = event.target;
+    this._handleSettingValueChange(ROW_HEIGHT, value);
+  };
+
   get isFormDirty() {
     const {initialSettings, settings} = this.state;
     return JSON.stringify(initialSettings) !== JSON.stringify(settings);
@@ -204,6 +214,7 @@ class SettingsModal extends PureComponent {
       settings[AUTO_REFRESH_INTERVAL].value : '';
     const initialFetchSize = settings && settings[INITIAL_FETCH_SIZE] ?
       settings[INITIAL_FETCH_SIZE].value : '';
+    const rowHeight = settings && settings[ROW_HEIGHT] ? settings[ROW_HEIGHT].value : '';
     return (
       <Modal show={show} onHide={handleClose}>
         <ModalHeader closeButton>
@@ -260,6 +271,22 @@ class SettingsModal extends PureComponent {
                         onChange={this._handleInitialFetchSizeChange}
                       />
                       <InputGroup.Addon>Rows</InputGroup.Addon>
+                    </InputGroup>
+                  </Col>
+                </FormGroup>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={4}>
+                    Row Height
+                  </Col>
+                  <Col sm={2}>
+                    <InputGroup>
+                      <FormControl
+                        type='number'
+                        test-attr='row-height'
+                        value={rowHeight}
+                        placeholder='Enter row height for the table'
+                        onChange={this._handleRowHeightChange}
+                      />
                     </InputGroup>
                   </Col>
                 </FormGroup>

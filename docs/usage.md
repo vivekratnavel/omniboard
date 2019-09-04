@@ -81,4 +81,4 @@ To delete an unwanted experiment run, hover over its `Id` column and click on th
 
 ![Delete Run](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/delete-run.png)
 
-Click on `Delete` button in the confirmation dialog to delete the run from the database.
+Click on `Delete` button in the confirmation dialog to delete the run from the database including its metrics, source files and artifacts.

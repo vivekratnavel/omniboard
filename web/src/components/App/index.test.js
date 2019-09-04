@@ -88,26 +88,30 @@ describe('App component', () => {
       const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1};
       const autoRefreshSetting = {name: 'auto_refresh_interval', value: 30, _id: 2};
       const initialFetchSize = {name: 'initial_fetch_size', value: 50, _id: 3};
+      const rowHeight = {name: 'row_height', value: 70, _id: 4};
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: []});
       mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
       await tick();
 
-      expect(mockAxios.post).toHaveBeenCalledTimes(3);
+      expect(mockAxios.post).toHaveBeenCalledTimes(4);
       mockAxios.mockResponse({status: 201, data: setting});
       mockAxios.mockResponse({status: 201, data: autoRefreshSetting});
       mockAxios.mockResponse({status: 201, data: initialFetchSize});
+      mockAxios.mockResponse({status: 201, data: rowHeight});
 
       await tick();
 
       expect(wrapper.update().instance().global.settings[appConstants.SETTING_TIMEZONE]).toEqual(setting);
       expect(wrapper.update().instance().global.settings[appConstants.AUTO_REFRESH_INTERVAL]).toEqual(autoRefreshSetting);
       expect(wrapper.update().instance().global.settings[appConstants.INITIAL_FETCH_SIZE]).toEqual(initialFetchSize);
+      expect(wrapper.update().instance().global.settings[appConstants.ROW_HEIGHT]).toEqual(rowHeight);
     });
 
     it('when only auto refresh setting is present', async () => {
       const setting = {name: 'timezone', value: 'Atlantic/Reykjavik', _id: 2};
       const initialFetchSize = {name: 'initial_fetch_size', value: 50, _id: 3};
+      const rowHeight = {name: 'row_height', value: 70, _id: 4};
       const autoRefreshSetting = {
         name: appConstants.AUTO_REFRESH_INTERVAL,
         value: 60,
@@ -118,15 +122,17 @@ describe('App component', () => {
       mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
       await tick();
 
-      expect(mockAxios.post).toHaveBeenCalledTimes(2);
+      expect(mockAxios.post).toHaveBeenCalledTimes(3);
       mockAxios.mockResponse({status: 201, data: setting});
       mockAxios.mockResponse({status: 201, data: initialFetchSize});
+      mockAxios.mockResponse({status: 201, data: rowHeight});
 
       await tick();
 
       expect(wrapper.update().instance().global.settings[appConstants.SETTING_TIMEZONE]).toEqual(setting);
       expect(wrapper.update().instance().global.settings[appConstants.AUTO_REFRESH_INTERVAL]).toEqual(autoRefreshSetting);
       expect(wrapper.update().instance().global.settings[appConstants.INITIAL_FETCH_SIZE]).toEqual(initialFetchSize);
+      expect(wrapper.update().instance().global.settings[appConstants.ROW_HEIGHT]).toEqual(rowHeight);
     });
   });
 });

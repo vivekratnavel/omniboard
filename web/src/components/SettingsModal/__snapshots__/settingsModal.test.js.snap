@@ -2523,6 +2523,36 @@ exports[`SettingsModal should render correctly 1`] = `
               </InputGroup>
             </Col>
           </FormGroup>
+          <FormGroup
+            bsClass="form-group"
+          >
+            <Col
+              bsClass="col"
+              componentClass={[Function]}
+              sm={4}
+            >
+              Row Height
+            </Col>
+            <Col
+              bsClass="col"
+              componentClass="div"
+              sm={2}
+            >
+              <InputGroup
+                bsClass="input-group"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter row height for the table"
+                  test-attr="row-height"
+                  type="number"
+                  value=""
+                />
+              </InputGroup>
+            </Col>
+          </FormGroup>
         </Form>
       </div>
     </ProgressWrapper>

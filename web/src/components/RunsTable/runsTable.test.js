@@ -46,6 +46,9 @@ describe('RunsTable', () => {
         },
         [appConstants.INITIAL_FETCH_SIZE]: {
           value: runsResponse.length
+        },
+        [appConstants.ROW_HEIGHT]: {
+          value: appConstants.DEFAULT_ROW_HEIGHT
         }
       }
     });

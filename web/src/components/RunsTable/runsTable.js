@@ -25,12 +25,11 @@ import {headerText, reorderArray, capitalize, parseServerError, arrayDiffColumns
 import {STATUS} from '../../appConstants/status.constants';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {CustomColumnModal} from '../CustomColumnModal/customColumnModal';
-import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE} from '../../appConstants/app.constants';
+import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE, ROW_HEIGHT} from '../../appConstants/app.constants';
 import {SettingsModal} from '../SettingsModal/settingsModal';
 
 export const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
-const DEFAULT_ROW_HEIGHT = 70;
 const DEFAULT_EXPANDED_ROW_HEIGHT = Number(EXPANDED_ROW_HEIGHT);
 const TAGS_COLUMN_HEADER = 'tags';
 const NOTES_COLUMN_HEADER = 'notes';
@@ -1326,6 +1325,7 @@ class RunsTable extends Component {
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
       lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount} = this.state;
     const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
+    const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
       sortedData.data = sortedData.getDataArray().map(row => {
         return Object.keys(row).map(key => {
@@ -1537,7 +1537,7 @@ class RunsTable extends Component {
                 <Table
                   ref={el => this.tableDom = el}
                   rowsCount={runsCount}
-                  rowHeight={DEFAULT_ROW_HEIGHT}
+                  rowHeight={rowHeight}
                   headerHeight={DEFAULT_HEADER_HEIGHT}
                   subRowHeightGetter={this._subRowHeightGetter}
                   rowExpanded={this._rowExpandedGetter}

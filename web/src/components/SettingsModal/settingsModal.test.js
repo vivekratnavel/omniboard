@@ -50,46 +50,38 @@ describe('SettingsModal', () => {
     const newTimezone = 'America/Los_Angeles';
     const newRefreshInterval = '60';
     const newFetchSize = '20';
+    const newRowHeight = '100';
     beforeEach(() => {
-      wrapper.setState({
-        settings: {
-          [appConstants.SETTING_TIMEZONE]: {
-            value: appConstants.SERVER_TIMEZONE,
-            name: appConstants.SETTING_TIMEZONE,
-            id: 1
-          },
-          [appConstants.AUTO_REFRESH_INTERVAL]: {
-            value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
-            name: appConstants.AUTO_REFRESH_INTERVAL,
-            id: 2
-          },
-          [appConstants.INITIAL_FETCH_SIZE]: {
-            value: appConstants.DEFAULT_INITIAL_FETCH_SIZE,
-            name: appConstants.INITIAL_FETCH_SIZE,
-            id: 3
-          }
+      const settings = {
+        [appConstants.SETTING_TIMEZONE]: {
+          value: appConstants.SERVER_TIMEZONE,
+          name: appConstants.SETTING_TIMEZONE,
+          id: 1
         },
-        initialSettings: {
-          [appConstants.SETTING_TIMEZONE]: {
-            value: appConstants.SERVER_TIMEZONE,
-            name: appConstants.SETTING_TIMEZONE,
-            id: 1
-          },
-          [appConstants.AUTO_REFRESH_INTERVAL]: {
-            value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
-            name: appConstants.AUTO_REFRESH_INTERVAL,
-            id: 2
-          },
-          [appConstants.INITIAL_FETCH_SIZE]: {
-            value: appConstants.DEFAULT_INITIAL_FETCH_SIZE,
-            name: appConstants.INITIAL_FETCH_SIZE,
-            id: 3
-          }
+        [appConstants.AUTO_REFRESH_INTERVAL]: {
+          value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL,
+          name: appConstants.AUTO_REFRESH_INTERVAL,
+          id: 2
+        },
+        [appConstants.INITIAL_FETCH_SIZE]: {
+          value: appConstants.DEFAULT_INITIAL_FETCH_SIZE,
+          name: appConstants.INITIAL_FETCH_SIZE,
+          id: 3
+        },
+        [appConstants.ROW_HEIGHT]: {
+          value: appConstants.DEFAULT_ROW_HEIGHT,
+          name: appConstants.ROW_HEIGHT,
+          id: 4
         }
+      };
+      wrapper.setState({
+        settings,
+        initialSettings: settings
       });
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: newTimezone});
       wrapper.find('[test-attr="auto-refresh-interval"]').simulate('change', {target: {value: newRefreshInterval}});
       wrapper.find('[test-attr="initial-fetch-size"]').simulate('change', {target: {value: newFetchSize}});
+      wrapper.find('[test-attr="row-height"]').simulate('change', {target: {value: newRowHeight}});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
     });
 
@@ -97,6 +89,7 @@ describe('SettingsModal', () => {
       expect(wrapper.update().state().settings[appConstants.SETTING_TIMEZONE].value).toEqual(newTimezone);
       expect(wrapper.update().state().settings[appConstants.AUTO_REFRESH_INTERVAL].value).toEqual(newRefreshInterval);
       expect(wrapper.update().state().settings[appConstants.INITIAL_FETCH_SIZE].value).toEqual(newFetchSize);
+      expect(wrapper.update().state().settings[appConstants.ROW_HEIGHT].value).toEqual(newRowHeight);
     });
 
     it('save success', async () => {
@@ -104,7 +97,7 @@ describe('SettingsModal', () => {
       wrapper.instance().setGlobal = jest.fn((_globalSettings, callback) => {
         callback();
       });
-      generateMockResponse(200, 3);
+      generateMockResponse(200, 4);
 
       await tick();
 
@@ -125,6 +118,11 @@ describe('SettingsModal', () => {
             id: 3,
             name: appConstants.INITIAL_FETCH_SIZE,
             value: newFetchSize
+          },
+          row_height: {
+            id: 4,
+            name: appConstants.ROW_HEIGHT,
+            value: newRowHeight
           }
         }
       }, expect.any(Function));
@@ -148,6 +146,7 @@ describe('SettingsModal', () => {
       mockAxios.mockResponse(err);
       mockAxios.mockResponse(err);
       mockAxios.mockResponse(err);
+      mockAxios.mockResponse(err);
 
       await tick();
 
@@ -155,7 +154,7 @@ describe('SettingsModal', () => {
     });
 
     it('save error - validation error', async () => {
-      generateMockResponse(400, 3);
+      generateMockResponse(400, 4);
       wrapper.find('[test-attr="auto-refresh-interval"]').simulate('change', {target: {value: '3'}});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
 
@@ -163,12 +162,14 @@ describe('SettingsModal', () => {
     });
 
     it('save when form is not dirty', async () => {
-      generateMockResponse(400, 3);
+      generateMockResponse(400, 4);
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: 'Atlantic/Reykjavik'});
       wrapper.find('[test-attr="auto-refresh-interval"]')
         .simulate('change', {target: {value: appConstants.DEFAULT_AUTO_REFRESH_INTERVAL}});
       wrapper.find('[test-attr="initial-fetch-size"]')
         .simulate('change', {target: {value: appConstants.DEFAULT_INITIAL_FETCH_SIZE}});
+      wrapper.find('[test-attr="row-height"]')
+        .simulate('change', {target: {value: appConstants.DEFAULT_ROW_HEIGHT}});
       wrapper.find('[test-attr="apply-btn"]').simulate('click');
 
       expect(wrapper.state().error).toEqual('There are no changes to be applied');

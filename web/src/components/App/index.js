@@ -11,7 +11,7 @@ import {
   SETTING_TIMEZONE,
   AUTO_REFRESH_INTERVAL,
   DEFAULT_AUTO_REFRESH_INTERVAL,
-  INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE
+  INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE, ROW_HEIGHT, DEFAULT_ROW_HEIGHT
 } from '../../appConstants/app.constants';
 
 class App extends Component {
@@ -122,11 +122,16 @@ class App extends Component {
         if (!settingsResponseData.some(setting => setting.name === INITIAL_FETCH_SIZE)) {
           this._initializeSetting(INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE);
         }
+
+        if (!settingsResponseData.some(setting => setting.name === ROW_HEIGHT)) {
+          this._initializeSetting(ROW_HEIGHT, DEFAULT_ROW_HEIGHT);
+        }
       } else if (settingsResponse && settingsResponse.status === 200) {
         // If empty response, then initialize all settings
         this._initializeSetting(SETTING_TIMEZONE, userTimezone);
         this._initializeSetting(AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL);
         this._initializeSetting(INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE);
+        this._initializeSetting(ROW_HEIGHT, DEFAULT_ROW_HEIGHT);
       }
     })).catch(error => {
       toast.error(parseServerError(error));
