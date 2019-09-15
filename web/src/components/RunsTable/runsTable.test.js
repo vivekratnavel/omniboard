@@ -24,6 +24,8 @@ describe('RunsTable', () => {
     'config.train';
   toast.error = jest.fn();
   console.warn = jest.fn();
+  window.addEventListener = jest.fn();
+  window.removeEventListener = jest.fn();
 
   beforeEach(async () => {
     // RunsTable deletes certain keys in this data and it produces unexpected results
@@ -103,6 +105,21 @@ describe('RunsTable', () => {
     wrapper.find('[test-attr="close-btn"]').at(1).simulate('click');
 
     expect(wrapper.state().showMetricColumnModal).toBeFalsy();
+  });
+
+  it('should open compare runs modal', async () => {
+    await initialRequestResponse();
+    wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+    wrapper.find('#compare_runs').at(1).simulate('click');
+    // Should not open modal when only one row is selected
+    expect(wrapper.update().state().showCompareColumnsModal).toBeFalsy();
+
+    wrapper.update().find('[test-attr="cell-row_selection-1"]').simulate('click');
+    wrapper.find('#compare_runs').at(1).simulate('click');
+    expect(wrapper.update().state().showCompareColumnsModal).toBeTruthy();
+    wrapper.instance()._handleCompareColumnsModalClose();
+
+    expect(wrapper.state().showCompareColumnsModal).toBeFalsy();
   });
 
   describe('should load data', () => {
@@ -336,6 +353,47 @@ describe('RunsTable', () => {
 
     expect(wrapper.state().expandedRows.size).toEqual(0);
     expect(wrapper.state().scrollToRow).toBeNull();
+  });
+
+  describe('should handle multi select', () => {
+    beforeEach(async () => {
+      await initialRequestResponse();
+    });
+
+    it('click on row', async () => {
+      wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+
+      expect(wrapper.instance().state.selectedRows.size).toEqual(1);
+      expect(wrapper.instance().state.selectedRows.has(0)).toBeTruthy();
+    });
+
+    it('click on select-all', async () => {
+      wrapper.update().find('[test-attr="header-row_selection"]').simulate('click');
+
+      expect(wrapper.instance().state.selectedRows.size).toEqual(4);
+      expect(wrapper.instance().state.selectedRows.has(3)).toBeTruthy();
+      expect(wrapper.state().selectAll).toBeTruthy();
+    });
+
+    it('deselect row', async () => {
+      wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+      expect(wrapper.instance().state.selectedRows.size).toEqual(1);
+      expect(wrapper.state().selectAll).toBeTruthy();
+      expect(wrapper.state().selectAllIndeterminate).toBeTruthy();
+      wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+      expect(wrapper.instance().state.selectedRows.size).toEqual(0);
+      expect(wrapper.state().selectAll).toBeFalsy();
+      expect(wrapper.state().selectAllIndeterminate).toBeFalsy();
+    });
+
+    it('deselect all', async () => {
+      wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+
+      expect(wrapper.state().selectAllIndeterminate).toBeTruthy();
+      wrapper.update().find('[test-attr="header-row_selection"]').simulate('click');
+
+      expect(wrapper.instance().state.selectedRows.size).toEqual(0);
+    });
   });
 
   describe('should handle tag change correctly', () => {
@@ -824,5 +882,9 @@ describe('RunsTable', () => {
     expect(wrapper.update().state().columnOrder).toContain('sample');
     expect(wrapper.update().state().dropdownOptions.some(option => option.value === 'sample')).toBeTruthy();
     expect(wrapper.update().state().columnWidths.sample).toEqual(DEFAULT_COLUMN_WIDTH);
+  });
+
+  it('should unmount', () => {
+    wrapper.unmount();
   });
 });

@@ -1,0 +1,287 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CompareRunsModal should load data success 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="compare-runs-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[MockFunction]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      Compare 4 Runs [1, 2, 3, 4]
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <ProgressWrapper
+      loading={false}
+    >
+      <div
+        className="full-height"
+      >
+        <div
+          className="sidebar-wrapper full-height"
+        >
+          <div
+            className="sidebar-container full-height"
+          >
+            <div
+              id="sidebar"
+            >
+              <Nav
+                activeKey="metrics"
+                bsClass="nav"
+                bsStyle="pills"
+                justified={false}
+                onSelect={[Function]}
+                pullLeft={false}
+                pullRight={false}
+                stacked={true}
+              >
+                <NavItem
+                  active={false}
+                  disabled={false}
+                  eventKey="metrics"
+                >
+                  Metrics Plot
+                </NavItem>
+                <NavItem
+                  active={false}
+                  disabled={false}
+                  eventKey="captured_out"
+                >
+                  Captured Out
+                </NavItem>
+                <NavItem
+                  active={false}
+                  disabled={false}
+                  eventKey="config"
+                >
+                  Config
+                </NavItem>
+              </Nav>
+            </div>
+          </div>
+          <div
+            className="sidebar-content full-height"
+          >
+            <div
+              className="tab-content"
+            >
+              <ProgressWrapper
+                id="ddv-progress-wrapper"
+                loading={false}
+              >
+                <div
+                  id="metrics"
+                >
+                  <Well
+                    bsClass="well"
+                    bsSize="small"
+                    className="run-id-filter-well"
+                  >
+                    <h5>
+                      Runs
+                    </h5>
+                    <div
+                      className="run-id-options-wrapper"
+                    >
+                      <MultiSelect
+                        buttonText={[Function]}
+                        data={
+                          Array [
+                            Object {
+                              "label": 1,
+                              "selected": true,
+                              "value": 1,
+                            },
+                            Object {
+                              "label": 2,
+                              "selected": true,
+                              "value": 2,
+                            },
+                            Object {
+                              "label": 3,
+                              "selected": true,
+                              "value": 3,
+                            },
+                            Object {
+                              "label": 4,
+                              "selected": true,
+                              "value": 4,
+                            },
+                          ]
+                        }
+                        enableHTML={true}
+                        id="run_ids"
+                        includeSelectAllOption={true}
+                        maxHeight={300}
+                        multiple={true}
+                        onChange={[Function]}
+                        onDeselectAll={[Function]}
+                        onSelectAll={[Function]}
+                        selectedClass="run-id-selected"
+                      />
+                    </div>
+                  </Well>
+                  <MetricsPlotView
+                    metricsResponse={
+                      Array [
+                        Object {
+                          "_id": "5a2b5a8c9c7a505a652f6127",
+                          "name": "pretrain.train.loss",
+                          "run_id": 1,
+                          "steps": Array [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                          ],
+                          "timestamps": Array [
+                            "2017-12-09T03:37:44.425Z",
+                            "2017-12-09T03:41:54.414Z",
+                            "2017-12-09T03:46:01.766Z",
+                            "2017-12-09T03:50:07.365Z",
+                            "2017-12-09T03:54:12.560Z",
+                          ],
+                          "values": Array [
+                            0.7159541824544438,
+                            0.3840367944955761,
+                            0.3469185283233073,
+                            0.30483262065173106,
+                            0.28915774130337507,
+                          ],
+                        },
+                        Object {
+                          "_id": "5a2b5aa09c7a505a652f6146",
+                          "name": "pretrain.val.loss",
+                          "run_id": 2,
+                          "steps": Array [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                          ],
+                          "timestamps": Array [
+                            "2017-12-09T03:38:01.945Z",
+                            "2017-12-09T03:42:11.673Z",
+                            "2017-12-09T03:46:18.843Z",
+                            "2017-12-09T03:50:24.377Z",
+                            "2017-12-09T03:54:29.752Z",
+                          ],
+                          "values": Array [
+                            0.32177006650114165,
+                            0.23237958704995795,
+                            0.23340759051386187,
+                            0.21925230575196739,
+                            0.20541178824900605,
+                          ],
+                        },
+                        Object {
+                          "_id": "5a2b5a8c9c7a505a652f6127",
+                          "name": "pretrain.train.loss",
+                          "run_id": 3,
+                          "steps": Array [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                          ],
+                          "timestamps": Array [
+                            "2017-12-09T03:37:44.425Z",
+                            "2017-12-09T03:41:54.414Z",
+                            "2017-12-09T03:46:01.766Z",
+                            "2017-12-09T03:50:07.365Z",
+                            "2017-12-09T03:54:12.560Z",
+                          ],
+                          "values": Array [
+                            0.7859541824544438,
+                            0.5640367944955761,
+                            0.8769185283233073,
+                            0.604832620651731,
+                            0.5891577413033751,
+                          ],
+                        },
+                        Object {
+                          "_id": "5a2b5aa09c7a505a652f6146",
+                          "name": "pretrain.val.loss",
+                          "run_id": 4,
+                          "steps": Array [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                          ],
+                          "timestamps": Array [
+                            "2017-12-09T03:38:01.945Z",
+                            "2017-12-09T03:42:11.673Z",
+                            "2017-12-09T03:46:18.843Z",
+                            "2017-12-09T03:50:24.377Z",
+                            "2017-12-09T03:54:29.752Z",
+                          ],
+                          "values": Array [
+                            0.5217700665011417,
+                            0.9237958704995795,
+                            0.11340759051386187,
+                            0.41925230575196737,
+                            0.905411788249006,
+                          ],
+                        },
+                      ]
+                    }
+                    runId=""
+                    stateFilterKeys={
+                      Array [
+                        "selectedMetricNames",
+                        "selectedXAxis",
+                        "selectedYAxis",
+                        "plotWidth",
+                        "plotHeight",
+                        "smoothing",
+                      ]
+                    }
+                  />
+                </div>
+              </ProgressWrapper>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ProgressWrapper>
+  </ModalBody>
+</Modal>
+`;

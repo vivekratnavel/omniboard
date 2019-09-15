@@ -82,6 +82,76 @@ class CollapseCell extends React.PureComponent {
   }
 }
 
+class SelectionCell extends React.Component {
+  static propTypes = {
+    callback: PropTypes.func.isRequired,
+    columnKey: PropTypes.string,
+    data: PropTypes.object,
+    selectedRows: PropTypes.object.isRequired,
+    rowIndex: PropTypes.number
+  };
+
+  render() {
+    /* eslint-disable no-unused-vars */
+    const {data, rowIndex, selectedRows, columnKey, callback, ...props} = this.props;
+    /* eslint-enable no-unused-vars */
+    const checked = selectedRows.has(rowIndex);
+    return (
+      <Cell {...props} onClick={e => {
+        e.preventDefault();
+        callback(rowIndex);
+      }}
+      >
+        <a test-attr={'cell-' + columnKey + '-' + rowIndex} className='selection-cell-wrapper pointer'>
+          <div className='checkbox'>
+            <label>
+              <input readOnly type='checkbox' value='' checked={checked}/>
+              <span className='cr'><i className='cr-icon glyphicon glyphicon-ok'/></span>
+            </label>
+          </div>
+        </a>
+      </Cell>
+    );
+  }
+}
+
+class SelectionHeaderCell extends React.PureComponent {
+  static propTypes = {
+    callback: PropTypes.func.isRequired,
+    columnKey: PropTypes.string,
+    data: PropTypes.object,
+    checked: PropTypes.bool.isRequired,
+    indeterminate: PropTypes.bool.isRequired
+  };
+
+  render() {
+    /* eslint-disable no-unused-vars */
+    const {data, columnKey, callback, checked, indeterminate, ...props} = this.props;
+    /* eslint-enable no-unused-vars */
+    return (
+      <Cell {...props} onClick={e => {
+        e.preventDefault();
+        callback(!checked);
+      }}
+      >
+        <a test-attr={'header-' + columnKey} className='selection-cell-wrapper pointer'>
+          <div className='checkbox'>
+            <label>
+              <input ref={el => el && (el.indeterminate = indeterminate)} readOnly type='checkbox'
+                value=''
+                checked={checked}/>
+              <span className='cr'>
+                <i className='cr-icon glyphicon glyphicon-ok'/>
+                <i className='cr-indeterminate-icon glyphicon glyphicon-minus'/>
+              </span>
+            </label>
+          </div>
+        </a>
+      </Cell>
+    );
+  }
+}
+
 class TextCell extends React.PureComponent {
   static propTypes = {
     columnKey: PropTypes.string,
@@ -494,4 +564,4 @@ class HeaderCell extends Component {
 }
 
 export {CollapseCell, TextCell, SelectCell, EditableCell, HeaderCell, SortTypes,
-  ExpandRowCell, StatusCell, IdCell, DateCell, PendingCell};
+  ExpandRowCell, StatusCell, IdCell, DateCell, PendingCell, SelectionCell, SelectionHeaderCell};

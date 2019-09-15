@@ -13,6 +13,7 @@ exports[`DrillDownView should render correctly 1`] = `
   width={600}
 >
   <div
+    className="drilldown-view"
     style={
       Object {
         "height": 500,

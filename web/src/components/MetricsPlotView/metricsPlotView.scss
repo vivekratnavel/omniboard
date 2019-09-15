@@ -1,0 +1,24 @@
+.metrics-plot-view {
+  .radio, .checkbox {
+    &:first-child {
+      margin-top: 5px;
+    }
+  }
+
+  .smoothing-wrapper {
+    width: 140px;
+    margin: 0;
+    .smoothing-input {
+      width: 65px;
+    }
+    .smoothing-slider {
+      margin-top: 5px;
+      width: 120px;
+    }
+  }
+
+  .metrics-plot-left {
+    padding: 0 20px 5px 20px;
+    border: 1px solid #e0e0e0;
+  }
+}

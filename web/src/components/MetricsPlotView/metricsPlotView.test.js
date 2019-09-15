@@ -16,7 +16,7 @@ describe('MetricsPlotView', () => {
       timestamps: ['2017-12-09T03:38:01.945Z', '2017-12-09T03:42:11.673Z', '2017-12-09T03:46:18.843Z', '2017-12-09T03:50:24.377Z', '2017-12-09T03:54:29.752Z']}
   ];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     wrapper = mount(
       <MetricsPlotView metricsResponse={metricsResponseData} runId={222} localStorageKey='metricsPlot|222'/>
     );
@@ -41,10 +41,13 @@ describe('MetricsPlotView', () => {
   });
 
   it('should set default selection correctly', () => {
-    localStorage.getItem.mockImplementationOnce(() => '{"selectedMetricNames": ["pretrain.val.loss", "invalid"], "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450}');
+    localStorage.getItem.mockImplementationOnce(() => '{"metricNameOptions": [{"label": "pretrain.val.loss",' +
+      ' "value": "pretrain.val.loss", "selected": true}],' +
+      ' "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450}');
     wrapper.instance()._setDefaultSelection();
 
-    expect(wrapper.state().selectedMetricNames).toHaveLength(1);
+    let selectedMetrics = wrapper.state().metricNameOptions.filter(option => option.selected === true);
+    expect(selectedMetrics).toHaveLength(1);
     expect(wrapper.state().selectedXAxis).toEqual('time');
     expect(wrapper.state().selectedYAxis).toEqual('linear');
     expect(wrapper.state().plotWidth).toEqual(900);
@@ -53,7 +56,8 @@ describe('MetricsPlotView', () => {
     localStorage.getItem.mockImplementationOnce(() => '{}');
     wrapper.instance()._setDefaultSelection();
 
-    expect(wrapper.state().selectedMetricNames).toHaveLength(0);
+    selectedMetrics = wrapper.state().metricNameOptions.filter(option => option.selected === true);
+    expect(selectedMetrics).toHaveLength(2);
     expect(wrapper.state().selectedXAxis).toEqual(X_AXIS_VALUES[0]);
     expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUES[0]);
     expect(wrapper.state().plotWidth).toEqual(800);
@@ -72,30 +76,16 @@ describe('MetricsPlotView', () => {
 
   describe('should handle', () => {
     it('metricNamesChange correctly', async () => {
-      expect(wrapper.find('[test-attr="plot-metric-name-0"]')).toHaveLength(1);
-      wrapper.find('[test-attr="plot-metric-name-0"]').simulate('change', {
-        target: {
-          value: 'pretrain.train.loss',
-          checked: true
-        }
-      });
-      wrapper.find('[test-attr="plot-metric-name-0"]').simulate('change', {
-        target: {
-          value: 'pretrain.train.loss',
-          checked: true
-        }
-      });
+      expect(wrapper.instance().metricNameOptionsDomNode.$multiselect.val()).toHaveLength(2);
 
-      expect(wrapper.state().selectedMetricNames).toHaveLength(1);
-
-      wrapper.find('[test-attr="plot-metric-name-0"]').simulate('change', {
-        target: {
-          value: 'pretrain.train.loss',
-          checked: false
+      wrapper.instance().metricNameOptionsDomNode = {
+        $multiselect: {
+          val: () => ['pretrain.val.loss']
         }
-      });
+      };
+      wrapper.instance()._handleMetricNamesChange({});
 
-      expect(wrapper.state().selectedMetricNames).toHaveLength(0);
+      expect(wrapper.state().metricNameOptions.filter(option => option.selected === true)).toHaveLength(1);
     });
 
     it('x-axis change correctly', async () => {

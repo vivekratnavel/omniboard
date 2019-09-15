@@ -18,7 +18,7 @@ import ms from 'ms';
 import {MetricColumnModal} from '../MetricColumnModal/metricColumnModal';
 import {DataListWrapper} from '../Helpers/dataListWrapper';
 import {EditableCell, SelectCell, ExpandRowCell, TextCell, CollapseCell, HeaderCell,
-  SortTypes, StatusCell, IdCell, DateCell, PendingCell} from '../Helpers/cells';
+  SortTypes, StatusCell, IdCell, DateCell, PendingCell, SelectionCell, SelectionHeaderCell} from '../Helpers/cells';
 import {DrillDownView} from '../DrillDownView/drillDownView';
 import {EXPANDED_ROW_HEIGHT} from '../DrillDownView/drillDownView.scss';
 import {headerText, reorderArray, capitalize, parseServerError, arrayDiffColumns} from '../Helpers/utils';
@@ -27,6 +27,7 @@ import {ProgressWrapper} from '../Helpers/hoc';
 import {CustomColumnModal} from '../CustomColumnModal/customColumnModal';
 import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE, ROW_HEIGHT} from '../../appConstants/app.constants';
 import {SettingsModal} from '../SettingsModal/settingsModal';
+import {CompareRunsModal} from '../CompareRunsModal/compareRunsModal';
 
 export const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -142,6 +143,9 @@ class RunsTable extends Component {
       },
       tags: [],
       expandedRows: new Set(),
+      selectedRows: new Set(),
+      selectAll: false,
+      selectAllIndeterminate: false,
       scrollToRow: null,
       showMetricColumnModal: false,
       filterColumnName: '',
@@ -163,7 +167,9 @@ class RunsTable extends Component {
       runsCount: 0,
       newRunsCount: 0,
       newData: null,
-      dataVersion: 0
+      dataVersion: 0,
+      isCompareButtonDisabled: true,
+      showCompareColumnsModal: false
     };
   }
 
@@ -506,6 +512,14 @@ class RunsTable extends Component {
         metricAndCustomColumns: latestMetricAndCustomColumns,
         columnNameMap: newColumnNameMap
       };
+    });
+  };
+
+  _resetSelectedRows = () => {
+    this.setState({
+      selectedRows: new Set(),
+      selectAll: false,
+      selectAllIndeterminate: false
     });
   };
 
@@ -862,7 +876,7 @@ class RunsTable extends Component {
         [columnKey]: sortDir
       }
     });
-
+    this._resetSelectedRows();
     this.loadData();
   };
 
@@ -934,6 +948,64 @@ class RunsTable extends Component {
       scrollToRow,
       expandedRows: shallowCopyOfExpandedRows
     });
+  };
+
+  _updateStateForMultiSelectButtons = selectedRows => {
+    let isCompareButtonDisabled = null;
+    let isDeleteButtonDisabled = null;
+    if (selectedRows.size === 0) {
+      isCompareButtonDisabled = true;
+      isDeleteButtonDisabled = true;
+    } else {
+      isDeleteButtonDisabled = false;
+      // Only enable compare when 2 or more runs are selected
+      isCompareButtonDisabled = selectedRows.size < 2;
+    }
+
+    this.setState({
+      isCompareButtonDisabled,
+      isDeleteButtonDisabled
+    });
+  };
+
+  _handleRowSelectionClick = rowIndex => {
+    const {selectedRows} = this.state;
+    const shallowCopyOfSelectedRows = new Set([...selectedRows]);
+    let selectAll = null;
+    let selectAllIndeterminate = null;
+    if (shallowCopyOfSelectedRows.has(rowIndex)) {
+      shallowCopyOfSelectedRows.delete(rowIndex);
+    } else {
+      shallowCopyOfSelectedRows.add(rowIndex);
+    }
+
+    if (shallowCopyOfSelectedRows.size === 0) {
+      selectAll = false;
+      selectAllIndeterminate = false;
+    } else {
+      selectAll = true;
+      selectAllIndeterminate = true;
+    }
+
+    this.setState({
+      selectedRows: shallowCopyOfSelectedRows,
+      selectAll,
+      selectAllIndeterminate
+    }, () => this._updateStateForMultiSelectButtons(shallowCopyOfSelectedRows));
+  };
+
+  _handleSelectAllClick = checkAll => {
+    const {data} = this.state;
+    let selectedRows = new Set();
+    if (checkAll) {
+      selectedRows = new Set(data.map((_, i) => i));
+    }
+
+    this.setState({
+      selectedRows,
+      selectAll: checkAll,
+      selectAllIndeterminate: false
+    }, () => this._updateStateForMultiSelectButtons(selectedRows));
   };
 
   _subRowHeightGetter = index => {
@@ -1030,6 +1102,12 @@ class RunsTable extends Component {
     });
   };
 
+  _handleCompareRunsClick = () => {
+    this.setState({
+      showCompareColumnsModal: true
+    });
+  };
+
   _handleAddFilterClick = () => {
     const {filterColumnOperator, filterColumnValue, filterColumnName, filters} = this.state;
     this.setState({
@@ -1069,6 +1147,12 @@ class RunsTable extends Component {
   _handleMetricColumnModalClose = () => {
     this.setState({
       showMetricColumnModal: false
+    });
+  };
+
+  _handleCompareColumnsModalClose = () => {
+    this.setState({
+      showCompareColumnsModal: false
     });
   };
 
@@ -1256,6 +1340,7 @@ class RunsTable extends Component {
     const totalRunsCount = newRunsCount + runsCount;
     if (newData && newData.length > 0) {
       const sortedData = new DataListWrapper(newData, totalRunsCount, this._getInitialFetchSize(), this._fetchRunsRange);
+      this._resetSelectedRows();
       this.setState({
         runsCount: totalRunsCount,
         data: newData,
@@ -1323,7 +1408,8 @@ class RunsTable extends Component {
       columnWidths, statusFilterOptions, showMetricColumnModal, isError, filterColumnValueError, filterColumnNameError,
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
-      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount} = this.state;
+      lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount, selectedRows, selectAll,
+      selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal} = this.state;
     const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
     const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
@@ -1352,6 +1438,7 @@ class RunsTable extends Component {
       });
     }
 
+    const compareRuns = [...selectedRows].map(rowIndex => sortedData.getDataArray()[rowIndex]._id);
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
       return selectValue ? selectValue : value ? {label: value, value} : '';
@@ -1490,6 +1577,15 @@ class RunsTable extends Component {
                 <div className='add-remove-metric-columns pull-right'>
                   <Button id='add_remove_metric_columns' onClick={this._handleAddRemoveMetricColumnsClick}>+/- Metric Columns</Button>
                 </div>
+                <div className='compare-delete-runs pull-right'>
+                  <Button id='compare_runs'
+                    bsStyle='primary'
+                    disabled={isCompareButtonDisabled}
+                    onClick={this._handleCompareRunsClick}
+                  >
+                    <Glyphicon glyph='transfer'/> Compare
+                  </Button>
+                </div>
               </ButtonToolbar>
               <div className='clearfix'/>
             </div>
@@ -1551,6 +1647,20 @@ class RunsTable extends Component {
                 >
                   <Column
                     fixed
+                    columnKey='row_selection'
+                    cell={<SelectionCell callback={this._handleRowSelectionClick} selectedRows={selectedRows}/>}
+                    width={50}
+                    header={
+                      <SelectionHeaderCell
+                        test-attr='header-cell-selectAll'
+                        callback={this._handleSelectAllClick}
+                        checked={selectAll}
+                        indeterminate={selectAllIndeterminate}
+                        columnKey='select-all'/>
+                    }
+                  />
+                  <Column
+                    fixed
                     columnKey='row_expander'
                     cell={<CollapseCell callback={this._handleCollapseClick} expandedRows={expandedRows}/>}
                     width={30}
@@ -1588,6 +1698,8 @@ class RunsTable extends Component {
           handleDataUpdate={this._handleNewColumnAddition} handleDelete={this._handleColumnDelete}/>
         <SettingsModal show={showSettingsModal} handleClose={handleSettingsModalClose}
           handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
+        <CompareRunsModal shouldShow={showCompareColumnsModal} handleClose={this._handleCompareColumnsModalClose}
+          runs={compareRuns}/>
       </div>
     );
   }

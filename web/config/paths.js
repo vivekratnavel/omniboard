@@ -50,6 +50,7 @@ module.exports = {
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
   prettyMsSrc: resolveApp('node_modules/pretty-ms'),
+  reactDiffViewerSrc: resolveApp('node_modules/react-diff-viewer'),
   parseMsSrc: resolveApp('node_modules/parse-ms'),
   yarnLockFile: resolveApp('yarn.lock'),
   testsSetup: resolveApp('src/setupTests.js'),

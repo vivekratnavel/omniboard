@@ -16,7 +16,7 @@ and helps in visualizing the experiments and metrics / logs collected in each ex
 
 Omniboard is written with React, Node.js, Express and Bootstrap.
 
-**Note:** Since v2.0, Omniboard only supports connecting to MongoDB > 4.0
+**Note:** Since v2.0, Omniboard only supports connecting to MongoDB >= 4.0
 
 ## Features
 
@@ -37,6 +37,11 @@ Omniboard is written with React, Node.js, Express and Bootstrap.
 * View or download artifacts
 * Show hardware spec of the host (e.g., OS version, CPU / GPU device info, driver versions)
 * Show git hash/version control info
+
+### Experiment Comparison
+* Compare metrics from multiple experiments on a single plot
+* Compare captured output of two experiments
+* Compare configs of two experiments
 
 ## Screenshots
 

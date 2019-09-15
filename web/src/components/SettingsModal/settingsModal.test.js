@@ -161,6 +161,13 @@ describe('SettingsModal', () => {
       expect(wrapper.state().error).toEqual('Auto Refresh Interval must be a Number >= 5');
     });
 
+    it('save error - row height not a number', async () => {
+      generateMockResponse(400, 4);
+      wrapper.find('[test-attr="row-height"]').simulate('change', {target: {value: 'a'}});
+      wrapper.find('[test-attr="apply-btn"]').simulate('click');
+      expect(wrapper.state().error).toEqual('Row Height must be a number');
+    });
+
     it('save when form is not dirty', async () => {
       generateMockResponse(400, 4);
       wrapper.find('[test-attr="timezone-select"]').simulate('change', {value: 'Atlantic/Reykjavik'});

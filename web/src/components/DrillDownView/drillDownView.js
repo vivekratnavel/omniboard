@@ -204,7 +204,7 @@ class DrillDownView extends Component {
     };
 
     return (
-      <div style={style}>
+      <div style={style} className='drilldown-view'>
         <nav className='navbar navbar-light'>
           <span className='navbar-brand'>Details for: <strong>{experimentName}</strong> (Id: {runId}) </span>
         </nav>
