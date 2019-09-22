@@ -41,6 +41,7 @@ Omniboard is written with React, Node.js, Express and Bootstrap.
 ### Experiment Comparison
 * Compare metrics from multiple experiments on a single plot
 * Compare captured output of two experiments
+* Compare source files of two experiments
 * Compare configs of two experiments
 
 ## Screenshots

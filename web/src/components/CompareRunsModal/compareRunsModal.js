@@ -10,6 +10,7 @@ import {DRILLDOWN_VIEW} from '../../appConstants/drillDownView.constants';
 import {MetricsPlotView} from '../MetricsPlotView/metricsPlotView';
 import {CapturedOutCompareView} from '../CapturedOutCompareView/capturedOutCompareView';
 import {ConfigCompareView} from '../ConfigCompareView/configCompareView';
+import {SourceFilesCompareView} from '../SourceFilesCompareView/sourceFilesCompareView';
 
 class CompareRunsModal extends PureComponent {
   static propTypes = {
@@ -167,6 +168,13 @@ class CompareRunsModal extends PureComponent {
             </div>
           );
           break;
+        case DRILLDOWN_VIEW.SOURCE_FILES:
+          content = (
+            <div id={DRILLDOWN_VIEW.SOURCE_FILES}>
+              <SourceFilesCompareView runIds={runs} isSelected={selectedNavTab === DRILLDOWN_VIEW.SOURCE_FILES}/>
+            </div>
+          );
+          break;
         default:
       }
 
@@ -191,6 +199,9 @@ class CompareRunsModal extends PureComponent {
                       </NavItem>
                       <NavItem eventKey={DRILLDOWN_VIEW.CAPTURED_OUT}>
                         Captured Out
+                      </NavItem>
+                      <NavItem eventKey={DRILLDOWN_VIEW.SOURCE_FILES}>
+                        Source Files
                       </NavItem>
                       <NavItem eventKey={DRILLDOWN_VIEW.CONFIG}>
                         Config

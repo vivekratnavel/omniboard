@@ -14,7 +14,8 @@ import OmniboardSettingsModel from './models/omniboard.settings';
 import FilesModel from './models/fs.files';
 import ChunksModel from './models/fs.chunks';
 import archiver from 'archiver';
-import { getRunsResponse } from "./runs.response";
+import {getRunsResponse} from './runs.response';
+import {getSourceFilesResponse} from './sourceFiles.response';
 
 const app = express();
 const router = express.Router();
@@ -118,6 +119,10 @@ router.get('/api/v1/Runs', function(req, res, next) {
 
 router.get('/api/v1/Runs/:id', function(req, res, next) {
   getRunsResponse(req, res, next, req.params.id);
+});
+
+router.get('/api/v1/SourceFiles', function(req, res, next) {
+  getSourceFilesResponse(req, res, next);
 });
 
 // This function is borrowed from express-restify-mongoose

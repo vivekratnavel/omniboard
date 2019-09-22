@@ -85,6 +85,13 @@ exports[`CompareRunsModal should load data success 1`] = `
                 <NavItem
                   active={false}
                   disabled={false}
+                  eventKey="source_files"
+                >
+                  Source Files
+                </NavItem>
+                <NavItem
+                  active={false}
+                  disabled={false}
                   eventKey="config"
                 >
                   Config

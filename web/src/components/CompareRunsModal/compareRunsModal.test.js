@@ -120,7 +120,8 @@ describe('CompareRunsModal', () => {
     [
       DRILLDOWN_VIEW.CAPTURED_OUT,
       DRILLDOWN_VIEW.METRICS,
-      DRILLDOWN_VIEW.CONFIG
+      DRILLDOWN_VIEW.CONFIG,
+      DRILLDOWN_VIEW.SOURCE_FILES
     ].forEach(key => switchTabTest(key));
   });
 });
