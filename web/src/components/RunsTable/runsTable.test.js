@@ -21,7 +21,7 @@ describe('RunsTable', () => {
     'result,start_time,resources,format,status,omniboard,metrics,meta,pretrain_loss_min';
   const subsequentSelect = '_id,experiment.name,host.hostname,format,command,start_time,status,omniboard.tags,omniboard.notes,' +
     'resources,heartbeat,duration,result,stop_time,pretrain_loss_min,config.message,config.recipient,config.seed,' +
-    'config.train';
+    'config.train,config.tags';
   toast.error = jest.fn();
   console.warn = jest.fn();
   window.addEventListener = jest.fn();
@@ -196,6 +196,26 @@ describe('RunsTable', () => {
       mockAxios.mockResponse({status: 200, data: customColumnsResponse});
       await tick();
 
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
+    });
+
+    it('with filter on tags', async () => {
+      await initialRequestResponse();
+      mockAxios.reset();
+      wrapper.setState({
+        filterColumnName: 'config.tags',
+        filterColumnOperator: '$eq',
+        filterColumnValue: ['test']
+      });
+      wrapper.instance()._handleAddFilterClick();
+
+      expect(mockAxios.get.mock.calls).toHaveLength(2);
+      mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: []});
+      await tick();
+
+      expect(mockAxios.get.mock.calls).toHaveLength(5);
+      const queryString = JSON.stringify({$and: [{$or: [{'config.tags': {$eq: ['test']}}, {'omniboard.tags': {$eq: ['test']}}]}]});
       expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
     });
 
@@ -882,6 +902,74 @@ describe('RunsTable', () => {
     expect(wrapper.update().state().columnOrder).toContain('sample');
     expect(wrapper.update().state().dropdownOptions.some(option => option.value === 'sample')).toBeTruthy();
     expect(wrapper.update().state().columnWidths.sample).toEqual(DEFAULT_COLUMN_WIDTH);
+  });
+
+  describe('_getColumnValueOptions', () => {
+    const getAPIArguments = (column, input) => {
+      return ['/api/v1/Runs', {
+        params: {
+          distinct: column,
+          query: JSON.stringify({
+            [column]: {
+              $regex: `^(?i)(${input})`
+            }
+          })
+        }
+      }];
+    };
+
+    beforeEach(async () => {
+      await initialRequestResponse();
+      mockAxios.reset();
+    });
+    describe('should load options', () => {
+      it('without input value', async () => {
+        wrapper.setState({
+          filterColumnName: 'hostname'
+        });
+        wrapper.instance()._getColumnValueOptions('');
+        expect(mockAxios.get.mock.calls).toHaveLength(1);
+        expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments('hostname', ''));
+      });
+      it('with input value', async () => {
+        wrapper.setState({
+          filterColumnName: 'hostname'
+        });
+        wrapper.instance()._getColumnValueOptions('abc');
+        expect(mockAxios.get.mock.calls).toHaveLength(1);
+        expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments('hostname', 'abc'));
+      });
+      it('for config.tags', async () => {
+        wrapper.setState({
+          filterColumnName: 'config.tags'
+        });
+        wrapper.instance()._getColumnValueOptions('');
+        expect(mockAxios.get.mock.calls).toHaveLength(1);
+        expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments('config.tags', ''));
+        mockAxios.mockResponse({status: 200, data: []});
+        expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments('omniboard.tags', ''));
+      });
+      it('for omniboard.tags', async () => {
+        wrapper.setState({
+          filterColumnName: 'omniboard.tags'
+        });
+        wrapper.instance()._getColumnValueOptions('');
+        expect(mockAxios.get.mock.calls).toHaveLength(1);
+        expect(mockAxios.get.mock.calls[0]).toEqual(getAPIArguments('omniboard.tags', ''));
+        mockAxios.mockResponse({status: 200, data: ['test']});
+        expect(mockAxios.get.mock.calls[1]).toEqual(getAPIArguments('config.tags', ''));
+        mockAxios.mockResponse({status: 200, data: ['test_1', 'test']});
+        expect(wrapper.update().state().currentColumnValueOptions).toHaveLength(2);
+        expect(wrapper.update().state().currentColumnValueOptions.map(o => o.value)).toEqual(['test', 'test_1']);
+      });
+    });
+    it('should not load options', async () => {
+      wrapper.setState({
+        filterColumnName: '_id'
+      });
+      wrapper.instance()._getColumnValueOptions('');
+      expect(mockAxios.get.mock.calls).toHaveLength(0);
+    });
   });
 
   it('should unmount', () => {

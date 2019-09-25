@@ -252,6 +252,8 @@ class RunsTable extends Component {
 
           if (filter.name === 'status') {
             queryJson.$and.push(statusQueryFilter(filter.operator)(value));
+          } else if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
+            queryJson.$and.push({$or: [{'config.tags': {[filter.operator]: filter.value}}, {'omniboard.tags': {[filter.operator]: filter.value}}]});
           } else {
             queryJson.$and.push({[filter.name]: {[filter.operator]: value}});
           }
@@ -276,6 +278,14 @@ class RunsTable extends Component {
       select = dropdownOptions.filter(optionItem => optionItem.selected === true).map(option => {
         return option.value in columnNameMap ? columnNameMap[option.value] : option.value;
       });
+      if (select.includes('config.tags') && !select.includes('omniboard.tags')) {
+        select.push('omniboard.tags');
+      }
+
+      if (!select.includes('config.tags') && select.includes('omniboard.tags')) {
+        select.push('config.tags');
+      }
+
       // Remove conflicting paths from select to avoid "Invalid project" error from the server.
       // Example of conflicting path: config, config.settings or config.train, config.train.settings
       // It is possible to have conflicting paths in projection with custom columns
@@ -1252,8 +1262,8 @@ class RunsTable extends Component {
             query: JSON.stringify(queryJson)
           }
         }).then(response => {
-          if (response.status === 200) {
-            const options = response.data.reduce((result, current) => {
+          const formatSuggestions = suggestions => {
+            const options = suggestions.reduce((result, current) => {
               if (typeof current !== 'object' && current) {
                 result.push({label: current.toString(), value: current.toString()});
               }
@@ -1265,6 +1275,23 @@ class RunsTable extends Component {
               currentColumnValueOptions: options
             });
             resolve(options);
+          };
+
+          if (response.status === 200) {
+            if (filterColumnName === 'config.tags' || filterColumnName === 'omniboard.tags') {
+              const additionalColumn = filterColumnName === 'config.tags' ? 'omniboard.tags' : 'config.tags';
+              const query = {[additionalColumn]: {[operator]: value}};
+              axios.get('/api/v1/Runs', {
+                params: {
+                  distinct: additionalColumn,
+                  query: JSON.stringify(query)
+                }
+              }).then(additionalResponse => {
+                formatSuggestions([...new Set(response.data.concat(additionalResponse.data))]);
+              });
+            } else {
+              formatSuggestions(response.data);
+            }
           } else {
             resolve([]);
           }

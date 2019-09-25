@@ -82,3 +82,13 @@ To delete an unwanted experiment run, hover over its `Id` column and click on th
 ![Delete Run](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/delete-run.png)
 
 Click on `Delete` button in the confirmation dialog to delete the run from the database including its metrics, source files and artifacts.
+
+## Add tags using configs
+
+To add tags to an experiment programmatically, add a config with name `tags` as shown below:
+
+```
+@ex.config
+def my_config():
+    tags = ["tag_1", "tag_2"]
+```
