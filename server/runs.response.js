@@ -207,27 +207,6 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
               "path": "$info.metrics",
               "preserveNullAndEmptyArrays" : true
             }
-          },
-          {
-            // Limit the unwinded metrics to only required metrics
-            "$match": {
-              "$expr": {
-                "$cond": {
-                  "if": "$info.metrics.name",
-                  "then": {
-                    "$and": [
-                      {
-                        "$in": [
-                          "$info.metrics.name",
-                          distinctMetricColumnNames
-                        ]
-                      }
-                    ]
-                  },
-                  "else": true
-                }
-              }
-            }
           });
 
         // Join metrics collection
