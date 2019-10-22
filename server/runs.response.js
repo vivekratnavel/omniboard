@@ -101,7 +101,6 @@ export const getRunsResponse = function (req, res, next, id = null, isCount = fa
         // Add info.metrics to projection if not already present
         if (selectArray.length > 0 && !selectArray.includes('info')) {
           projection['info.metrics'] = 1;
-          projectionsToRemove.$project['info'] = 0;
         }
       }
 
