@@ -257,14 +257,14 @@ describe('Cells', () => {
         mockAxios.mockResponse({status: 400});
         await tick();
 
-        expect(toast.error).toHaveBeenCalledWith('An unknown error occurred!');
+        expect(toast.error).toHaveBeenCalledWith('An unknown error occurred!', {autoClose: 5000});
       });
 
       it('error for get', () => {
         const errResponse = {status: 500, message: 'unknown error'};
         mockAxios.mockError(errResponse);
 
-        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`, {autoClose: 5000});
       });
 
       it('error for delete calls', async () => {
@@ -273,7 +273,7 @@ describe('Cells', () => {
         mockAxios.mockError(errResponse);
         await tick();
 
-        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`);
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`, {autoClose: 5000});
       });
     });
   });

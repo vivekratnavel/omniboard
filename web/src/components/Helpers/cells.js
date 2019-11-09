@@ -317,9 +317,9 @@ class IdCell extends Component {
           if (deleteResponses.every(response => response.status === 204)) {
             // Call callback function to update rows in the table
             this.props.handleDataUpdate(experimentId);
-            toast.success(`Experiment run ${experimentId} was deleted successfully!`);
+            toast.success(`Experiment run ${experimentId} was deleted successfully!`, {autoClose: 5000});
           } else {
-            toast.error('An unknown error occurred!');
+            toast.error('An unknown error occurred!', {autoClose: 5000});
           }
 
           this.setState({
@@ -327,13 +327,13 @@ class IdCell extends Component {
             showModal: false
           });
         })).catch(error => {
-          toast.error(parseServerError(error));
+          toast.error(parseServerError(error), {autoClose: 5000});
           this.setState({
             isDeleteInProgress: false
           });
         });
       }).catch(error => {
-        toast.error(parseServerError(error));
+        toast.error(parseServerError(error), {autoClose: 5000});
         this.setState({
           isDeleteInProgress: false
         });
