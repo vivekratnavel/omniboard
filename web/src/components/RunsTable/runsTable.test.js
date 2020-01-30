@@ -21,7 +21,7 @@ describe('RunsTable', () => {
     'result,start_time,resources,format,status,omniboard,metrics,meta,pretrain_loss_min';
   const subsequentSelect = '_id,experiment.name,host.hostname,format,command,start_time,status,omniboard.tags,omniboard.notes,' +
     'resources,heartbeat,duration,result,stop_time,pretrain_loss_min,config.message,config.recipient,config.seed,' +
-    'config.train,config.tags';
+    'config.train,config.tags,meta.comment';
   toast.error = jest.fn();
   console.warn = jest.fn();
   window.addEventListener = jest.fn();
@@ -216,6 +216,26 @@ describe('RunsTable', () => {
 
       expect(mockAxios.get.mock.calls).toHaveLength(5);
       const queryString = JSON.stringify({$and: [{$or: [{'config.tags': {$eq: ['test']}}, {'omniboard.tags': {$eq: ['test']}}]}]});
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
+    });
+
+    it('with filter on notes', async () => {
+      await initialRequestResponse();
+      mockAxios.reset();
+      wrapper.setState({
+        filterColumnName: 'omniboard.notes',
+        filterColumnOperator: '$regex',
+        filterColumnValue: ['test']
+      });
+      wrapper.instance()._handleAddFilterClick();
+
+      expect(mockAxios.get.mock.calls).toHaveLength(2);
+      mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: []});
+      await tick();
+
+      expect(mockAxios.get.mock.calls).toHaveLength(5);
+      const queryString = JSON.stringify({$and: [{$or: [{'meta.comment': {$regex: ['test']}}, {'omniboard.notes': {$regex: ['test']}}]}]});
       expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
     });
 

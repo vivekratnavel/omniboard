@@ -254,6 +254,8 @@ class RunsTable extends Component {
             queryJson.$and.push(statusQueryFilter(filter.operator)(value));
           } else if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
             queryJson.$and.push({$or: [{'config.tags': {[filter.operator]: filter.value}}, {'omniboard.tags': {[filter.operator]: filter.value}}]});
+          } else if (filter.name === 'omniboard.notes') {
+            queryJson.$and.push({$or: [{'meta.comment': {[filter.operator]: filter.value}}, {'omniboard.notes': {[filter.operator]: filter.value}}]});
           } else {
             queryJson.$and.push({[filter.name]: {[filter.operator]: value}});
           }
@@ -284,6 +286,10 @@ class RunsTable extends Component {
 
       if (!select.includes('config.tags') && select.includes('omniboard.tags')) {
         select.push('config.tags');
+      }
+
+      if (!select.includes('meta') && select.includes('omniboard.notes')) {
+        select.push('meta.comment');
       }
 
       // Remove conflicting paths from select to avoid "Invalid project" error from the server.

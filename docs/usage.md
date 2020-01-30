@@ -92,3 +92,10 @@ To add tags to an experiment programmatically, add a config with name `tags` as 
 def my_config():
     tags = ["tag_1", "tag_2"]
 ```
+
+## Add notes using command line
+
+To add notes to an experiment, Sacred has the ability to add a comment to a run through command line with -c option ([Sacred Doc](https://sacred.readthedocs.io/en/stable/command_line.html#comment)). 
+
+The comment added via command line gets stored in MongoDB Runs collection as `meta.comment` and is displayed in Omniboard under `Notes` column.
+To filter runs by `Notes` column, use `regex` as the operator in filter to perform a text search.
