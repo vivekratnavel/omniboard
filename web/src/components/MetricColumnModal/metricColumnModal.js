@@ -302,7 +302,7 @@ class MetricColumnModal extends PureComponent {
     });
     const extremaOptions = [{
       label: 'average',
-      value: 'average'
+      value: 'avg'
     }, {
       label: 'min',
       value: 'min'

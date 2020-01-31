@@ -302,7 +302,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                   Array [
                     Object {
                       "label": "average",
-                      "value": "average",
+                      "value": "avg",
                     },
                     Object {
                       "label": "min",
@@ -414,7 +414,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                   Array [
                     Object {
                       "label": "average",
-                      "value": "average",
+                      "value": "avg",
                     },
                     Object {
                       "label": "min",
