@@ -264,12 +264,16 @@ class IdCell extends Component {
       this.setState({
         isDeleteInProgress: true
       });
-      axios.get('/api/v1/Runs/' + experimentId, {
-        params: {
-          select: 'artifacts,experiment.sources'
-        }
-      }).then(response => {
-        const runsResponse = response.data;
+      axios.all([
+        axios.get('/api/v1/Runs/' + experimentId, {
+          params: {
+            select: 'artifacts,experiment.sources'
+          }
+        }),
+        axios.get('/api/v1/SourceFilesCount/' + experimentId)
+      ]).then(axios.spread((runsResponse, sourceFilesCountResponse) => {
+        runsResponse = runsResponse.data;
+        sourceFilesCountResponse = sourceFilesCountResponse.data;
         const deleteApis = [];
 
         // Since deletes are idempotent, delete all metric rows
@@ -296,16 +300,22 @@ class IdCell extends Component {
           deleteApis.push(buildFilesQuery(filesQuery));
         }
 
-        // Delete all source files associated with run id.
-        if (runsResponse.experiment && runsResponse.experiment.sources && runsResponse.experiment.sources.length > 0) {
-          const chunksQuery = runsResponse.experiment.sources.map(file => {
-            return {files_id: file[1]};
-          });
-          const filesQuery = runsResponse.experiment.sources.map(file => {
-            return {_id: file[1]};
-          });
-          deleteApis.push(buildChunksQuery(chunksQuery));
-          deleteApis.push(buildFilesQuery(filesQuery));
+        // Delete all source files associated with run id
+        // only if the source file is not being used by any other run.
+        if (sourceFilesCountResponse && sourceFilesCountResponse.length > 0) {
+          // Filter files that have count as 1.
+          // i.e The source file is not being used by any other run.
+          const sourceFilesToDelete = sourceFilesCountResponse.filter(item => item.count === 1);
+          if (sourceFilesToDelete.length > 0) {
+            const chunksQuery = sourceFilesToDelete.map(file => {
+              return {files_id: file._id};
+            });
+            const filesQuery = sourceFilesToDelete.map(file => {
+              return {_id: file._id};
+            });
+            deleteApis.push(buildChunksQuery(chunksQuery));
+            deleteApis.push(buildFilesQuery(filesQuery));
+          }
         }
 
         // Delete run.
@@ -332,7 +342,7 @@ class IdCell extends Component {
             isDeleteInProgress: false
           });
         });
-      }).catch(error => {
+      })).catch(error => {
         toast.error(parseServerError(error), {autoClose: 5000});
         this.setState({
           isDeleteInProgress: false

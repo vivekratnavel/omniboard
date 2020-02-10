@@ -209,11 +209,13 @@ describe('Cells', () => {
 
       it('success for metrics', async () => {
         mockAxios.mockResponse({status: 200, data: {_id: 55, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
 
         expect(wrapper.state().isDeleteInProgress).toBeTruthy();
         // Even if no metrics are present, a delete will be called on metrics
         // since deletes are idempotent.
         // The second delete is for the Run entry in Runs collection.
+        await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(2);
         expect(mockAxios.delete.mock.calls[0]).toEqual(['/api/v1/Metrics/', {params: {query: '{"run_id":55}'}}]);
         generateMockResponse(204, 2);
@@ -225,7 +227,9 @@ describe('Cells', () => {
 
       it('success for artifacts', async () => {
         mockAxios.mockResponse({status: 200, data: {_id: 55, artifacts: artifactsResponse, experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
 
+        await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(4);
         expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
               '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
@@ -239,12 +243,28 @@ describe('Cells', () => {
 
       it('success for both artifacts and sources', async () => {
         mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: sourcesResponse}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
 
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(2);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Runs/55']);
+        generateMockResponse(204, 2);
+        await tick();
+
+        expect(dataUpdateHandler).toHaveBeenCalledWith(data.getObjectAt(rowIndex)._id);
+      });
+
+      it('success for both artifacts and sources with files', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: sourcesResponse}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 1}, {_id: '5ca6805e11421a04b4ba8b48', count: 1}]});
+
+        await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(4);
         expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
-              '"5d637fb55b192c78cf121928"},{"files_id":"5d637fb55b192c78cf121929"}]}'}}]);
+              '"5ca67d6f11421a00e53d49fc"},{"files_id":"5ca6805e11421a04b4ba8b48"}]}'}}]);
         expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
-              '"5d637fb55b192c78cf121928"},{"_id":"5d637fb55b192c78cf121929"}]}'}}]);
+              '"5ca67d6f11421a00e53d49fc"},{"_id":"5ca6805e11421a04b4ba8b48"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[3]).toEqual(['/api/v1/Runs/55']);
         generateMockResponse(204, 4);
         await tick();
 
@@ -253,22 +273,27 @@ describe('Cells', () => {
 
       it('unknown error', async () => {
         mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: []});
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(2);
         mockAxios.mockResponse({status: 204});
         mockAxios.mockResponse({status: 400});
         await tick();
-
         expect(toast.error).toHaveBeenCalledWith('An unknown error occurred!', {autoClose: 5000});
       });
 
-      it('error for get', () => {
+      it('error for get', async () => {
         const errResponse = {status: 500, message: 'unknown error'};
         mockAxios.mockError(errResponse);
+        await tick();
 
         expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`, {autoClose: 5000});
       });
 
       it('error for delete calls', async () => {
         mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
+        await tick();
         const errResponse = {status: 500, message: 'unknown error'};
         mockAxios.mockError(errResponse);
         await tick();

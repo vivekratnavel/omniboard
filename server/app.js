@@ -15,7 +15,7 @@ import FilesModel from './models/fs.files';
 import ChunksModel from './models/fs.chunks';
 import archiver from 'archiver';
 import {getRunsResponse} from './runs.response';
-import {getSourceFilesResponse} from './sourceFiles.response';
+import {getSourceFilesCountResponse, getSourceFilesResponse} from './sourceFiles.response';
 
 const app = express();
 const router = express.Router();
@@ -111,6 +111,10 @@ router.get('/api/v1/Runs/count', function(req, res, next) {
       res.json({count});
     });
   }
+});
+
+router.get('/api/v1/SourceFilesCount/:id', function (req, res, next) {
+  getSourceFilesCountResponse(req, res, next);
 });
 
 router.get('/api/v1/Runs', function(req, res, next) {

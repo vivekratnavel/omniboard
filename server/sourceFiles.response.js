@@ -99,3 +99,75 @@ export const getSourceFilesResponse = function (req, res, next) {
     res.json(result);
   });
 };
+
+export const getSourceFilesCountResponse = function (req, res, next) {
+  if (!req.params.id || isNaN(req.params.id)) {
+    return res.status(500).send('Error: Invalid Run Id in request.');
+  }
+
+  // Construct the aggregate pipeline for Runs collection
+  const aggregatePipeline = [{
+    "$project": {
+      "_id": "$_id",
+      "sources": "$experiment.sources"
+    }
+  }, {
+    // Deconstruct sources array into several rows
+    "$unwind": {
+      "path": `$sources`
+    }
+  }, {
+    "$addFields": {
+      "file_name": {
+        "$arrayElemAt": [
+          "$sources",
+          0
+        ]
+      },
+      "file_id": {
+        "$arrayElemAt": [
+          "$sources",
+          1
+        ]
+      }
+    }
+  }, {
+    "$group" : {
+      "_id" : "$file_id",
+      "count" : {
+        "$sum" : 1
+      },
+      "run_id_count" : {
+        "$sum" : {
+          "$cond" : [
+            {
+              "$eq" : [
+                "$_id",
+                Number(req.params.id)
+              ]
+            },
+            1,
+            0
+          ]
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "run_id_count": {"$gt": 0}
+    }
+  }, {
+    "$project": {
+      "_id": "$_id", "count": "$count"
+    }
+  }];
+
+  const query = RunsModel.aggregate(
+    aggregatePipeline
+  ).allowDiskUse(true);
+
+  query.exec(function (error, result) {
+    if (error) return next(error);
+    res.json(result);
+  });
+};
