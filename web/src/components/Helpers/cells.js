@@ -2,16 +2,13 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'reactn';
 import {Cell} from 'fixed-data-table-2';
 import CreatableSelect from 'react-select/lib/Creatable';
-import {Glyphicon, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle} from 'react-bootstrap';
+import {Glyphicon} from 'react-bootstrap';
 import './cells.scss';
 
-import axios from 'axios';
-import {toast} from 'react-toastify';
 import prettyMs from 'pretty-ms';
 import moment from 'moment-timezone';
 import EditableTextArea from '../XEditable/editableTextArea';
 import * as appConstants from '../../appConstants/app.constants';
-import {parseServerError} from './utils';
 
 const SortTypes = {
   ASC: 'ASC',
@@ -199,15 +196,13 @@ class IdCell extends Component {
     columnKey: PropTypes.string,
     data: PropTypes.object,
     rowIndex: PropTypes.number,
-    handleDataUpdate: PropTypes.func
+    handleDelete: PropTypes.func
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      showDeleteIcon: false,
-      showModal: false,
-      isDeleteInProgress: false
+      showDeleteIcon: false
     };
   }
 
@@ -223,142 +218,16 @@ class IdCell extends Component {
     });
   };
 
-  _onDeleteClickHandler = e => {
-    e.stopPropagation();
-    this.setState({
-      showModal: true
-    });
-  };
-
-  _closeModalHandler = e => {
-    e.stopPropagation();
-    this.setState({
-      showModal: false
-    });
-  };
-
-  _deleteHandler = experimentId => e => {
-    e.stopPropagation();
-
-    const buildChunksQuery = chunksQuery => {
-      return axios.delete('/api/v1/Fs.chunks/', {
-        params: {
-          query: JSON.stringify({
-            $or: chunksQuery
-          })
-        }
-      });
-    };
-
-    const buildFilesQuery = filesQuery => {
-      return axios.delete('/api/v1/Fs.files/', {
-        params: {
-          query: JSON.stringify({
-            $or: filesQuery
-          })
-        }
-      });
-    };
-
-    if (experimentId && !isNaN(experimentId)) {
-      this.setState({
-        isDeleteInProgress: true
-      });
-      axios.all([
-        axios.get('/api/v1/Runs/' + experimentId, {
-          params: {
-            select: 'artifacts,experiment.sources'
-          }
-        }),
-        axios.get('/api/v1/SourceFilesCount/' + experimentId)
-      ]).then(axios.spread((runsResponse, sourceFilesCountResponse) => {
-        runsResponse = runsResponse.data;
-        sourceFilesCountResponse = sourceFilesCountResponse.data;
-        const deleteApis = [];
-
-        // Since deletes are idempotent, delete all metric rows
-        // from metrics collection associated with the given run id
-        // without checking if metric rows are present or not.
-        deleteApis.push(
-          axios.delete('/api/v1/Metrics/', {
-            params: {
-              query: JSON.stringify({
-                run_id: experimentId
-              })
-            }
-          }));
-
-        // Delete all artifacts associated with the run id.
-        if (runsResponse.artifacts && runsResponse.artifacts.length > 0) {
-          const chunksQuery = runsResponse.artifacts.map(file => {
-            return {files_id: file.file_id};
-          });
-          const filesQuery = runsResponse.artifacts.map(file => {
-            return {_id: file.file_id};
-          });
-          deleteApis.push(buildChunksQuery(chunksQuery));
-          deleteApis.push(buildFilesQuery(filesQuery));
-        }
-
-        // Delete all source files associated with run id
-        // only if the source file is not being used by any other run.
-        if (sourceFilesCountResponse && sourceFilesCountResponse.length > 0) {
-          // Filter files that have count as 1.
-          // i.e The source file is not being used by any other run.
-          const sourceFilesToDelete = sourceFilesCountResponse.filter(item => item.count === 1);
-          if (sourceFilesToDelete.length > 0) {
-            const chunksQuery = sourceFilesToDelete.map(file => {
-              return {files_id: file._id};
-            });
-            const filesQuery = sourceFilesToDelete.map(file => {
-              return {_id: file._id};
-            });
-            deleteApis.push(buildChunksQuery(chunksQuery));
-            deleteApis.push(buildFilesQuery(filesQuery));
-          }
-        }
-
-        // Delete run.
-        deleteApis.push(
-          axios.delete('/api/v1/Runs/' + experimentId)
-        );
-
-        axios.all(deleteApis).then(axios.spread((...deleteResponses) => {
-          if (deleteResponses.every(response => response.status === 204)) {
-            // Call callback function to update rows in the table
-            this.props.handleDataUpdate(experimentId);
-            toast.success(`Experiment run ${experimentId} was deleted successfully!`, {autoClose: 5000});
-          } else {
-            toast.error('An unknown error occurred!', {autoClose: 5000});
-          }
-
-          this.setState({
-            isDeleteInProgress: false,
-            showModal: false
-          });
-        })).catch(error => {
-          toast.error(parseServerError(error), {autoClose: 5000});
-          this.setState({
-            isDeleteInProgress: false
-          });
-        });
-      })).catch(error => {
-        toast.error(parseServerError(error), {autoClose: 5000});
-        this.setState({
-          isDeleteInProgress: false
-        });
-      });
-    }
-  };
-
   render() {
-    /* eslint-disable no-unused-vars */
-    const {data, rowIndex, columnKey, handleDataUpdate, ...props} = this.props;
-    /* eslint-enable no-unused-vars */
-    const {showDeleteIcon, showModal, isDeleteInProgress} = this.state;
-    const deleteIcon = showDeleteIcon ? <Glyphicon glyph='trash' className='delete-icon' onClick={this._onDeleteClickHandler}/> : null;
+    const {data, rowIndex, columnKey, handleDelete, ...props} = this.props;
+    const {showDeleteIcon} = this.state;
     const experimentId = data.getObjectAt(rowIndex)[columnKey];
-    const deleteGlyph = isDeleteInProgress ? <i className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/> : <Glyphicon glyph='trash'/>;
+    const deleteHandler = e => {
+      e.stopPropagation();
+      handleDelete([experimentId])();
+    };
+
+    const deleteIcon = showDeleteIcon ? <Glyphicon glyph='trash' className='delete-icon' onClick={deleteHandler}/> : null;
     return (
       <div>
         <Cell {...props} onMouseEnter={this._mouseEnterHandler} onMouseLeave={this._mouseLeaveHandler}>
@@ -366,20 +235,6 @@ class IdCell extends Component {
         &nbsp;
           {deleteIcon}
         </Cell>
-        <Modal show={showModal} onHide={this._closeModalHandler}>
-          <ModalHeader closeButton>
-            <ModalTitle>Delete Run</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-          Are you sure you want to delete this run (id: {experimentId})?
-          </ModalBody>
-          <ModalFooter>
-            <Button test-attr='close-btn' onClick={this._closeModalHandler}>Cancel</Button>
-            <Button test-attr='delete-btn' bsStyle='danger' disabled={isDeleteInProgress} onClick={this._deleteHandler(experimentId)}>
-              {deleteGlyph} Delete
-            </Button>
-          </ModalFooter>
-        </Modal>
       </div>
     );
   }

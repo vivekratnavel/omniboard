@@ -3,6 +3,7 @@ import mockAxios from 'jest-mock-axios';
 import {toast} from 'react-toastify';
 import {parseServerError} from '../Helpers/utils';
 import {STATUS} from '../../appConstants/status.constants';
+import {generateMockResponse} from '../Helpers/testUtils';
 import * as appConstants from '../../appConstants/app.constants';
 import RunsTable, {DEFAULT_COLUMN_WIDTH, FILTER_OPERATOR_LABELS} from './runsTable';
 
@@ -120,6 +121,204 @@ describe('RunsTable', () => {
     wrapper.instance()._handleCompareColumnsModalClose();
 
     expect(wrapper.state().showCompareColumnsModal).toBeFalsy();
+  });
+
+  describe('should handle multi-delete', () => {
+    it('open confirmation dialog', async () => {
+      await initialRequestResponse();
+      wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+      wrapper.find('#delete_runs').at(1).simulate('click');
+      // Should not open modal when only one row is selected
+      expect(wrapper.update().state().showDeleteConfirmationModal).toBeFalsy();
+      expect(wrapper.update().state().isDeleteButtonDisabled).toBeTruthy();
+
+      wrapper.update().find('[test-attr="cell-row_selection-1"]').simulate('click');
+      wrapper.find('#delete_runs').at(1).simulate('click');
+      expect(wrapper.update().state().showDeleteConfirmationModal).toBeTruthy();
+      expect(wrapper.update().state().isDeleteButtonDisabled).toBeFalsy();
+    });
+
+    it('should close confirmation dialog', async () => {
+      await initialRequestResponse();
+      const event = {
+        stopPropagation: jest.fn()
+      };
+      wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+      wrapper.update().find('[test-attr="cell-row_selection-1"]').simulate('click');
+      wrapper.find('#delete_runs').at(1).simulate('click');
+      expect(wrapper.update().state().showDeleteConfirmationModal).toBeTruthy();
+      wrapper.find('[test-attr="close-btn"]').at(1).simulate('click', event);
+      expect(wrapper.update().state().showDeleteConfirmationModal).toBeFalsy();
+    });
+
+    describe('should call delete api and handle', () => {
+      const event = {
+        stopPropagation: jest.fn()
+      };
+      const artifactsResponse = [{
+        file_id: '5c41711ea9eee738179295aa',
+        name: 'result.pickle'
+      }, {file_id: '5c41711ea9eee738179295ac', name: 'test.svg'}, {
+        file_id: '5c41711ea9eee738179295ae',
+        name: 'output.png'
+      }];
+      const sourcesResponse = [
+        [
+          'hello2.py',
+          '5d637fb55b192c78cf121928'
+        ],
+        [
+          'hello1.py',
+          '5d637fb55b192c78cf121929'
+        ]
+      ];
+      toast.error = jest.fn();
+      toast.success = jest.fn();
+      beforeEach(async () => {
+        await initialRequestResponse();
+        wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
+        wrapper.update().find('[test-attr="cell-row_selection-1"]').simulate('click');
+        mockAxios.reset();
+        wrapper.find('#delete_runs').at(1).simulate('click');
+        wrapper.find('[test-attr="delete-btn"]').at(1).simulate('click', event);
+      });
+
+      it('success for metrics', async () => {
+        expect(mockAxios.get).toHaveBeenCalledTimes(4);
+        mockAxios.mockResponse({status: 200, data: {_id: 12, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({
+          status: 200,
+          data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]
+        });
+        mockAxios.mockResponse({status: 200, data: {_id: 11, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({
+          status: 200,
+          data: [{_id: '5ca67d6f11421a00e53d49fc', count: 1}, {_id: '5ca6805e11421a04b4ba8b48', count: 2}]
+        });
+
+        // Even if no metrics are present, a delete will be called on metrics
+        // since deletes are idempotent.
+        // The second delete is for the Run entry in Runs collection.
+        // In between there will be delete calls to source files with count 1
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(6);
+        expect(mockAxios.delete.mock.calls[0]).toEqual(['/api/v1/Metrics/', {params: {query: '{"run_id":12}'}}]);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Runs/12']);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Metrics/', {params: {query: '{"run_id":11}'}}]);
+        expect(mockAxios.delete.mock.calls[3][0]).toEqual('/api/v1/Fs.chunks/');
+        expect(mockAxios.delete.mock.calls[4][0]).toEqual('/api/v1/Fs.files/');
+        expect(mockAxios.delete.mock.calls[5]).toEqual(['/api/v1/Runs/11']);
+        generateMockResponse(204, 6);
+        await tick();
+
+        expect(event.stopPropagation).toHaveBeenCalledWith();
+        expect(toast.success).toHaveBeenCalledTimes(2);
+        expect(wrapper.update().state().runsCount).toEqual(2);
+        expect(wrapper.update().state().selectedRows.size).toEqual(0);
+        expect(wrapper.update().state().isDeleteInProgress).toBeFalsy();
+      });
+
+      it('success for artifacts', async () => {
+        expect(wrapper.update().state().runsCount).toEqual(4);
+        mockAxios.mockResponse({status: 200, data: {_id: 12, artifacts: artifactsResponse, experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 5}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
+        mockAxios.mockResponse({status: 200, data: {_id: 11, artifacts: artifactsResponse, experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 12}]});
+
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(8);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+              '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+              '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        generateMockResponse(204, 8);
+        await tick();
+
+        expect(toast.success).toHaveBeenCalledTimes(2);
+        expect(wrapper.update().state().runsCount).toEqual(2);
+        expect(wrapper.update().state().selectedRows.size).toEqual(0);
+      });
+
+      it('success for both artifacts and sources', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 12, artifacts: artifactsResponse, experiment: {sources: sourcesResponse}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
+        mockAxios.mockResponse({status: 200, data: {_id: 11, artifacts: artifactsResponse, experiment: {sources: sourcesResponse}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 5}, {_id: '5ca6805e11421a04b4ba8b48', count: 3}]});
+
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(8);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+              '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+              '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[3]).toEqual(['/api/v1/Runs/12']);
+        generateMockResponse(204, 4);
+        await tick();
+
+        expect(toast.success).toHaveBeenCalledTimes(1);
+        generateMockResponse(204, 4);
+        await tick();
+        expect(toast.success).toHaveBeenCalledTimes(2);
+      });
+
+      it('success for both artifacts and sources with files', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 12, artifacts: artifactsResponse, experiment: {sources: sourcesResponse}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 1}, {_id: '5ca6805e11421a04b4ba8b48', count: 1}]});
+        mockAxios.mockResponse({status: 200, data: {_id: 11, artifacts: artifactsResponse, experiment: {sources: sourcesResponse}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 1}, {_id: '5ca6805e11421a04b4ba8b48', count: 1}]});
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(12);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+              '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+              '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[3]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+              '"5ca67d6f11421a00e53d49fc"},{"files_id":"5ca6805e11421a04b4ba8b48"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[4]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+              '"5ca67d6f11421a00e53d49fc"},{"_id":"5ca6805e11421a04b4ba8b48"}]}'}}]);
+        expect(mockAxios.delete.mock.calls[5]).toEqual(['/api/v1/Runs/12']);
+        generateMockResponse(204, 12);
+        await tick();
+
+        expect(toast.success).toHaveBeenCalledTimes(2);
+      });
+
+      it('unknown error', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: []});
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: []});
+        await tick();
+        expect(mockAxios.delete).toHaveBeenCalledTimes(4);
+        mockAxios.mockResponse({status: 204});
+        mockAxios.mockResponse({status: 400});
+        mockAxios.mockResponse({status: 204});
+        mockAxios.mockResponse({status: 204});
+        await tick();
+        expect(toast.error).toHaveBeenCalledWith('An unknown error occurred!', {autoClose: 5000});
+      });
+
+      it('error for get', async () => {
+        const errResponse = {status: 500, message: 'unknown error'};
+        mockAxios.mockError(errResponse);
+        await tick();
+
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`, {autoClose: 5000});
+      });
+
+      it('error for delete calls', async () => {
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
+        mockAxios.mockResponse({status: 200, data: {_id: 54, artifacts: [], experiment: {sources: []}}});
+        mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 496}, {_id: '5ca6805e11421a04b4ba8b48', count: 247}]});
+        await tick();
+        const errResponse = {status: 500, message: 'unknown error'};
+        mockAxios.mockError(errResponse);
+        await tick();
+
+        expect(toast.error).toHaveBeenCalledWith(`Error: ${errResponse.message}`, {autoClose: 5000});
+      });
+    });
   });
 
   describe('should load data', () => {
@@ -507,7 +706,7 @@ describe('RunsTable', () => {
 
     it('when run is present', () => {
       expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(1);
-      wrapper.instance()._handleDeleteExperimentRun(runId);
+      wrapper.instance()._handlePostDeleteRun(runId);
 
       expect(wrapper.state().data.filter(item => item._id === runId)).toHaveLength(0);
     });
@@ -515,7 +714,7 @@ describe('RunsTable', () => {
     it('when run is not present', () => {
       runId = 100;
       const dataLength = wrapper.state().data.length;
-      wrapper.instance()._handleDeleteExperimentRun(runId);
+      wrapper.instance()._handlePostDeleteRun(runId);
 
       expect(wrapper.state().data).toHaveLength(dataLength);
     });

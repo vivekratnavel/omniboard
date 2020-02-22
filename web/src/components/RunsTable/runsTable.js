@@ -28,6 +28,7 @@ import {CustomColumnModal} from '../CustomColumnModal/customColumnModal';
 import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE, ROW_HEIGHT} from '../../appConstants/app.constants';
 import {SettingsModal} from '../SettingsModal/settingsModal';
 import {CompareRunsModal} from '../CompareRunsModal/compareRunsModal';
+import {DeleteRunsConfirmationModal} from '../DeleteRunsConfirmationModal/deleteRunsConfirmationModal';
 
 export const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -169,7 +170,12 @@ class RunsTable extends Component {
       newData: null,
       dataVersion: 0,
       isCompareButtonDisabled: true,
-      showCompareColumnsModal: false
+      showCompareColumnsModal: false,
+      isDeleteButtonDisabled: true,
+      showDeleteConfirmationModal: false,
+      isDeleteInProgress: false,
+      deleteProgress: 0,
+      rowsToDelete: []
     };
   }
 
@@ -973,7 +979,7 @@ class RunsTable extends Component {
       isCompareButtonDisabled = true;
       isDeleteButtonDisabled = true;
     } else {
-      isDeleteButtonDisabled = false;
+      isDeleteButtonDisabled = selectedRows.size < 2;
       // Only enable compare when 2 or more runs are selected
       isCompareButtonDisabled = selectedRows.size < 2;
     }
@@ -1075,8 +1081,8 @@ class RunsTable extends Component {
 
     if (columnKey === ID_COLUMN_KEY) {
       cell = (
-        <PendingCell data={rowData} dataVersion={dataVersion} handleDataUpdate={this._handleDeleteExperimentRun}>
-          <IdCell/>
+        <PendingCell data={rowData} dataVersion={dataVersion}>
+          <IdCell handleDelete={this._handleDeleteRunsClick}/>
         </PendingCell>
       );
     }
@@ -1121,6 +1127,13 @@ class RunsTable extends Component {
   _handleCompareRunsClick = () => {
     this.setState({
       showCompareColumnsModal: true
+    });
+  };
+
+  _handleDeleteRunsClick = rowsToDelete => () => {
+    this.setState({
+      showDeleteConfirmationModal: true,
+      rowsToDelete
     });
   };
 
@@ -1169,6 +1182,12 @@ class RunsTable extends Component {
   _handleCompareColumnsModalClose = () => {
     this.setState({
       showCompareColumnsModal: false
+    });
+  };
+
+  _handleDeleteRunsModalClose = () => {
+    this.setState({
+      showDeleteConfirmationModal: false
     });
   };
 
@@ -1349,7 +1368,7 @@ class RunsTable extends Component {
     };
   };
 
-  _handleDeleteExperimentRun = runId => {
+  _handlePostDeleteRun = runId => {
     const {sortedData, runsCount} = this.state;
     const data = sortedData.getDataArray();
     const index = data.findIndex(item => item._id === runId);
@@ -1360,10 +1379,133 @@ class RunsTable extends Component {
       const newData = new DataListWrapper(data, newRunsCount, this._getInitialFetchSize, this._fetchRunsRange);
       // Reset expanded rows
       this._resetExpandedRows();
+      this._resetSelectedRows();
       this.setState({
         data,
         sortedData: newData,
         runsCount: newRunsCount
+      });
+    }
+  };
+
+  _handleDeleteRuns = experimentIds => e => {
+    e.stopPropagation();
+
+    const buildChunksQuery = chunksQuery => {
+      return axios.delete('/api/v1/Fs.chunks/', {
+        params: {
+          query: JSON.stringify({
+            $or: chunksQuery
+          })
+        }
+      });
+    };
+
+    const buildFilesQuery = filesQuery => {
+      return axios.delete('/api/v1/Fs.files/', {
+        params: {
+          query: JSON.stringify({
+            $or: filesQuery
+          })
+        }
+      });
+    };
+
+    if (experimentIds && experimentIds.length > 0) {
+      this.setState({
+        isDeleteInProgress: true
+      });
+      let deletedCount = 0;
+      const totalCount = experimentIds.length;
+      for (const experimentId of experimentIds) {
+        if (experimentId && !isNaN(experimentId)) {
+          axios.all([
+            axios.get('/api/v1/Runs/' + experimentId, {
+              params: {
+                select: 'artifacts,experiment.sources'
+              }
+            }),
+            axios.get('/api/v1/SourceFilesCount/' + experimentId)
+          ]).then(axios.spread(async (runsResponse, sourceFilesCountResponse) => {
+            runsResponse = runsResponse.data;
+            sourceFilesCountResponse = sourceFilesCountResponse.data;
+            const deleteApis = [];
+
+            // Since deletes are idempotent, delete all metric rows
+            // from metrics collection associated with the given run id
+            // without checking if metric rows are present or not.
+            deleteApis.push(
+              axios.delete('/api/v1/Metrics/', {
+                params: {
+                  query: JSON.stringify({
+                    run_id: experimentId
+                  })
+                }
+              }));
+
+            // Delete all artifacts associated with the run id.
+            if (runsResponse.artifacts && runsResponse.artifacts.length > 0) {
+              const chunksQuery = runsResponse.artifacts.map(file => {
+                return {files_id: file.file_id};
+              });
+              const filesQuery = runsResponse.artifacts.map(file => {
+                return {_id: file.file_id};
+              });
+              deleteApis.push(buildChunksQuery(chunksQuery));
+              deleteApis.push(buildFilesQuery(filesQuery));
+            }
+
+            // Delete all source files associated with run id
+            // only if the source file is not being used by any other run.
+            if (sourceFilesCountResponse && sourceFilesCountResponse.length > 0) {
+              // Filter files that have count as 1.
+              // i.e The source file is not being used by any other run.
+              const sourceFilesToDelete = sourceFilesCountResponse.filter(item => item.count === 1);
+              if (sourceFilesToDelete.length > 0) {
+                const chunksQuery = sourceFilesToDelete.map(file => {
+                  return {files_id: file._id};
+                });
+                const filesQuery = sourceFilesToDelete.map(file => {
+                  return {_id: file._id};
+                });
+                deleteApis.push(buildChunksQuery(chunksQuery));
+                deleteApis.push(buildFilesQuery(filesQuery));
+              }
+            }
+
+            // Delete run.
+            deleteApis.push(
+              axios.delete('/api/v1/Runs/' + experimentId)
+            );
+
+            await axios.all(deleteApis).then(axios.spread((...deleteResponses) => {
+              if (deleteResponses.every(response => response.status === 204)) {
+                // Call callback function to update rows in the table
+                this._handlePostDeleteRun(experimentId);
+                toast.success(`Experiment run ${experimentId} was deleted successfully!`, {autoClose: 5000});
+              } else {
+                toast.error('An unknown error occurred!', {autoClose: 5000});
+              }
+            })).catch(error => {
+              toast.error(parseServerError(error), {autoClose: 5000});
+            });
+          })).catch(error => {
+            toast.error(parseServerError(error), {autoClose: 5000});
+          });
+        }
+        // Update delete progress
+
+        deletedCount++;
+        const progress = Math.ceil(deletedCount / totalCount * 100);
+        this.setState({
+          deleteProgress: progress
+        });
+      }
+
+      this.setState({
+        isDeleteInProgress: false,
+        showDeleteConfirmationModal: false,
+        deleteProgress: 0
       });
     }
   };
@@ -1442,7 +1584,8 @@ class RunsTable extends Component {
       errorMessage, isTableLoading, filterColumnName, filterColumnOperator, filterColumnValue, filterValueAsyncValueOptionsKey,
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
       lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount, selectedRows, selectAll,
-      selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal} = this.state;
+      selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal, rowsToDelete,
+      isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress} = this.state;
     const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
     const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
@@ -1618,6 +1761,13 @@ class RunsTable extends Component {
                   >
                     <Glyphicon glyph='transfer'/> Compare
                   </Button>
+                  <Button id='delete_runs'
+                    bsStyle='danger'
+                    disabled={isDeleteButtonDisabled}
+                    onClick={this._handleDeleteRunsClick(compareRuns)}
+                  >
+                    <Glyphicon glyph='trash'/> Delete
+                  </Button>
                 </div>
               </ButtonToolbar>
               <div className='clearfix'/>
@@ -1733,6 +1883,9 @@ class RunsTable extends Component {
           handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
         <CompareRunsModal shouldShow={showCompareColumnsModal} handleClose={this._handleCompareColumnsModalClose}
           runs={compareRuns}/>
+        <DeleteRunsConfirmationModal handleClose={this._handleDeleteRunsModalClose}
+          shouldShow={showDeleteConfirmationModal} runs={rowsToDelete} isDeleteInProgress={isDeleteInProgress}
+          handleDelete={this._handleDeleteRuns(rowsToDelete)} progressPercent={deleteProgress}/>
       </div>
     );
   }
