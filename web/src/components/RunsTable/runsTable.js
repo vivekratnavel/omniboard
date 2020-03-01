@@ -21,7 +21,7 @@ import {EditableCell, SelectCell, ExpandRowCell, TextCell, CollapseCell, HeaderC
   SortTypes, StatusCell, IdCell, DateCell, PendingCell, SelectionCell, SelectionHeaderCell} from '../Helpers/cells';
 import {DrillDownView} from '../DrillDownView/drillDownView';
 import {EXPANDED_ROW_HEIGHT} from '../DrillDownView/drillDownView.scss';
-import {headerText, reorderArray, capitalize, parseServerError, arrayDiffColumns} from '../Helpers/utils';
+import {headerText, reorderArray, capitalize, parseServerError, arrayDiffColumns, resolveObjectPath} from '../Helpers/utils';
 import {STATUS} from '../../appConstants/status.constants';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {CustomColumnModal} from '../CustomColumnModal/customColumnModal';
@@ -187,10 +187,6 @@ class RunsTable extends Component {
   };
 
   _getInitialFetchSize = () => Number(this.global.settings[INITIAL_FETCH_SIZE].value);
-
-  _resolveObjectPath = (object, path, defaultValue) => path
-    .split('.')
-    .reduce((o, p) => o && Object.prototype.hasOwnProperty.call(o, p) ? o[p] : defaultValue, object);
 
   _initPolling = () => {
     this.loadPartialUpdates();
@@ -368,7 +364,7 @@ class RunsTable extends Component {
         customColumnsData.forEach(column => {
           const columnName = column.name;
           const configPath = column.config_path;
-          customColumnsObject[columnName] = this._resolveObjectPath(data, configPath, '');
+          customColumnsObject[columnName] = resolveObjectPath(data, configPath, '');
           customColumnNameMap[columnName] = configPath;
         });
         data = {...data, ...customColumnsObject};

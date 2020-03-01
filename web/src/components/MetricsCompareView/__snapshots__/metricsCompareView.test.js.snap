@@ -1,0 +1,220 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MetricsCompareView should load data success 1`] = `
+<div
+  className="metrics-compare-view"
+>
+  <ProgressWrapper
+    id="metrics-compare-progress-wrapper"
+    loading={false}
+  >
+    <div>
+      <Well
+        bsClass="well"
+        bsSize="small"
+        className="run-id-filter-well"
+      >
+        <h5>
+          Runs: 
+        </h5>
+        <div
+          className="run-id-options-wrapper"
+        >
+          <MultiSelect
+            buttonText={[Function]}
+            data={
+              Array [
+                Object {
+                  "label": 1,
+                  "selected": true,
+                  "value": 1,
+                },
+                Object {
+                  "label": 2,
+                  "selected": true,
+                  "value": 2,
+                },
+                Object {
+                  "label": 3,
+                  "selected": true,
+                  "value": 3,
+                },
+                Object {
+                  "label": 4,
+                  "selected": true,
+                  "value": 4,
+                },
+              ]
+            }
+            enableHTML={true}
+            id="run_ids"
+            includeSelectAllOption={true}
+            maxHeight={300}
+            multiple={true}
+            onChange={[Function]}
+            onDeselectAll={[Function]}
+            onSelectAll={[Function]}
+            selectedClass="run-id-selected"
+          />
+        </div>
+        <h5>
+          Metric Label: 
+        </h5>
+        <div
+          className="metric-label-options-wrapper"
+        >
+          <StateManager
+            className="select-metric-label"
+            defaultInputValue=""
+            defaultMenuIsOpen={false}
+            defaultValue={null}
+            onChange={[Function]}
+            options={
+              Array [
+                Object {
+                  "label": "Run Id",
+                  "value": "_id",
+                },
+                Object {
+                  "label": "Experiment Name",
+                  "value": "experiment.name",
+                },
+              ]
+            }
+            placeholder="Metric Label"
+            test-attr="select-metric-label"
+            value={
+              Object {
+                "label": "Run Id",
+                "value": "_id",
+              }
+            }
+          />
+        </div>
+      </Well>
+      <MetricsPlotView
+        metricLabel="_id"
+        metricsResponse={
+          Array [
+            Object {
+              "_id": "5a2b5a8c9c7a505a652f6127",
+              "name": "pretrain.train.loss",
+              "run_id": 1,
+              "steps": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "timestamps": Array [
+                "2017-12-09T03:37:44.425Z",
+                "2017-12-09T03:41:54.414Z",
+                "2017-12-09T03:46:01.766Z",
+                "2017-12-09T03:50:07.365Z",
+                "2017-12-09T03:54:12.560Z",
+              ],
+              "values": Array [
+                0.7159541824544438,
+                0.3840367944955761,
+                0.3469185283233073,
+                0.30483262065173106,
+                0.28915774130337507,
+              ],
+            },
+            Object {
+              "_id": "5a2b5aa09c7a505a652f6146",
+              "name": "pretrain.val.loss",
+              "run_id": 2,
+              "steps": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "timestamps": Array [
+                "2017-12-09T03:38:01.945Z",
+                "2017-12-09T03:42:11.673Z",
+                "2017-12-09T03:46:18.843Z",
+                "2017-12-09T03:50:24.377Z",
+                "2017-12-09T03:54:29.752Z",
+              ],
+              "values": Array [
+                0.32177006650114165,
+                0.23237958704995795,
+                0.23340759051386187,
+                0.21925230575196739,
+                0.20541178824900605,
+              ],
+            },
+            Object {
+              "_id": "5a2b5a8c9c7a505a652f6127",
+              "name": "pretrain.train.loss",
+              "run_id": 3,
+              "steps": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "timestamps": Array [
+                "2017-12-09T03:37:44.425Z",
+                "2017-12-09T03:41:54.414Z",
+                "2017-12-09T03:46:01.766Z",
+                "2017-12-09T03:50:07.365Z",
+                "2017-12-09T03:54:12.560Z",
+              ],
+              "values": Array [
+                0.7859541824544438,
+                0.5640367944955761,
+                0.8769185283233073,
+                0.604832620651731,
+                0.5891577413033751,
+              ],
+            },
+            Object {
+              "_id": "5a2b5aa09c7a505a652f6146",
+              "name": "pretrain.val.loss",
+              "run_id": 4,
+              "steps": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "timestamps": Array [
+                "2017-12-09T03:38:01.945Z",
+                "2017-12-09T03:42:11.673Z",
+                "2017-12-09T03:46:18.843Z",
+                "2017-12-09T03:50:24.377Z",
+                "2017-12-09T03:54:29.752Z",
+              ],
+              "values": Array [
+                0.5217700665011417,
+                0.9237958704995795,
+                0.11340759051386187,
+                0.41925230575196737,
+                0.905411788249006,
+              ],
+            },
+          ]
+        }
+        runId=""
+        stateFilterKeys={
+          Array [
+            "selectedMetricNames",
+            "selectedXAxis",
+            "selectedYAxis",
+            "plotWidth",
+            "plotHeight",
+            "smoothing",
+          ]
+        }
+      />
+    </div>
+  </ProgressWrapper>
+</div>
+`;

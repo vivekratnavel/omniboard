@@ -72,3 +72,6 @@ export const concatArrayBuffers = (buffer1, buffer2) => {
   tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
   return tmp.buffer;
 };
+
+export const resolveObjectPath = (object, path, defaultValue) =>
+  path.split('.').reduce((o, p) => o && Object.prototype.hasOwnProperty.call(o, p) ? o[p] : defaultValue, object);

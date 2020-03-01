@@ -6,7 +6,7 @@ import Slider from 'rc-slider';
 import LocalStorageMixin from 'react-localstorage';
 import Multiselect from 'react-bootstrap-multiselect';
 import NumericInput from 'react-numeric-input';
-import {capitalize} from '../Helpers/utils';
+import {capitalize, resolveObjectPath} from '../Helpers/utils';
 import {SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES} from '../../appConstants/drillDownView.constants';
 import './metricsPlotView.scss';
 
@@ -18,7 +18,8 @@ const DEFAULT_PLOT_SMOOTHING = 0;
 class MetricsPlotView extends Component {
   static propTypes = {
     metricsResponse: PropTypes.array,
-    runId: PropTypes.any
+    runId: PropTypes.any,
+    metricLabel: PropTypes.string
   };
 
   // Filter out state objects that need to be synchronized with local storage
@@ -140,15 +141,21 @@ class MetricsPlotView extends Component {
   };
 
   render() {
-    const {metricsResponse, runId} = this.props;
+    const {metricsResponse, runId, metricLabel} = this.props;
     const {selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing, metricNameOptions} = this.state;
     let metricsResponseMap = {};
     let metricNames = [];
     const distinctRuns = [...new Set(metricsResponse.map(metric => metric.run_id))];
+    const runMap = {};
     if (metricsResponse && metricsResponse.length > 0) {
       metricsResponseMap = metricsResponse.reduce((map, metric) => {
         // Display run id with metric name while showing plot with multiple runs
-        const metricName = distinctRuns.length > 1 ? `${metric.run_id}.${metric.name}` : metric.name;
+        const metricNameLabel = metricLabel && 'run' in metric && metric.run.length > 0 ?
+          `${resolveObjectPath(metric.run[0], metricLabel, metric.run_id)}.${metric.name}` :
+          `${metric.run_id}.${metric.name}`;
+        const metricName = distinctRuns.length > 1 ?
+          metricNameLabel : metric.name;
+        runMap[metric.run_id] = 'run' in metric && metric.run.length > 0 ? metric.run[0] : {};
         map[metricName] = metric;
         return map;
       }, {});
@@ -177,7 +184,9 @@ class MetricsPlotView extends Component {
     const selectedMetricNames = this._getSelectedMetrics(metricNameOptions);
     const plotData = [...selectedMetricNames].reduce((r, metricName) => {
       distinctRuns.forEach((runId, i) => {
-        const metricNameKey = distinctRuns.length > 1 ? `${runId}.${metricName}` : metricName;
+        const metricNameLabel = metricLabel && runId in runMap ?
+          `${resolveObjectPath(runMap[runId], metricLabel, runId)}.${metricName}` : `${runId}.${metricName}`;
+        const metricNameKey = distinctRuns.length > 1 ? metricNameLabel : metricName;
         // Original data
         const colorindex = ((r.length / 2) + i) % colors.length;
         if (metricsResponseMap[metricNameKey]) {
