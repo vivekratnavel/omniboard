@@ -110,7 +110,10 @@ class RunsTable extends Component {
     showCustomColumnModal: PropTypes.bool.isRequired,
     handleCustomColumnModalClose: PropTypes.func.isRequired,
     showSettingsModal: PropTypes.bool.isRequired,
-    handleSettingsModalClose: PropTypes.func.isRequired
+    handleSettingsModalClose: PropTypes.func.isRequired,
+    location: PropTypes.shape({
+      search: PropTypes.string
+    })
   };
 
   tableWrapperDomNode = null;

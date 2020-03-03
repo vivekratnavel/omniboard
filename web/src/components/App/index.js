@@ -1,6 +1,7 @@
 import React, {Component} from 'reactn';
 import {Navbar, Nav, MenuItem, NavDropdown, Glyphicon, NavItem} from 'react-bootstrap';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 import {ToastContainer, toast} from 'react-toastify';
 import moment from 'moment-timezone';
 import {parseServerError} from '../Helpers/utils';
@@ -24,6 +25,12 @@ class App extends Component {
       appVersion: ''
     };
   }
+
+  static propTypes = {
+    location: PropTypes.shape({
+      search: PropTypes.string
+    })
+  };
 
   _resetCache = () => {
     localStorage.clear();
@@ -179,7 +186,8 @@ class App extends Component {
           <RunsTable localStorageKey={localStorageKey} showCustomColumnModal={showCustomColumnModal}
             handleCustomColumnModalClose={this._handleCustomColumnModalClose}
             showSettingsModal={showSettingsModal}
-            handleSettingsModalClose={this._handleSettingsModalClose}/>
+            handleSettingsModalClose={this._handleSettingsModalClose}
+            location={this.props.location}/>
         </div>
       </div>
     );
