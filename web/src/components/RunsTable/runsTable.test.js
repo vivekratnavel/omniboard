@@ -14,6 +14,8 @@ describe('RunsTable', () => {
   const countResponse = {count: 4};
   let metricColumnsResponse = null;
   let customColumnsResponse = null;
+  let location = null;
+  let history = null;
   const RealDate = Date;
   const constantDate = new Date(2018);
   const customColumnModalCloseHandler = jest.fn();
@@ -24,20 +26,30 @@ describe('RunsTable', () => {
     'resources,heartbeat,duration,result,stop_time,pretrain_loss_min,config.message,config.recipient,config.seed,' +
     'config.train,config.tags,meta.comment';
   toast.error = jest.fn();
-  console.warn = jest.fn();
   window.addEventListener = jest.fn();
   window.removeEventListener = jest.fn();
 
   beforeEach(async () => {
     // RunsTable deletes certain keys in this data and it produces unexpected results
     // That's why assigning data every time in "beforeEach" block
-    runsResponse = [{_id: 12, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:15:27.640Z', config: {message: 'Hello world!', recipient: 'world', seed: 748452106, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:16:13.734Z', result: 'Hello world!', stop_time: '2019-08-26T10:16:13.731Z', omniboard: {tags: ['test', 'test2', 'test3']}, duration: 46094, pretrain_loss_min: 1}, {_id: 11, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:09:15.417Z', config: {message: 'Hello world!', recipient: 'world', seed: 63143030, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:10:12.073Z', result: 'Hello world!', stop_time: '2019-08-26T10:10:12.070Z', duration: 56656, pretrain_loss_min: 3}, {_id: 10, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:04:57.446Z', config: {message: 'Hello world!', recipient: 'world', seed: 87987508, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:05:51.044Z', result: 'Hello world!', stop_time: '2019-08-26T10:05:51.040Z', duration: 53598, pretrain_loss_min: 2}, {_id: 9, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T09:58:54.573Z', config: {message: 'Hello world!', recipient: 'world', seed: 240075121, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T09:59:49.354Z', result: 'Hello world!', stop_time: '2019-08-26T09:59:49.352Z', duration: 54781, pretrain_loss_min: 1}];
+    runsResponse = [{_id: 12, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', info: {}, host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:15:27.640Z', config: {message: 'Hello world!', recipient: 'world', seed: 748452106, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}, tags: 'tag1,tag2'}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:16:13.734Z', result: 'Hello world!', stop_time: '2019-08-26T10:16:13.731Z', omniboard: {tags: ['test', 'test2', 'test3']}, duration: 46094, pretrain_loss_min: 1}, {_id: 11, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:09:15.417Z', config: {message: 'Hello world!', recipient: 'world', seed: 63143030, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:10:12.073Z', result: 'Hello world!', stop_time: '2019-08-26T10:10:12.070Z', duration: 56656, pretrain_loss_min: 3}, {_id: 10, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T10:04:57.446Z', config: {message: 'Hello world!', recipient: 'world', seed: 87987508, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T10:05:51.044Z', result: 'Hello world!', stop_time: '2019-08-26T10:05:51.040Z', duration: 53598, pretrain_loss_min: 2}, {_id: 9, experiment: {name: 'hello_config'}, format: 'MongoObserver-0.7.0', command: 'my_main', host: {hostname: 'viveks-imac.lan'}, start_time: '2019-08-26T09:58:54.573Z', config: {message: 'Hello world!', recipient: 'world', seed: 240075121, train: {batch_size: 32, epochs: 100, lr: 0.01, settings: {epochs: 12}}}, status: 'COMPLETED', resources: [], heartbeat: '2019-08-26T09:59:49.354Z', result: 'Hello world!', stop_time: '2019-08-26T09:59:49.352Z', duration: 54781, pretrain_loss_min: 1}];
     metricColumnsResponse = [{_id: '5b7ef4714232e2d5bec00e2f', name: 'pretrain_loss_min', metric_name: 'pretrain.train.loss', extrema: 'min', __v: 0}];
     customColumnsResponse = [
       {_id: '5c16204663dfd3fe6a193610', name: 'batch_size', config_path: 'config.train.batch_size', __v: 0},
       {_id: '5c16ea82bea682411d7c0405', name: 'settings_epochs', config_path: 'config.train.settings.epochs', __v: 0},
       {_id: '5c16ebd6bea682411d7c0407', name: 'Lr', config_path: 'config.train.lr', __v: 0}
     ];
+    location = {
+      search: ''
+    };
+    history = {
+      push: jest.fn(queryString => {
+        location = {
+          search: queryString.substr(1)
+        };
+        wrapper.setProps({location});
+      })
+    };
     // Set an initial global state directly:
     React.setGlobal({
       settings: {
@@ -59,7 +71,7 @@ describe('RunsTable', () => {
     await tick();
     wrapper = mount(
       <RunsTable showCustomColumnModal={false} handleCustomColumnModalClose={customColumnModalCloseHandler}
-        showSettingsModal={false}
+        showSettingsModal={false} location={location} history={history}
         handleSettingsModalClose={settingsModalCloseHandler}/>
     );
     global.Date = class extends RealDate {

@@ -205,10 +205,10 @@ class MetricsPlotView extends Component {
           // Calculate smoothed graph
           const smoothed = [];
           let ravg = metricsResponseMap[metricNameKey].values[0];
-          for (const v of metricsResponseMap[metricNameKey].values) {
+          metricsResponseMap[metricNameKey].values.forEach(v => {
             ravg = (ravg * smoothing) + ((1 - smoothing) * v);
             smoothed.push(ravg);
-          }
+          });
 
           // Smoothed data
           r.push({

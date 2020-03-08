@@ -29,6 +29,9 @@ class App extends Component {
   static propTypes = {
     location: PropTypes.shape({
       search: PropTypes.string
+    }),
+    history: PropTypes.shape({
+      push: PropTypes.func
     })
   };
 
@@ -187,7 +190,7 @@ class App extends Component {
             handleCustomColumnModalClose={this._handleCustomColumnModalClose}
             showSettingsModal={showSettingsModal}
             handleSettingsModalClose={this._handleSettingsModalClose}
-            location={this.props.location}/>
+            location={this.props.location} history={this.props.history}/>
         </div>
       </div>
     );

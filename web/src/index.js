@@ -1,5 +1,4 @@
-import ReactDOM from 'react-dom';
-import {AppContainer} from 'react-hot-loader';
+import {render} from 'react-dom';
 import React, {setGlobal} from 'reactn';
 import 'react-table/react-table.css';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -32,15 +31,4 @@ setGlobal({
 });
 
 const rootEl = document.querySelector('#root');
-ReactDOM.render(<AppContainer><NextApp/></AppContainer>, rootEl);
-
-if (module.hot) {
-  module.hot.accept('./routes', () => {
-    ReactDOM.render(
-      <AppContainer>
-        <NextApp/>
-      </AppContainer>,
-      rootEl
-    );
-  });
-}
+render(<NextApp/>, rootEl);

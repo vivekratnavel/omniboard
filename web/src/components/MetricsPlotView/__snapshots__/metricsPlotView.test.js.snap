@@ -370,6 +370,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
           onChange={[Function]}
           prefixCls="rc-slider"
           railStyle={Object {}}
+          reverse={false}
           step={0.001}
           test-attr="plot-smoothing-slider"
           trackStyle={
@@ -398,6 +399,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               included={true}
               length={0}
               offset={0}
+              reverse={false}
               style={Object {}}
               vertical={false}
             >
@@ -406,6 +408,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 style={
                   Object {
                     "left": "0%",
+                    "right": "auto",
                     "width": "0%",
                   }
                 }
@@ -421,6 +424,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               max={0.999}
               min={0}
               prefixCls="rc-slider"
+              reverse={false}
               step={0.001}
               upperBound={0}
               vertical={false}
@@ -437,6 +441,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               min={0}
               offset={0}
               prefixCls="rc-slider"
+              reverse={false}
               style={Object {}}
               value={0}
               vertical={false}
@@ -454,6 +459,8 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 style={
                   Object {
                     "left": "0%",
+                    "right": "auto",
+                    "transform": "translateX(-50%)",
                   }
                 }
                 tabIndex={0}
@@ -467,6 +474,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               max={0.999}
               min={0}
               onClickLabel={[Function]}
+              reverse={false}
               upperBound={0}
               vertical={false}
             >
@@ -517,6 +525,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
             onChange={[Function]}
             prefixCls="rc-slider"
             railStyle={Object {}}
+            reverse={false}
             step={50}
             test-attr="plot-width-slider"
             trackStyle={
@@ -545,6 +554,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 included={true}
                 length={20}
                 offset={0}
+                reverse={false}
                 style={Object {}}
                 vertical={false}
               >
@@ -553,6 +563,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   style={
                     Object {
                       "left": "0%",
+                      "right": "auto",
                       "width": "20%",
                     }
                   }
@@ -568,6 +579,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={1200}
                 min={700}
                 prefixCls="rc-slider"
+                reverse={false}
                 step={50}
                 upperBound={800}
                 vertical={false}
@@ -584,6 +596,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 min={700}
                 offset={20}
                 prefixCls="rc-slider"
+                reverse={false}
                 style={Object {}}
                 value={800}
                 vertical={false}
@@ -601,6 +614,8 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   style={
                     Object {
                       "left": "20%",
+                      "right": "auto",
+                      "transform": "translateX(-50%)",
                     }
                   }
                   tabIndex={0}
@@ -614,6 +629,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={1200}
                 min={700}
                 onClickLabel={[Function]}
+                reverse={false}
                 upperBound={800}
                 vertical={false}
               >
@@ -658,6 +674,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
             onChange={[Function]}
             prefixCls="rc-slider"
             railStyle={Object {}}
+            reverse={false}
             step={50}
             test-attr="plot-height-slider"
             trackStyle={
@@ -686,6 +703,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 included={true}
                 length={33.33333333333333}
                 offset={0}
+                reverse={false}
                 style={Object {}}
                 vertical={false}
               >
@@ -694,6 +712,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   style={
                     Object {
                       "left": "0%",
+                      "right": "auto",
                       "width": "33.33333333333333%",
                     }
                   }
@@ -709,6 +728,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={600}
                 min={300}
                 prefixCls="rc-slider"
+                reverse={false}
                 step={50}
                 upperBound={400}
                 vertical={false}
@@ -725,6 +745,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 min={300}
                 offset={33.33333333333333}
                 prefixCls="rc-slider"
+                reverse={false}
                 style={Object {}}
                 value={400}
                 vertical={false}
@@ -742,6 +763,8 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   style={
                     Object {
                       "left": "33.33333333333333%",
+                      "right": "auto",
+                      "transform": "translateX(-50%)",
                     }
                   }
                   tabIndex={0}
@@ -755,6 +778,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={600}
                 min={300}
                 onClickLabel={[Function]}
+                reverse={false}
                 upperBound={400}
                 vertical={false}
               >

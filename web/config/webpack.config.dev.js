@@ -87,7 +87,8 @@ module.exports = {
     alias: {
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
-      'react-native': 'react-native-web'
+      'react-native': 'react-native-web',
+      'react-dom': '@hot-loader/react-dom'
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).
@@ -144,7 +145,13 @@ module.exports = {
           // Process JS with Babel.
           {
             test: /\.(js|jsx|mjs)$/,
-            include: [paths.appSrc, paths.prettyMsSrc, paths.parseMsSrc, paths.reactDiffViewerSrc],
+            include: [paths.appSrc,
+              paths.prettyMsSrc,
+              paths.parseMsSrc,
+              paths.reactDiffViewerSrc,
+              paths.queryString,
+              paths.strictUriEncode,
+              paths.splitOnFirst],
             loader: require.resolve('babel-loader'),
             options: {
               // This is a feature of `babel-loader` for webpack (not Babel itself).

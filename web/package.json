@@ -69,7 +69,7 @@
     "react-bootstrap-xeditable": "^0.2.10",
     "react-dev-utils": "^4.2.1",
     "react-diff-viewer": "^2.0.1",
-    "react-dom": "16.8.6",
+    "react-dom": "^16.8.6",
     "react-json-view": "^1.16.0",
     "react-list": "^0.8.11",
     "react-localstorage": "^0.3.1",
@@ -327,6 +327,7 @@
   },
   "proxy": "http://localhost:9000/",
   "devDependencies": {
+    "@hot-loader/react-dom": "^16.8.6",
     "@types/enzyme": "^3.9.1",
     "@types/jest": "^24.0.18",
     "@types/mocha": "^5.2.7",
@@ -350,7 +351,7 @@
     "jest-localstorage-mock": "^2.4.0",
     "jest-mock-axios": "^2.1.11",
     "node-sass": "^4.7.2",
-    "react-hot-loader": "^4.0.0-beta.21",
+    "react-hot-loader": "^4.8.3",
     "sass-loader": "^6.0.6",
     "xo": "^0.24.0"
   }

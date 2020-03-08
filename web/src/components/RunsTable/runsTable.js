@@ -14,6 +14,7 @@ import PropTypes from 'prop-types';
 import Switch from 'react-switch';
 import moment from 'moment';
 import classNames from 'classnames';
+import * as QueryString from 'query-string';
 import ms from 'ms';
 import {MetricColumnModal} from '../MetricColumnModal/metricColumnModal';
 import {DataListWrapper} from '../Helpers/dataListWrapper';
@@ -113,6 +114,9 @@ class RunsTable extends Component {
     handleSettingsModalClose: PropTypes.func.isRequired,
     location: PropTypes.shape({
       search: PropTypes.string
+    }),
+    history: PropTypes.shape({
+      push: PropTypes.func
     })
   };
 
@@ -924,6 +928,13 @@ class RunsTable extends Component {
         this._startPolling();
       }
     }, 1);
+    this._parseQueryString();
+  }
+
+  componentDidUpdate(prevProps, _prevState, _snapshot) {
+    if (prevProps.location.search !== this.props.location.search) {
+      this._parseQueryString();
+    }
   }
 
   /**
@@ -989,18 +1000,12 @@ class RunsTable extends Component {
     });
   };
 
-  _handleRowSelectionClick = rowIndex => {
-    const {selectedRows} = this.state;
-    const shallowCopyOfSelectedRows = new Set([...selectedRows]);
+  _selectRows = (rows, checkAll, checkAllIndeterminate) => {
+    const selectedRows = new Set(rows);
     let selectAll = null;
     let selectAllIndeterminate = null;
-    if (shallowCopyOfSelectedRows.has(rowIndex)) {
-      shallowCopyOfSelectedRows.delete(rowIndex);
-    } else {
-      shallowCopyOfSelectedRows.add(rowIndex);
-    }
 
-    if (shallowCopyOfSelectedRows.size === 0) {
+    if (selectedRows.size === 0) {
       selectAll = false;
       selectAllIndeterminate = false;
     } else {
@@ -1008,11 +1013,54 @@ class RunsTable extends Component {
       selectAllIndeterminate = true;
     }
 
+    if (checkAll !== undefined && checkAllIndeterminate !== undefined) {
+      selectAll = checkAll === 'true';
+      selectAllIndeterminate = checkAllIndeterminate === 'true';
+    }
+
     this.setState({
-      selectedRows: shallowCopyOfSelectedRows,
+      selectedRows,
       selectAll,
       selectAllIndeterminate
-    }, () => this._updateStateForMultiSelectButtons(shallowCopyOfSelectedRows));
+    }, () => this._updateStateForMultiSelectButtons(selectedRows));
+  };
+
+  _parseQueryString = () => {
+    const queryString = QueryString.parse(this.props.location.search);
+    if (queryString.selectedRows) {
+      this._selectRows(JSON.parse(queryString.selectedRows), queryString.selectAll, queryString.selectAllIndeterminate);
+    }
+
+    if (queryString.showCompareModal) {
+      this.setState({
+        showCompareColumnsModal: queryString.showCompareModal === 'true'
+      });
+    }
+  };
+
+  /**
+   * Updates the query string in URL.
+   *
+   * @param {object} queries queryString object
+   * @private
+   */
+  _updateQueryString = queries => {
+    const queryString = QueryString.parse(this.props.location.search);
+    const updatedQueryString = {...queryString, ...queries};
+    this.props.history.push('?' + QueryString.stringify(updatedQueryString));
+  };
+
+  _handleRowSelectionClick = rowIndex => {
+    const {selectedRows} = this.state;
+    const shallowCopyOfSelectedRows = new Set([...selectedRows]);
+
+    if (shallowCopyOfSelectedRows.has(rowIndex)) {
+      shallowCopyOfSelectedRows.delete(rowIndex);
+    } else {
+      shallowCopyOfSelectedRows.add(rowIndex);
+    }
+
+    this._updateQueryString({selectedRows: JSON.stringify([...shallowCopyOfSelectedRows])});
   };
 
   _handleSelectAllClick = checkAll => {
@@ -1022,11 +1070,12 @@ class RunsTable extends Component {
       selectedRows = new Set(data.map((_, i) => i));
     }
 
-    this.setState({
-      selectedRows,
+    const queryString = {
+      selectedRows: JSON.stringify([...selectedRows]),
       selectAll: checkAll,
       selectAllIndeterminate: false
-    }, () => this._updateStateForMultiSelectButtons(selectedRows));
+    };
+    this._updateQueryString(queryString);
   };
 
   _subRowHeightGetter = index => {
@@ -1124,9 +1173,7 @@ class RunsTable extends Component {
   };
 
   _handleCompareRunsClick = () => {
-    this.setState({
-      showCompareColumnsModal: true
-    });
+    this._updateQueryString({showCompareModal: true});
   };
 
   _handleDeleteRunsClick = rowsToDelete => () => {
@@ -1179,9 +1226,7 @@ class RunsTable extends Component {
   };
 
   _handleCompareColumnsModalClose = () => {
-    this.setState({
-      showCompareColumnsModal: false
-    });
+    this._updateQueryString({showCompareModal: false});
   };
 
   _handleDeleteRunsModalClose = () => {
@@ -1416,7 +1461,7 @@ class RunsTable extends Component {
       });
       let deletedCount = 0;
       const totalCount = experimentIds.length;
-      for (const experimentId of experimentIds) {
+      experimentIds.forEach(experimentId => {
         if (experimentId && !isNaN(experimentId)) {
           axios.all([
             axios.get('/api/v1/Runs/' + experimentId, {
@@ -1499,7 +1544,7 @@ class RunsTable extends Component {
         this.setState({
           deleteProgress: progress
         });
-      }
+      });
 
       this.setState({
         isDeleteInProgress: false,
@@ -1613,7 +1658,14 @@ class RunsTable extends Component {
       });
     }
 
-    const compareRuns = [...selectedRows].map(rowIndex => sortedData.getDataArray()[rowIndex]._id);
+    const compareRuns = sortedData && sortedData.getSize() > 0 ?
+      [...selectedRows].reduce((rows, rowIndex) => {
+        if (sortedData.getDataArray()[rowIndex]) {
+          rows.push(sortedData.getDataArray()[rowIndex]._id);
+        }
+
+        return rows;
+      }, []) : [];
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
       return selectValue ? selectValue : value ? {label: value, value} : '';

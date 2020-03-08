@@ -146,7 +146,13 @@ module.exports = {
           // Process JS with Babel.
           {
             test: /\.(js|jsx|mjs)$/,
-            include: [paths.appSrc, paths.prettyMsSrc, paths.parseMsSrc, paths.reactDiffViewerSrc],
+            include: [paths.appSrc,
+              paths.prettyMsSrc,
+              paths.parseMsSrc,
+              paths.reactDiffViewerSrc,
+              paths.queryString,
+              paths.strictUriEncode,
+              paths.splitOnFirst],
             loader: require.resolve('babel-loader'),
             options: {
               compact: true,

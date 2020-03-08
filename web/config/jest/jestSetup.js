@@ -22,6 +22,10 @@ global.tick = () => {
   });
 };
 
+global.console = {
+  warn: jest.fn() // The console.warn statements are ignored in tests
+};
+
 // Workaround to resolve "TypeError: window.URL.createObjectURL is not a function" thrown by plotly.js
 const noOp = () => {};
 if (typeof window.URL.createObjectURL === 'undefined') {
