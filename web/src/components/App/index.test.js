@@ -28,11 +28,10 @@ describe('App component', () => {
 
   it('should reset cache', () => {
     // Mock location.reload method
-    Object.defineProperty(window.location, 'reload', {
-      configurable: true
-    });
-    window.location.reload = jest.fn();
-
+    // eslint-disable-next-line no-unused-vars
+    const {location} = window;
+    delete window.location;
+    window.location = {reload: jest.fn()};
     const value = 'testValue';
     localStorage.setItem('test', value);
 
