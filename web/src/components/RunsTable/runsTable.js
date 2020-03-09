@@ -224,8 +224,8 @@ class RunsTable extends Component {
   _buildRunsQuery = (metricColumnsData, customColumnsData, end = null) => {
     const {filters, dropdownOptions, columnNameMap, sort} = this.state;
     const queryJson = {$and: []};
-    const statusQueryFilter = operator => status => {
-      return {status: {[operator]: status}};
+    const buildQueryFilter = (operator, key) => value => {
+      return {[key]: {[operator]: value}};
     };
 
     // Get default initial fetch count from global settings.
@@ -237,7 +237,7 @@ class RunsTable extends Component {
     let order_by = '-1'; // Default order by DESC
 
     if (filters && filters.status.length > 0) {
-      const statusFilter = filters.status.map(statusQueryFilter('$eq'));
+      const statusFilter = filters.status.map(buildQueryFilter('$eq', 'status'));
       queryJson.$and.push({$or: statusFilter});
     }
 
@@ -245,7 +245,15 @@ class RunsTable extends Component {
     if (filters && filters.advanced.length > 0) {
       filters.advanced.forEach(filter => {
         if (filter.operator === '$in') {
-          const orFilters = filter.name === 'status' ? filter.value.map(statusQueryFilter('$eq')) : [{[filter.name]: filter.value}];
+          let orFilters = [{[filter.name]: filter.value}];
+          if (filter.name === 'status') {
+            orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
+          } else if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
+            const orFilters1 = buildQueryFilter('$in', 'config.tags')(filter.value);
+            const orFilters2 = buildQueryFilter('$in', 'omniboard.tags')(filter.value);
+            orFilters = [orFilters1, orFilters2];
+          }
+
           queryJson.$and.push({$or: orFilters});
         } else {
           // Check if the value is a number or boolean and convert type accordingly
@@ -260,7 +268,7 @@ class RunsTable extends Component {
           }
 
           if (filter.name === 'status') {
-            queryJson.$and.push(statusQueryFilter(filter.operator)(value));
+            queryJson.$and.push(buildQueryFilter(filter.operator, filter.name)(value));
           } else if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
             queryJson.$and.push({$or: [{'config.tags': {[filter.operator]: filter.value}}, {'omniboard.tags': {[filter.operator]: filter.value}}]});
           } else if (filter.name === 'omniboard.notes') {

@@ -346,6 +346,19 @@ describe('RunsTable', () => {
       }];
     };
 
+    const testFilter = async expectedOutput => {
+      wrapper.instance()._handleAddFilterClick();
+
+      expect(mockAxios.get.mock.calls).toHaveLength(2);
+      mockAxios.mockResponse({status: 200, data: []});
+      mockAxios.mockResponse({status: 200, data: []});
+      await tick();
+
+      expect(mockAxios.get.mock.calls).toHaveLength(5);
+      const queryString = JSON.stringify({$and: [{$or: expectedOutput}]});
+      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
+    };
+
     it('with status filter query', async () => {
       let queryString = {};
 
@@ -410,7 +423,7 @@ describe('RunsTable', () => {
       expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
     });
 
-    it('with filter on tags', async () => {
+    it('with filter on tags $eq operator', async () => {
       await initialRequestResponse();
       mockAxios.reset();
       wrapper.setState({
@@ -418,16 +431,20 @@ describe('RunsTable', () => {
         filterColumnOperator: '$eq',
         filterColumnValue: ['test']
       });
-      wrapper.instance()._handleAddFilterClick();
 
-      expect(mockAxios.get.mock.calls).toHaveLength(2);
-      mockAxios.mockResponse({status: 200, data: []});
-      mockAxios.mockResponse({status: 200, data: []});
-      await tick();
+      await testFilter([{'config.tags': {$eq: ['test']}}, {'omniboard.tags': {$eq: ['test']}}]);
+    });
 
-      expect(mockAxios.get.mock.calls).toHaveLength(5);
-      const queryString = JSON.stringify({$and: [{$or: [{'config.tags': {$eq: ['test']}}, {'omniboard.tags': {$eq: ['test']}}]}]});
-      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
+    it('with filter on tags $in operator', async () => {
+      await initialRequestResponse();
+      mockAxios.reset();
+      wrapper.setState({
+        filterColumnName: 'config.tags',
+        filterColumnOperator: '$in',
+        filterColumnValue: ['test', 'test2']
+      });
+
+      await testFilter([{'config.tags': {$in: ['test', 'test2']}}, {'omniboard.tags': {$in: ['test', 'test2']}}]);
     });
 
     it('with filter on notes', async () => {
@@ -438,16 +455,8 @@ describe('RunsTable', () => {
         filterColumnOperator: '$regex',
         filterColumnValue: ['test']
       });
-      wrapper.instance()._handleAddFilterClick();
 
-      expect(mockAxios.get.mock.calls).toHaveLength(2);
-      mockAxios.mockResponse({status: 200, data: []});
-      mockAxios.mockResponse({status: 200, data: []});
-      await tick();
-
-      expect(mockAxios.get.mock.calls).toHaveLength(5);
-      const queryString = JSON.stringify({$and: [{$or: [{'meta.comment': {$regex: ['test']}}, {'omniboard.notes': {$regex: ['test']}}]}]});
-      expect(mockAxios.get.mock.calls[2]).toEqual(getAPIArguments(subsequentSelect, queryString));
+      await testFilter([{'meta.comment': {$regex: ['test']}}, {'omniboard.notes': {$regex: ['test']}}]);
     });
 
     it('the second time when other states are retrieved from local storage', async () => {
