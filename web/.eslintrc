@@ -1,0 +1,77 @@
+{
+  "parser": "babel-eslint",
+  "env": {
+    "node": true,
+    "es6": true,
+    "mocha": true,
+    "jest": true,
+    "browser": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true,
+      "modules": true,
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "settings": {
+    "react": {
+      "pragma": "React",
+      "version": "16.8.6"
+    }
+  },
+  "rules": {
+    "indent": [
+      2,
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "jsx-quotes": [
+      2,
+      "prefer-single"
+    ],
+    "import/no-unassigned-import": 0,
+    "camelcase": 0,
+    "react/state-in-constructor": 0,
+    "react/boolean-prop-naming": 0,
+    "react/default-props-match-prop-types": 0,
+    "promise/prefer-await-to-then": 0,
+    "react/require-default-props": 0,
+    "unicorn/prevent-abbreviations": 0,
+    "react/no-array-index-key": 0,
+    "no-return-assign": 0,
+    "unicorn/filename-case": [
+      1,
+      {
+        "case": "camelCase"
+      }
+    ],
+    "no-unused-vars": [
+      2,
+      {
+        "argsIgnorePattern": "^_\\w*",
+        "varsIgnorePattern": "^_\\w*"
+      }
+    ],
+    "eslint-comments/disable-enable-pair": [
+      2,
+      {
+        "allowWholeFile": true
+      }
+    ]
+  },
+  "extends": [
+    "xo/esnext",
+    "xo-react/space",
+    "./node_modules/xo/config/plugins.js"
+  ],
+  "globals": {
+    "shallow": true,
+    "mount": true,
+    "tick": true
+  }
+}
