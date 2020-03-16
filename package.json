@@ -53,7 +53,7 @@
     "build:server": "npm run clean:server && babel server -d dist",
     "build": "run-s build:*",
     "test-ci": "cd web && npm run lint && CI=true npm run test",
-    "prepublishOnly": "rm -rf ./web/node_modules && cd web && yarn install --prod && cd .. && yarn run build",
+    "prepublishOnly": "rm -rf ./node_modules ./web/node_modules && cd web && yarn install --prod && cd .. && yarn install --prod && yarn run build",
     "report-coverage": "cd web && npm run report-coverage",
     "cm": "git-cz"
   },
@@ -69,9 +69,7 @@
     "node-env-run": "^3.0.2",
     "nodemon": "^1.19.1",
     "semantic-release": "^16.0.0-beta.22",
-    "travis-deploy-once": "^5.0.11"
-  },
-  "optionalDependencies": {
+    "travis-deploy-once": "^5.0.11",
     "commitizen": "^4.0.3",
     "cz-conventional-changelog": "3.0.2"
   },
