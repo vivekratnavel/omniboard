@@ -10,7 +10,7 @@ RUN npm install -g yarn
 
 COPY . /usr/omniboard
 
-RUN yarn install
+RUN yarn run prepublishOnly
 
 EXPOSE 9000
 

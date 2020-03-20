@@ -5,6 +5,7 @@ cache:
   - web/node_modules
 node_js:
 - '10'
+- '12'
 sudo: false
 script:
 - cd web && yarn install && cd ..
