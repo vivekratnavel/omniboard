@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'react-bootstrap-multiselect/css/bootstrap-multiselect.css';
 import './components/RunsTable/runsTable.scss';
 import 'rc-slider/assets/index.css';
+// eslint-disable-next-line import/extensions
+import 'regenerator-runtime/runtime.js';
 
 import NextApp from './routes';
 import {
