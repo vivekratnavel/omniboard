@@ -1,22 +1,30 @@
 # build environment
-FROM node:10.8.0 as builder
+FROM node:10.13.0 as builder
+
 RUN mkdir -p /usr/omniboard
 WORKDIR /usr/omniboard
-ENV PATH /usr/omniboard/node_modules/.bin:$PATH
-
-# grab tini for signal processing and zombie killing
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-# Having "--" at the end will enable passing command line args to npm script
-ENTRYPOINT ["/tini", "--", "yarn", "run", "prod"]
+ENV PATH=/usr/omniboard/node_modules/.bin:$PATH GENERATE_SOURCEMAP=false
 
 # install yarn
 RUN npm install -g yarn
 
 COPY . /usr/omniboard
 
-WORKDIR /usr/omniboard
-RUN yarn install
+RUN yarn run prepublishOnly
 
 EXPOSE 9000
+
+FROM node:10-alpine
+
+WORKDIR /usr/omniboard
+RUN apk add --no-cache tini
+
+# Having "--" at the end will enable passing command line args to npm script
+ENTRYPOINT ["/sbin/tini", "--", "yarn", "run", "prod"]
+
+ENV PATH /usr/omniboard/node_modules/.bin:$PATH
+
+COPY --from=builder /usr/omniboard/package.json /usr/omniboard/package.json
+COPY --from=builder /usr/omniboard/dist /usr/omniboard/dist
+COPY --from=builder /usr/omniboard/web/build /usr/omniboard/web/build
+RUN yarn install --production && yarn cache clean --force

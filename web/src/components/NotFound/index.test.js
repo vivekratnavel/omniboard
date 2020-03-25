@@ -1,5 +1,5 @@
 import React from 'react';
-import NotFound from './index';
+import NotFound from '.';
 
 describe('NotFound', () => {
   it('should render', () => {

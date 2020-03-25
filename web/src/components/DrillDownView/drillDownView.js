@@ -1,21 +1,21 @@
-import PropTypes from 'prop-types'
-import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import React, {Component} from 'react';
 import axios from 'axios';
-import backend from '../Backend/backend';
-import ReactJson from 'react-json-view'
-import './drillDownView.scss'
-import { Nav, NavItem } from 'react-bootstrap';
-import { on, off } from 'dom-helpers/events';
+import ReactJson from 'react-json-view';
+import './drillDownView.scss';
+import {Nav, NavItem} from 'react-bootstrap';
+import {on, off} from 'dom-helpers/events';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
-import { ProgressWrapper } from '../Helpers/hoc';
-import { parseServerError } from '../Helpers/utils';
-import { toast } from 'react-toastify';
-import { DRILLDOWN_VIEW } from '../../appConstants/drillDownView.constants';
-import { MetricsPlotView } from '../MetricsPlotView/metricsPlotView';
-import { SourceFilesView } from '../SourceFilesView/sourceFilesView';
-import { CapturedOutView } from '../CapturedOutView/capturedOutView';
-import {STATUS} from "../../appConstants/status.constants";
+import {toast} from 'react-toastify';
+import backend from '../Backend/backend';
+import {ProgressWrapper} from '../Helpers/hoc';
+import {parseServerError} from '../Helpers/utils';
+import {DRILLDOWN_VIEW} from '../../appConstants/drillDownView.constants';
+import {MetricsPlotView} from '../MetricsPlotView/metricsPlotView';
+import {SourceFilesView} from '../SourceFilesView/sourceFilesView';
+import {CapturedOutView} from '../CapturedOutView/capturedOutView';
+import {STATUS} from '../../appConstants/status.constants';
 
 class JsonView extends React.PureComponent {
   static propTypes = {
@@ -24,8 +24,11 @@ class JsonView extends React.PureComponent {
 
   render() {
     const {data} = this.props;
-    return (<ReactJson src={data} iconStyle="circle" collapsed={1} collapseStringsAfterLength={40}
-                       enableClipboard={false} displayDataTypes={false} />);
+    return (
+      <ReactJson src={data} iconStyle='circle' collapsed={1}
+        collapseStringsAfterLength={40}
+        enableClipboard={false} displayDataTypes={false}/>
+    );
   }
 }
 
@@ -52,7 +55,7 @@ class DrillDownView extends Component {
     };
   }
 
-  _handleSelectNavPill = (selectedKey) => {
+  _handleSelectNavPill = selectedKey => {
     this.setState({
       selectedNavTab: selectedKey
     });
@@ -70,6 +73,7 @@ class DrillDownView extends Component {
         event.stopPropagation();
       }
     }
+
     if (this.state.selectedNavTab === DRILLDOWN_VIEW.CAPTURED_OUT) {
       // Stop event propagation for horizontal scroll to allow CAPTURED_OUT content to be scrolled
       if (event.deltaX !== 0) {
@@ -78,7 +82,7 @@ class DrillDownView extends Component {
     }
   };
 
-  componentWillMount() {
+  componentDidMount() {
     const {runId} = this.props;
     if (runId) {
       this.setState({
@@ -96,23 +100,21 @@ class DrillDownView extends Component {
           }
         })
       ])
-      .then(axios.spread((runsResponse, metricsResponse) => {
-        const runsResponseData = runsResponse.data;
-        const metricsResponseData = metricsResponse.data;
-        this.setState({
-          isTableLoading: false,
-          runsResponse: runsResponseData,
-          metricsResponse: metricsResponseData
+        .then(axios.spread((runsResponse, metricsResponse) => {
+          const runsResponseData = runsResponse.data;
+          const metricsResponseData = metricsResponse.data;
+          this.setState({
+            isTableLoading: false,
+            runsResponse: runsResponseData,
+            metricsResponse: metricsResponseData
+          });
+        }))
+        .catch(error => {
+          this.setState({isTableLoading: false});
+          toast.error(parseServerError(error));
         });
-      }))
-      .catch(error => {
-        this.setState({isTableLoading: false});
-        toast.error(parseServerError(error));
-      });
     }
-  }
 
-  componentDidMount() {
     on(this.scrollableDiv, 'wheel', this._stopWheel);
   }
 
@@ -120,40 +122,40 @@ class DrillDownView extends Component {
     off(this.scrollableDiv, 'wheel', this._stopWheel);
   }
 
-  render () {
+  render() {
     const {selectedNavTab, isTableLoading, runsResponse, metricsResponse} = this.state;
     const {width, height, runId, status} = this.props;
     const experimentName = runsResponse !== null && 'experiment' in runsResponse ? runsResponse.experiment.name : '';
     // Adjust the width of scrollbar from total width
     const style = {
-      height: height,
-      width: width - 17,
+      height,
+      width: width - 17
     };
     const localStorageKey = `MetricsPlotView|${runId}`;
     let experimentFiles = [];
-    // convert experiment sources to the same structure as artifacts
+    // Convert experiment sources to the same structure as artifacts
     // source is an array with the following structure
     // [ "filename", ObjectId ]
     if (runsResponse !== null && 'experiment' in runsResponse &&
-      runsResponse.experiment.sources && runsResponse.experiment.sources.length) {
+      runsResponse.experiment.sources && runsResponse.experiment.sources.length > 0) {
       experimentFiles = runsResponse.experiment.sources.map(source => {
         return {
           name: source[0],
           file_id: source[1]
-        }
+        };
       });
     }
 
     const showFailTrace = runsResponse && runsResponse.status === STATUS.FAILED;
     const failTraceMenuItem = showFailTrace ?
-      <NavItem eventKey={DRILLDOWN_VIEW.FAIL_TRACE}>Fail Trace</NavItem>
-      : null;
+      <NavItem eventKey={DRILLDOWN_VIEW.FAIL_TRACE}>Fail Trace</NavItem> :
+      null;
     const failTrace = runsResponse && runsResponse.fail_trace ?
-      runsResponse.fail_trace.reduce((accumulator, current) => accumulator + current + '\n', '')
-      : '';
+      runsResponse.fail_trace.reduce((accumulator, current) => accumulator + current + '\n', '') :
+      '';
     const failTraceDom = <pre>{failTrace}</pre>;
 
-    const getTabContent = (key) => {
+    const getTabContent = key => {
       let content = '';
       if (runsResponse) {
         switch (key) {
@@ -179,14 +181,18 @@ class DrillDownView extends Component {
             content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} localStorageKey={localStorageKey}/></div>;
             break;
           case DRILLDOWN_VIEW.ARTIFACTS:
-            content = <div id={DRILLDOWN_VIEW.ARTIFACTS}>
-              <SourceFilesView key={"artifacts-"+runsResponse._id} type="artifacts" runId={runsResponse._id} files={runsResponse.artifacts}/>
-            </div>;
+            content = (
+              <div id={DRILLDOWN_VIEW.ARTIFACTS}>
+                <SourceFilesView key={'artifacts-' + runsResponse._id} type='artifacts' runId={runsResponse._id} files={runsResponse.artifacts}/>
+              </div>
+            );
             break;
           case DRILLDOWN_VIEW.SOURCE_FILES:
-            content = <div id={DRILLDOWN_VIEW.SOURCE_FILES}>
-              <SourceFilesView key={"files-"+runsResponse._id} type="source_files" runId={runsResponse._id} files={experimentFiles}/>
-            </div>;
+            content = (
+              <div id={DRILLDOWN_VIEW.SOURCE_FILES}>
+                <SourceFilesView key={'files-' + runsResponse._id} type='source_files' runId={runsResponse._id} files={experimentFiles}/>
+              </div>
+            );
             break;
           case DRILLDOWN_VIEW.CONFIG:
             content = <div id={DRILLDOWN_VIEW.CONFIG}><JsonView data={runsResponse.config}/></div>;
@@ -194,17 +200,19 @@ class DrillDownView extends Component {
           default:
         }
       }
-      return <ProgressWrapper id="ddv-progress-wrapper" loading={isTableLoading}>{content}</ProgressWrapper>;
+
+      return <ProgressWrapper id='ddv-progress-wrapper' loading={isTableLoading}>{content}</ProgressWrapper>;
     };
-    return(
-      <div style={style}>
-        <nav className="navbar navbar-light">
-          <span className="navbar-brand">Details for: <strong>{experimentName}</strong> (Id: {runId}) </span>
+
+    return (
+      <div style={style} className='drilldown-view'>
+        <nav className='navbar navbar-light'>
+          <span className='navbar-brand'>Details for: <strong>{experimentName}</strong> (Id: {runId}) </span>
         </nav>
-        <div className="sidebar-wrapper">
-          <div className="sidebar-container full-height">
-            <div id="sidebar">
-              <Nav bsStyle="pills" stacked activeKey={selectedNavTab} onSelect={this._handleSelectNavPill}>
+        <div className='sidebar-wrapper'>
+          <div className='sidebar-container full-height'>
+            <div id='sidebar'>
+              <Nav stacked bsStyle='pills' activeKey={selectedNavTab} onSelect={this._handleSelectNavPill}>
                 <NavItem eventKey={DRILLDOWN_VIEW.METRICS}>
                   Metrics Plot
                 </NavItem>
@@ -236,14 +244,14 @@ class DrillDownView extends Component {
               </Nav>
             </div>
           </div>
-          <div className="sidebar-content full-height">
-            <div className="tab-content" ref={div => (this.scrollableDiv = div || this.scrollableDiv)}>
+          <div className='sidebar-content full-height'>
+            <div ref={div => (this.scrollableDiv = div || this.scrollableDiv)} className='tab-content'>
               {getTabContent(selectedNavTab)}
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
 

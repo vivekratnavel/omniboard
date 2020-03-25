@@ -4,8 +4,8 @@ cache:
   - node_modules
   - web/node_modules
 node_js:
-- '8'
 - '10'
+- '12'
 sudo: false
 script:
 - cd web && yarn install && cd ..
@@ -16,8 +16,12 @@ after_success:
 branches:
   only:
   - master
+  - beta
 deploy:
   provider: script
   skip_cleanup: true
   script:
   - npx travis-deploy-once --pro "npx semantic-release"
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^(master|beta)$

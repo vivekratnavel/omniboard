@@ -18,7 +18,8 @@ export const RunsSchema = new Schema({
   },
   artifacts: []
 }, {
-  strict: false
+    strict: false,
+    toJSON: { virtuals: true }
 });
 
 RunsSchema.virtual('metrics', {

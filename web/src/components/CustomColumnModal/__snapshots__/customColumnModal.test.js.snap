@@ -1,0 +1,586 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomColumnModal should render correctly 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[MockFunction]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      Manage Custom Columns
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      style={
+        Object {
+          "paddingBottom": "15px",
+        }
+      }
+    >
+      Add Column to expand any nested config / custom parameter into a new column
+    </div>
+    <ProgressWrapper
+      loading={true}
+    >
+      <div>
+        <form />
+      </div>
+    </ProgressWrapper>
+    <div>
+      <Button
+        active={false}
+        block={false}
+        bsClass="btn"
+        bsSize="small"
+        bsStyle="info"
+        disabled={false}
+        onClick={[Function]}
+        test-attr="add-column-btn"
+      >
+        <span
+          aria-hidden="true"
+          className="glyphicon glyphicon-plus"
+        />
+         Add Column
+      </Button>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="default"
+      disabled={false}
+      onClick={[MockFunction]}
+      test-attr="close-btn"
+    >
+      Close
+    </Button>
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="primary"
+      disabled={true}
+      onClick={[Function]}
+      test-attr="apply-btn"
+    >
+      <span>
+        Apply
+      </span>
+    </Button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`CustomColumnModal should render correctly 2`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[MockFunction]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      Manage Custom Columns
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      style={
+        Object {
+          "paddingBottom": "15px",
+        }
+      }
+    >
+      Add Column to expand any nested config / custom parameter into a new column
+    </div>
+    <ProgressWrapper
+      loading={false}
+    >
+      <div>
+        <form>
+          <div
+            className="row"
+            key="0"
+          >
+            <div
+              className="col col-xs-5"
+            >
+              <FormGroup
+                bsClass="form-group"
+                controlId="formColumnName"
+                validationState="success"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter column name"
+                  test-attr="column-name-text-0"
+                  type="text"
+                  value="batch_size"
+                />
+              </FormGroup>
+            </div>
+            <div
+              className="col col-xs-5"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                formatCreateLabel={[Function]}
+                isLoading={false}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "config.message",
+                      "value": "config.message",
+                    },
+                    Object {
+                      "label": "config.recipient",
+                      "value": "config.recipient",
+                    },
+                    Object {
+                      "label": "config.seed",
+                      "value": "config.seed",
+                    },
+                    Object {
+                      "label": "config.train",
+                      "value": "config.train",
+                    },
+                    Object {
+                      "label": "config.train.batch_size",
+                      "value": "config.train.batch_size",
+                    },
+                    Object {
+                      "label": "config.train.epochs",
+                      "value": "config.train.epochs",
+                    },
+                    Object {
+                      "label": "config.train.lr",
+                      "value": "config.train.lr",
+                    },
+                    Object {
+                      "label": "config.train.settings",
+                      "value": "config.train.settings",
+                    },
+                    Object {
+                      "label": "config.train.settings.epochs",
+                      "value": "config.train.settings.epochs",
+                    },
+                    Object {
+                      "label": "host.hostname",
+                      "value": "host.hostname",
+                    },
+                    Object {
+                      "label": "host.os",
+                      "value": "host.os",
+                    },
+                    Object {
+                      "label": "host.python_version",
+                      "value": "host.python_version",
+                    },
+                    Object {
+                      "label": "host.cpu",
+                      "value": "host.cpu",
+                    },
+                    Object {
+                      "label": "host.ENV",
+                      "value": "host.ENV",
+                    },
+                    Object {
+                      "label": "experiment.name",
+                      "value": "experiment.name",
+                    },
+                    Object {
+                      "label": "experiment.base_dir",
+                      "value": "experiment.base_dir",
+                    },
+                  ]
+                }
+                placeholder="Path"
+                test-attr="config-path-0"
+                value={
+                  Object {
+                    "label": "config.train.batch_size",
+                    "value": "config.train.batch_size",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col col-xs-2"
+            >
+              <i
+                className="glyphicon glyphicon-remove delete-icon"
+                onClick={[Function]}
+                test-attr="delete-0"
+              />
+            </div>
+          </div>
+          <div
+            className="row"
+            key="1"
+          >
+            <div
+              className="col col-xs-5"
+            >
+              <FormGroup
+                bsClass="form-group"
+                controlId="formColumnName"
+                validationState="success"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter column name"
+                  test-attr="column-name-text-1"
+                  type="text"
+                  value="settings_epochs"
+                />
+              </FormGroup>
+            </div>
+            <div
+              className="col col-xs-5"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                formatCreateLabel={[Function]}
+                isLoading={false}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "config.message",
+                      "value": "config.message",
+                    },
+                    Object {
+                      "label": "config.recipient",
+                      "value": "config.recipient",
+                    },
+                    Object {
+                      "label": "config.seed",
+                      "value": "config.seed",
+                    },
+                    Object {
+                      "label": "config.train",
+                      "value": "config.train",
+                    },
+                    Object {
+                      "label": "config.train.batch_size",
+                      "value": "config.train.batch_size",
+                    },
+                    Object {
+                      "label": "config.train.epochs",
+                      "value": "config.train.epochs",
+                    },
+                    Object {
+                      "label": "config.train.lr",
+                      "value": "config.train.lr",
+                    },
+                    Object {
+                      "label": "config.train.settings",
+                      "value": "config.train.settings",
+                    },
+                    Object {
+                      "label": "config.train.settings.epochs",
+                      "value": "config.train.settings.epochs",
+                    },
+                    Object {
+                      "label": "host.hostname",
+                      "value": "host.hostname",
+                    },
+                    Object {
+                      "label": "host.os",
+                      "value": "host.os",
+                    },
+                    Object {
+                      "label": "host.python_version",
+                      "value": "host.python_version",
+                    },
+                    Object {
+                      "label": "host.cpu",
+                      "value": "host.cpu",
+                    },
+                    Object {
+                      "label": "host.ENV",
+                      "value": "host.ENV",
+                    },
+                    Object {
+                      "label": "experiment.name",
+                      "value": "experiment.name",
+                    },
+                    Object {
+                      "label": "experiment.base_dir",
+                      "value": "experiment.base_dir",
+                    },
+                  ]
+                }
+                placeholder="Path"
+                test-attr="config-path-1"
+                value={
+                  Object {
+                    "label": "config.train.settings.epochs",
+                    "value": "config.train.settings.epochs",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col col-xs-2"
+            >
+              <i
+                className="glyphicon glyphicon-remove delete-icon"
+                onClick={[Function]}
+                test-attr="delete-1"
+              />
+            </div>
+          </div>
+          <div
+            className="row"
+            key="2"
+          >
+            <div
+              className="col col-xs-5"
+            >
+              <FormGroup
+                bsClass="form-group"
+                controlId="formColumnName"
+                validationState="success"
+              >
+                <FormControl
+                  bsClass="form-control"
+                  componentClass="input"
+                  onChange={[Function]}
+                  placeholder="Enter column name"
+                  test-attr="column-name-text-2"
+                  type="text"
+                  value="experiment_name"
+                />
+              </FormGroup>
+            </div>
+            <div
+              className="col col-xs-5"
+            >
+              <StateManager
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                formatCreateLabel={[Function]}
+                isLoading={false}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "config.message",
+                      "value": "config.message",
+                    },
+                    Object {
+                      "label": "config.recipient",
+                      "value": "config.recipient",
+                    },
+                    Object {
+                      "label": "config.seed",
+                      "value": "config.seed",
+                    },
+                    Object {
+                      "label": "config.train",
+                      "value": "config.train",
+                    },
+                    Object {
+                      "label": "config.train.batch_size",
+                      "value": "config.train.batch_size",
+                    },
+                    Object {
+                      "label": "config.train.epochs",
+                      "value": "config.train.epochs",
+                    },
+                    Object {
+                      "label": "config.train.lr",
+                      "value": "config.train.lr",
+                    },
+                    Object {
+                      "label": "config.train.settings",
+                      "value": "config.train.settings",
+                    },
+                    Object {
+                      "label": "config.train.settings.epochs",
+                      "value": "config.train.settings.epochs",
+                    },
+                    Object {
+                      "label": "host.hostname",
+                      "value": "host.hostname",
+                    },
+                    Object {
+                      "label": "host.os",
+                      "value": "host.os",
+                    },
+                    Object {
+                      "label": "host.python_version",
+                      "value": "host.python_version",
+                    },
+                    Object {
+                      "label": "host.cpu",
+                      "value": "host.cpu",
+                    },
+                    Object {
+                      "label": "host.ENV",
+                      "value": "host.ENV",
+                    },
+                    Object {
+                      "label": "experiment.name",
+                      "value": "experiment.name",
+                    },
+                    Object {
+                      "label": "experiment.base_dir",
+                      "value": "experiment.base_dir",
+                    },
+                  ]
+                }
+                placeholder="Path"
+                test-attr="config-path-2"
+                value={
+                  Object {
+                    "label": "experiment.name",
+                    "value": "experiment.name",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="col col-xs-2"
+            >
+              <i
+                className="glyphicon glyphicon-remove delete-icon"
+                onClick={[Function]}
+                test-attr="delete-2"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+    </ProgressWrapper>
+    <div>
+      <Button
+        active={false}
+        block={false}
+        bsClass="btn"
+        bsSize="small"
+        bsStyle="info"
+        disabled={false}
+        onClick={[Function]}
+        test-attr="add-column-btn"
+      >
+        <span
+          aria-hidden="true"
+          className="glyphicon glyphicon-plus"
+        />
+         Add Column
+      </Button>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="default"
+      disabled={false}
+      onClick={[MockFunction]}
+      test-attr="close-btn"
+    >
+      Close
+    </Button>
+    <Button
+      active={false}
+      block={false}
+      bsClass="btn"
+      bsStyle="primary"
+      disabled={true}
+      onClick={[Function]}
+      test-attr="apply-btn"
+    >
+      <span>
+        Apply
+      </span>
+    </Button>
+  </ModalFooter>
+</Modal>
+`;

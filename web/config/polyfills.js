@@ -8,7 +8,7 @@ if (typeof Promise === 'undefined') {
   window.Promise = require('promise/lib/es6-extensions.js');
 }
 
-// fetch() polyfill for making API calls.
+// The fetch() polyfill for making API calls.
 require('whatwg-fetch');
 
 // Object.assign() is commonly used with React.

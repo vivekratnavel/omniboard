@@ -1,12 +1,12 @@
-import {PROBABLY_DEAD_TIMEOUT, STATUS} from "../../appConstants/status.constants";
 
-export const capitalize = (value) => {
+export const capitalize = value => {
   // Capitalize each word
   let split = value.split('_');
   split = split.map(key => {
-    if (key.length) {
+    if (key.length > 0) {
       return key.charAt(0).toUpperCase() + key.slice(1);
     }
+
     return '';
   });
   return split.join(' ');
@@ -21,15 +21,15 @@ export const reorderArray = (array, insertAfter, value) => {
   }
 };
 
-export const arrayDiff = (arr1, arr2) => {
-  return arr1.filter(i => arr2.indexOf(i) < 0);
-};
+export const arrayDiff = (arr1, arr2) => arr1.filter(i => !arr2.includes(i));
 
-export const headerText = (header) => {
+export const arrayDiffColumns = (arr1, arr2) => arr1.filter(item => !arr2.some(i => i.name === item.name && i.value === item.value));
+
+export const headerText = header => {
   return capitalize(header);
 };
 
-export const parseServerError = (error) => {
+export const parseServerError = error => {
   const defaultMessage = 'Error: ';
   let message = '';
   if (error.response) {
@@ -45,14 +45,11 @@ export const parseServerError = (error) => {
     // Something happened in setting up the request that triggered an Error
     message = error.message;
   }
+
   return defaultMessage + message;
 };
 
-export const getRunStatus = (status, lastbeat) => {
-  return status === STATUS.RUNNING && lastbeat && (new Date() - new Date(lastbeat) > PROBABLY_DEAD_TIMEOUT) ? STATUS.PROBABLY_DEAD : status;
-};
-
-export const getFileExtension = (fileName) => fileName.split('.').splice(-1)[0];
+export const getFileExtension = fileName => fileName.split('.').splice(-1)[0];
 
 /**
  * Creates a new ArrayBuffer from concatenating two existing ones
@@ -64,7 +61,9 @@ export const getFileExtension = (fileName) => fileName.split('.').splice(-1)[0];
 export const concatArrayBuffers = (buffer1, buffer2) => {
   if (!buffer1) {
     return buffer2;
-  } else if (!buffer2) {
+  }
+
+  if (!buffer2) {
     return buffer1;
   }
 
@@ -73,3 +72,6 @@ export const concatArrayBuffers = (buffer1, buffer2) => {
   tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
   return tmp.buffer;
 };
+
+export const resolveObjectPath = (object, path, defaultValue) =>
+  path.split('.').reduce((o, p) => o && Object.prototype.hasOwnProperty.call(o, p) ? o[p] : defaultValue, object);

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import {FilesSchema} from "./fs.files";
 
 const Schema = mongoose.Schema;
 mongoose.Promise = Promise;
@@ -10,6 +11,12 @@ export const MetricsSchema = new Schema({
   strict: false
 });
 
-export default function (databaseConn) {
+MetricsSchema.virtual('run', {
+  ref: 'runs',
+  localField: 'run_id',
+  foreignField: '_id'
+});
+
+export default function(databaseConn) {
   return databaseConn.model('metrics', MetricsSchema);
 };

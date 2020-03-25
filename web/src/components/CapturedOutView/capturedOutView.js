@@ -1,18 +1,16 @@
 import React, {Component} from 'react';
-import {getRunStatus, parseServerError} from '../Helpers/utils';
-import PropTypes from 'prop-types'
-import { STATUS } from '../../appConstants/status.constants';
-import { Glyphicon } from 'react-bootstrap';
+import PropTypes from 'prop-types';
+import {Glyphicon} from 'react-bootstrap';
 import './capturedOutView.scss';
-import axios from 'axios';
+import {toast} from 'react-toastify';
 import backend from '../Backend/backend';
-import { toast } from 'react-toastify';
+import {STATUS} from '../../appConstants/status.constants';
+import {parseServerError} from '../Helpers/utils';
 
 const RELOAD_TIMEOUT = 3000;
 export const MAX_ERROR_COUNT = 10;
 
 class CapturedOutView extends Component {
-
   static propTypes = {
     initialOutput: PropTypes.string.isRequired,
     initialStatus: PropTypes.string.isRequired,
@@ -39,7 +37,7 @@ class CapturedOutView extends Component {
   }
 
   _checkAndReloadData = () => {
-    // if status is "RUNNING", reload captured_out after reload timeout
+    // If status is "RUNNING", reload captured_out after reload timeout
     if (this._isLiveReloadEnabled) {
       this._reloadAfterTimeout();
     }
@@ -53,28 +51,28 @@ class CapturedOutView extends Component {
         select: 'captured_out,status,heartbeat'
       }
     })
-    .then(runsResponse => {
-      const runsResponseData = runsResponse.data;
-      const status = getRunStatus(runsResponseData.status, runsResponseData.heartbeat || runsResponseData.start_time);
-      this.setState({
-        capturedOut: runsResponseData.captured_out,
-        status,
-        lastUpdate: new Date().toString()
-      }, this._checkAndReloadData);
-    })
-    .catch(error => {
-      const updatedErrorCount = errorCount + 1;
-      this.setState({
-        errorCount: updatedErrorCount
+      .then(runsResponse => {
+        const runsResponseData = runsResponse.data;
+        const {status} = runsResponseData;
+        this.setState({
+          capturedOut: runsResponseData.captured_out,
+          status,
+          lastUpdate: new Date().toString()
+        }, this._checkAndReloadData);
+      })
+      .catch(error => {
+        const updatedErrorCount = errorCount + 1;
+        this.setState({
+          errorCount: updatedErrorCount
+        });
+        toast.error(parseServerError(error), {autoClose: 5000});
+        if (updatedErrorCount >= MAX_ERROR_COUNT) {
+        // Stop polling and throw an error
+          toast.error(`Stopping Live Reload on run id: ${runId} due to too many errors. Please try again later!`);
+        } else {
+          this._reloadAfterTimeout();
+        }
       });
-      toast.error(parseServerError(error), {autoClose: 5000});
-      if (updatedErrorCount >= MAX_ERROR_COUNT) {
-        // stop polling and throw an error
-        toast.error(`Stopping Live Reload on run id: ${runId} due to too many errors. Please try again later!`);
-      } else {
-        this._reloadAfterTimeout();
-      }
-    });
   };
 
   _reloadAfterTimeout = () => {
@@ -84,15 +82,17 @@ class CapturedOutView extends Component {
   render() {
     const {capturedOut, lastUpdate} = this.state;
     // Remove timezone from lastUpdate date string
-    const lastUpdateTime = lastUpdate.split(' ').slice(1,5).join(' ');
-    const liveReloadMeta = <div className="clearfix meta">
-      <div className="pull-right">
-        <div className="clearfix meta-data">
-          <div className="pull-left reload-circle"> Live Reload Enabled </div>
-          <div className="pull-left"><Glyphicon glyph="refresh"/> Last Update: {lastUpdateTime}</div>
+    const lastUpdateTime = lastUpdate.split(' ').slice(1, 5).join(' ');
+    const liveReloadMeta = (
+      <div className='clearfix meta'>
+        <div className='pull-right'>
+          <div className='clearfix meta-data'>
+            <div className='pull-left reload-circle'> Live Reload Enabled </div>
+            <div className='pull-left'><Glyphicon glyph='refresh'/> Last Update: {lastUpdateTime}</div>
+          </div>
         </div>
       </div>
-    </div>;
+    );
     const metaHtml = this._isLiveReloadEnabled ? liveReloadMeta : null;
 
     return (

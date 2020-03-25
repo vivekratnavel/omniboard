@@ -49,13 +49,44 @@ exports[`MetricColumnModal should render correctly 1`] = `
         }
       }
     >
-      Add a column to display Min/Max of any metric value
+      Add a column to display an extrema of any metric value
     </div>
     <ProgressWrapper
       loading={true}
     >
       <div>
-        <form />
+        <form>
+          <div
+            className="row"
+            style={
+              Object {
+                "paddingBottom": "10px",
+              }
+            }
+          >
+            <div
+              className="col-xs-4 text-center"
+            >
+              <strong>
+                Column
+              </strong>
+            </div>
+            <div
+              className="col-xs-4 text-center"
+            >
+              <strong>
+                Metric
+              </strong>
+            </div>
+            <div
+              className="col-xs-4 text-center"
+            >
+              <strong>
+                Extrema
+              </strong>
+            </div>
+          </div>
+        </form>
       </div>
     </ProgressWrapper>
     <div>
@@ -158,13 +189,43 @@ exports[`MetricColumnModal should render correctly 2`] = `
         }
       }
     >
-      Add a column to display Min/Max of any metric value
+      Add a column to display an extrema of any metric value
     </div>
     <ProgressWrapper
       loading={false}
     >
       <div>
         <form>
+          <div
+            className="row"
+            style={
+              Object {
+                "paddingBottom": "10px",
+              }
+            }
+          >
+            <div
+              className="col-xs-4 text-center"
+            >
+              <strong>
+                Column
+              </strong>
+            </div>
+            <div
+              className="col-xs-4 text-center"
+            >
+              <strong>
+                Metric
+              </strong>
+            </div>
+            <div
+              className="col-xs-4 text-center"
+            >
+              <strong>
+                Extrema
+              </strong>
+            </div>
+          </div>
           <div
             className="row"
             key="0"
@@ -241,7 +302,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                   Array [
                     Object {
                       "label": "average",
-                      "value": "average",
+                      "value": "avg",
                     },
                     Object {
                       "label": "min",
@@ -353,7 +414,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                   Array [
                     Object {
                       "label": "average",
-                      "value": "average",
+                      "value": "avg",
                     },
                     Object {
                       "label": "min",

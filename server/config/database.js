@@ -6,6 +6,8 @@ const mongoOptions = {
   auto_reconnect: true,
   autoIndex: false, // Don't build indexes
   useNewUrlParser: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
   reconnectTries: 10, // Retry up to 30 times
   reconnectInterval: 3000, // Reconnect every 3000ms
   poolSize: 10, // Maintain up to 10 socket connections

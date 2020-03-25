@@ -9,52 +9,60 @@ $light-steel-blue: #b0c4de;
   height: 100%;
 }
 
-.sidebar-wrapper {
-  height: #{$EXPANDED_ROW_HEIGHT - $HEADER_HEIGHT}px;
-  border: 1px solid $light-steel-blue;
-  .sidebar-container {
-    float: left;
-    width: #{$SIDEBAR_WIDTH}px;
-    height: 100%;
-    background-color: #F0FFFF;
-    border-right: 1px solid #e2e2e2;
-  }
-  .sidebar-content {
-    margin-left: #{$SIDEBAR_WIDTH}px;
-    height: 100%;
-    background-color: white;
-    .tab-content {
-      background-color: white;
+.drilldown-view {
+  .sidebar-wrapper {
+    height: #{$EXPANDED_ROW_HEIGHT - $HEADER_HEIGHT}px;
+    border: 1px solid $light-steel-blue;
+
+    .sidebar-container {
+      float: left;
+      width: #{$SIDEBAR_WIDTH}px;
       height: 100%;
-      padding: 17px 20px;
-      overflow: scroll;
-      .metrics-plot-left {
-        float: left;
-        width: 250px;
-      }
-      .metrics-plot-content {
-        margin-left: 250px;
+      background-color: #F0FFFF;
+      border-right: 1px solid #e2e2e2;
+    }
+
+    .sidebar-content {
+      margin-left: #{$SIDEBAR_WIDTH}px;
+      height: #{$EXPANDED_ROW_HEIGHT - $HEADER_HEIGHT - 5}px;;
+      background-color: white;
+
+      .tab-content {
+        background-color: white;
+        height: #{$EXPANDED_ROW_HEIGHT - $HEADER_HEIGHT - 5}px;;
+        padding: 17px 20px;
+        overflow: scroll;
+
+        .metrics-plot-left {
+          float: left;
+          width: 250px;
+        }
+
+        .metrics-plot-content {
+          margin-left: 250px;
+        }
       }
     }
   }
-}
 
-.checkbox, .radio {
-  label {
-    line-height: 20px;
+  .checkbox, .radio {
+    label {
+      line-height: 20px;
+    }
   }
-}
 
-.navbar {
-  margin: 0 !important;
-  height: #{$HEADER_HEIGHT}px;
-  border-radius: unset !important;
-  &.navbar-light {
-    background-color: #e3f2fd;
-    border: 1px solid $light-steel-blue;
+  .navbar {
+    margin: 0 !important;
+    height: #{$HEADER_HEIGHT}px;
+    border-radius: unset !important;
+
+    &.navbar-light {
+      background-color: #e3f2fd;
+      border: 1px solid $light-steel-blue;
+    }
   }
-}
 
-.nav-pills > li > a {
-  border-radius: unset !important;
+  .nav-pills > li > a {
+    border-radius: unset !important;
+  }
 }

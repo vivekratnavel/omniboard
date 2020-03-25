@@ -2,10 +2,10 @@ import React from 'react';
 import XEditable from './xEditable';
 
 describe('XEditable', () => {
-  let wrapper = null,
-    isLoading = false;
-  const saveHandler = jest.fn(),
-    cancelHandler = jest.fn();
+  let wrapper = null;
+  let isLoading = false;
+  const saveHandler = jest.fn();
+  const cancelHandler = jest.fn();
 
   beforeEach(() => {
     wrapper = shallow(

@@ -1,16 +1,15 @@
 import React from 'react';
-import { DrillDownView } from './drillDownView';
 import mockAxios from 'jest-mock-axios';
-import { DRILLDOWN_VIEW } from '../../appConstants/drillDownView.constants';
-import { toast } from 'react-toastify';
-import { parseServerError } from '../Helpers/utils';
+import {toast} from 'react-toastify';
 import * as events from 'dom-helpers/events';
-import {STATUS} from "../../appConstants/status.constants";
+import {DRILLDOWN_VIEW} from '../../appConstants/drillDownView.constants';
+import {parseServerError} from '../Helpers/utils';
+import {STATUS} from '../../appConstants/status.constants';
+import {DrillDownView} from './drillDownView';
 
 describe('DrillDownView', () => {
   let wrapper = null;
   const off = jest.spyOn(events, 'off');
-  /* eslint-disable no-console */
   console.error = jest.fn();
   toast.error = jest.fn();
 
@@ -21,7 +20,7 @@ describe('DrillDownView', () => {
     host: {},
     experiment: {
       sources: [
-        ["hello_world.py", "SGVsbG8gV29ybGQh"]
+        ['hello_world.py', 'SGVsbG8gV29ybGQh']
       ]
     },
     artifacts: [],
@@ -36,22 +35,23 @@ describe('DrillDownView', () => {
     host: {},
     experiment: {
       sources: [
-        ["hello_world.py", "SGVsbG8gV29ybGQh"]
+        ['hello_world.py', 'SGVsbG8gV29ybGQh']
       ]
     },
     artifacts: [],
     captured_out: 'captured out',
     status: STATUS.FAILED,
-    fail_trace: ["Traceback (most recent call last):\n","  File \"/Users/anaconda3/lib/python3.5/site-packages/sacred/config/captured_function.py\", line 46, in captured_function\n    result = wrapped(*args, **kwargs)\n","  File \"hello.py\", line 55, in my_main\n    svg2png(bytestring=dwg.tostring(), write_to='output.png')\n"]
+    fail_trace: ['Traceback (most recent call last):\n', '  File "/Users/anaconda3/lib/python3.5/site-packages/sacred/config/captured_function.py", line 46, in captured_function\n    result = wrapped(*args, **kwargs)\n', '  File "hello.py", line 55, in my_main\n    svg2png(bytestring=dwg.tostring(), write_to=\'output.png\')\n']
   };
 
   const metricsResponseData = [
-    {"_id":"5a2b5a8c9c7a505a652f6127","name":"pretrain.train.loss","run_id":222, "steps":[0,1,2,3,4],
-      "values":[0.7159541824544438,0.3840367944955761,0.3469185283233073,0.30483262065173106,0.28915774130337507],
-      "timestamps":["2017-12-09T03:37:44.425Z","2017-12-09T03:41:54.414Z","2017-12-09T03:46:01.766Z","2017-12-09T03:50:07.365Z","2017-12-09T03:54:12.560Z"]},
-    {"_id":"5a2b5aa09c7a505a652f6146","name":"pretrain.val.loss","run_id":223, "steps":[0,1,2,3,4],
-      "values":[0.32177006650114165,0.23237958704995795,0.23340759051386187,0.21925230575196739,0.20541178824900605],
-      "timestamps":["2017-12-09T03:38:01.945Z","2017-12-09T03:42:11.673Z","2017-12-09T03:46:18.843Z","2017-12-09T03:50:24.377Z","2017-12-09T03:54:29.752Z"]}];
+    {_id: '5a2b5a8c9c7a505a652f6127', name: 'pretrain.train.loss', run_id: 222, steps: [0, 1, 2, 3, 4],
+      values: [0.7159541824544438, 0.3840367944955761, 0.3469185283233073, 0.30483262065173106, 0.28915774130337507],
+      timestamps: ['2017-12-09T03:37:44.425Z', '2017-12-09T03:41:54.414Z', '2017-12-09T03:46:01.766Z', '2017-12-09T03:50:07.365Z', '2017-12-09T03:54:12.560Z']},
+    {_id: '5a2b5aa09c7a505a652f6146', name: 'pretrain.val.loss', run_id: 223, steps: [0, 1, 2, 3, 4],
+      values: [0.32177006650114165, 0.23237958704995795, 0.23340759051386187, 0.21925230575196739, 0.20541178824900605],
+      timestamps: ['2017-12-09T03:38:01.945Z', '2017-12-09T03:42:11.673Z', '2017-12-09T03:46:18.843Z', '2017-12-09T03:50:24.377Z', '2017-12-09T03:54:29.752Z']}
+  ];
 
   beforeEach(() => {
     wrapper = mount(
@@ -60,7 +60,7 @@ describe('DrillDownView', () => {
   });
 
   afterEach(() => {
-    // cleaning up the mess left behind the previous test
+    // Cleaning up the mess left behind the previous test
     mockAxios.reset();
     jest.clearAllMocks();
   });
@@ -89,6 +89,7 @@ describe('DrillDownView', () => {
 
       expect(wrapper.find('div.tab-content ProgressWrapper#ddv-progress-wrapper').instance().props.children.props.id).toEqual(tabKey);
     };
+
     [
       DRILLDOWN_VIEW.EXPERIMENT,
       DRILLDOWN_VIEW.CAPTURED_OUT,
@@ -182,5 +183,5 @@ describe('DrillDownView', () => {
     );
 
     expect(mockAxios.get).toHaveBeenCalledTimes(2);
-  })
+  });
 });

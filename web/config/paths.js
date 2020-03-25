@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const url = require('url');
+const {URL} = require('url');
 
 // Make sure any symlinks in the project folder are resolved:
 // https://github.com/facebookincubator/create-react-app/issues/637
@@ -15,11 +15,13 @@ function ensureSlash(path, needsSlash) {
   const hasSlash = path.endsWith('/');
   if (hasSlash && !needsSlash) {
     return path.substr(path, path.length - 1);
-  } else if (!hasSlash && needsSlash) {
-    return `${path}/`;
-  } else {
-    return path;
   }
+
+  if (!hasSlash && needsSlash) {
+    return `${path}/`;
+  }
+
+  return path;
 }
 
 const getPublicUrl = appPackageJson =>
@@ -34,11 +36,11 @@ const getPublicUrl = appPackageJson =>
 function getServedPath(appPackageJson) {
   const publicUrl = getPublicUrl(appPackageJson);
   const servedUrl =
-    envPublicUrl || (publicUrl ? url.parse(publicUrl).pathname : '/');
+    envPublicUrl || (publicUrl ? new URL(publicUrl).pathname : '/');
   return ensureSlash(servedUrl, true);
 }
 
-// config after eject: we're in ./config/
+// Config after eject: we're in ./config/
 module.exports = {
   dotenv: resolveApp('.env'),
   appBuild: resolveApp('build'),
@@ -47,9 +49,15 @@ module.exports = {
   appIndexJs: resolveApp('src/index.js'),
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
+  prettyMsSrc: resolveApp('node_modules/pretty-ms'),
+  reactDiffViewerSrc: resolveApp('node_modules/react-diff-viewer'),
+  parseMsSrc: resolveApp('node_modules/parse-ms'),
+  queryString: resolveApp('node_modules/query-string'),
+  strictUriEncode: resolveApp('node_modules/strict-uri-encode'),
+  splitOnFirst: resolveApp('node_modules/split-on-first'),
   yarnLockFile: resolveApp('yarn.lock'),
   testsSetup: resolveApp('src/setupTests.js'),
   appNodeModules: resolveApp('node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
-  servedPath: getServedPath(resolveApp('package.json')),
+  servedPath: getServedPath(resolveApp('package.json'))
 };

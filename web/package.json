@@ -8,15 +8,18 @@
     "type": "git",
     "url": "https://github.com/vivekratnavel/omniboard.git"
   },
+  "engines": {
+    "node": ">=8.0.0",
+    "npm": ">=5.0.0"
+  },
   "dependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
     "autoprefixer": "7.1.6",
-    "axios": "^0.17.1",
-    "babel-core": "6.26.0",
-    "babel-eslint": "7.2.3",
-    "babel-jest": "20.0.3",
-    "babel-loader": "7.1.2",
-    "babel-preset-react-app": "^3.1.0",
-    "babel-runtime": "6.26.0",
+    "axios": "^0.18.1",
+    "babel-loader": "^8.0.0-beta.6",
     "bootstrap": "^3.3.7",
     "case-sensitive-paths-webpack-plugin": "2.1.1",
     "chalk": "1.1.3",
@@ -24,32 +27,26 @@
     "css-loader": "0.28.7",
     "dom-helpers": "^3.3.1",
     "dotenv": "4.0.0",
-    "eslint": "4.10.0",
-    "eslint-config-react-app": "^2.0.1",
-    "eslint-loader": "1.9.0",
-    "eslint-plugin-flowtype": "2.39.1",
-    "eslint-plugin-import": "2.8.0",
-    "eslint-plugin-jasmine": "^2.10.1",
-    "eslint-plugin-jest": "^21.22.0",
-    "eslint-plugin-jsx-a11y": "5.1.1",
-    "eslint-plugin-react": "7.4.0",
     "extract-text-webpack-plugin": "3.0.2",
     "file-loader": "1.1.5",
     "file-saver": "^2.0.0-rc.3",
-    "fixed-data-table-2": "^0.8.21",
+    "fixed-data-table-2": "^1.0.2",
     "fs-extra": "3.0.1",
     "html-webpack-plugin": "2.29.0",
     "ify-loader": "^1.1.0",
-    "jest": "^24.1.0",
+    "jsondiffpatch": "^0.3.11",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.23",
     "ms": "^2.1.1",
+    "node-sass": "^4.7.2",
     "object-assign": "4.1.1",
     "plotly.js": "^1.33.1",
     "postcss-flexbugs-fixes": "3.2.0",
     "postcss-loader": "2.0.8",
+    "pretty-ms": "^5.0.0",
     "promise": "8.0.1",
     "prop-types": "^15.6.0",
+    "query-string": "^6.11.0",
     "raf": "3.4.0",
     "rc-slider": "^8.6.4",
     "rc-util": "^4.6.0",
@@ -57,16 +54,17 @@
     "react-accessible-accordion": "^2.4.4",
     "react-bootstrap": "^0.31.5",
     "react-bootstrap-multiselect": "^2.4.1",
-    "react-bootstrap-xeditable": "^0.2.10",
     "react-dev-utils": "^4.2.1",
-    "react-dom": "16.8.6",
+    "react-diff-viewer": "^2.0.1",
+    "react-dom": "^16.8.6",
+    "react-hot-loader": "^4.8.3",
     "react-json-view": "^1.16.0",
     "react-list": "^0.8.11",
     "react-localstorage": "^0.3.1",
     "react-mixin": "2",
     "react-numeric-input": "^2.2.3",
     "react-plotly.js": "^1.3.0",
-    "react-router": "^4.2.0",
+    "react-render-html": "^0.6.0",
     "react-router-dom": "^4.2.2",
     "react-select": "^2.0.0",
     "react-switch": "^4.1.0",
@@ -74,21 +72,23 @@
     "react-table": "^6.7.6",
     "react-toastify": "^4.2.0",
     "reactn": "^1.0.0",
+    "regenerator-runtime": "^0.13.5",
+    "sass-loader": "^6.0.6",
     "style-loader": "0.19.0",
     "url-loader": "0.6.2",
     "webpack": "3.8.1",
-    "webpack-dev-server": "2.9.4",
     "webpack-manifest-plugin": "1.3.2",
     "whatwg-fetch": "2.0.3"
   },
   "scripts": {
     "start": "node scripts/start.js",
+    "debug": "node --inspect scripts/start.js",
     "build": "node scripts/build.js",
-    "test": "TZ='America/New_York' node scripts/test.js --env=jsdom",
-    "lint": "eslint src/*",
-    "lint:fix": "eslint src/* --fix",
-    "coverage": "npm test -- --coverage",
-    "test:debug": "node --inspect-brk scripts/test.js --runInBand --env=jsdom",
+    "test": "TZ='America/New_York' node --expose-gc --max-old-space-size=2048 scripts/test.js --env=jsdom --runInBand --logHeapUsage --detectOpenHandles --forceExit",
+    "lint": "xo src/*",
+    "lint:fix": "xo --fix src/*",
+    "coverage": "yarn run test --coverage",
+    "test:debug": "TZ='America/New_York' node --inspect-brk scripts/test.js --runInBand --env=jsdom",
     "report-coverage": "npm run coverage -- --coverageReporters=text-lcov | coveralls"
   },
   "lint-staged": {
@@ -142,29 +142,129 @@
   },
   "babel": {
     "presets": [
-      "react-app"
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ],
+      "@babel/preset-react"
     ],
     "plugins": [
-      "react-hot-loader/babel"
-    ]
+      "react-hot-loader/babel",
+      "@babel/plugin-proposal-class-properties"
+    ],
+    "sourceMap": "inline"
   },
-  "eslintConfig": {
-    "extends": "react-app"
+  "xo": {
+    "space": true,
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true,
+        "modules": true,
+        "experimentalObjectRestSpread": true
+      }
+    },
+    "settings": {
+      "react": {
+        "pragma": "React",
+        "version": "16.8.6"
+      }
+    },
+    "rules": {
+      "jsx-quotes": [
+        2,
+        "prefer-single"
+      ],
+      "import/no-unassigned-import": 0,
+      "camelcase": 0,
+      "react/state-in-constructor": 0,
+      "react/boolean-prop-naming": 0,
+      "promise/prefer-await-to-then": 0,
+      "react/require-default-props": 0,
+      "react/default-props-match-prop-types": 0,
+      "unicorn/prevent-abbreviations": 0,
+      "react/no-array-index-key": 0,
+      "no-return-assign": 0,
+      "indent": [
+        2,
+        2,
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "unicorn/filename-case": [
+        "error",
+        {
+          "case": "camelCase"
+        }
+      ],
+      "no-unused-vars": [
+        2,
+        {
+          "argsIgnorePattern": "^_\\w*",
+          "varsIgnorePattern": "^_\\w*"
+        }
+      ],
+      "eslint-comments/disable-enable-pair": [
+        2,
+        {
+          "allowWholeFile": true
+        }
+      ]
+    },
+    "globals": [
+      "shallow",
+      "mount",
+      "tick"
+    ],
+    "env": [
+      "node",
+      "es6",
+      "mocha",
+      "jest",
+      "browser"
+    ],
+    "extends": [
+      "xo-react/space"
+    ]
   },
   "proxy": "http://localhost:9000/",
   "devDependencies": {
+    "@hot-loader/react-dom": "^16.8.6",
     "@types/enzyme": "^3.9.1",
-    "@types/jest": "^23.3.1",
+    "@types/jest": "^24.0.18",
+    "@types/mocha": "^5.2.7",
     "@types/react": "^16.8.10",
+    "babel-eslint": "^10.0.2",
+    "babel-jest": "^24.9.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.11.2",
     "enzyme-to-json": "^3.3.4",
+    "eslint": "^6.1.0",
+    "eslint-config-xo": "^0.26.0",
+    "eslint-config-xo-react": "^0.20.0",
+    "eslint-loader": "^2.2.1",
+    "eslint-plugin-ava": "^7.1.0",
+    "eslint-plugin-eslint-comments": "^3.1.2",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-no-use-extend-native": "^0.4.1",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.14.3",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "eslint-plugin-unicorn": "^10.0.0",
+    "jest": "^25.1.0",
     "jest-canvas-mock": "^2.0.0-alpha.3",
     "jest-fetch-mock": "^2.1.1",
     "jest-localstorage-mock": "^2.4.0",
     "jest-mock-axios": "^2.1.11",
-    "node-sass": "^4.7.2",
-    "react-hot-loader": "^4.0.0-beta.21",
-    "sass-loader": "^6.0.6"
+    "webpack-dev-server": "3.0.0",
+    "xo": "^0.24.0"
   }
 }

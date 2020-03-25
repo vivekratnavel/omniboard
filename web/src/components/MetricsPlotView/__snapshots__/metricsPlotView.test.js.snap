@@ -71,50 +71,67 @@ exports[`MetricsPlotView should render correctly 1`] = `
     ]
   }
 >
-  <div>
+  <div
+    className="metrics-plot-view"
+  >
     <div
       className="metrics-plot-left"
     >
-      <h4>
+      <h5>
         Metrics to plot
-      </h4>
+      </h5>
       <div
         id="plot-metric-names"
       >
-        <div
-          className="checkbox"
-          key="MetricName2220"
+        <MultiSelect
+          buttonText={[Function]}
+          data={
+            Array [
+              Object {
+                "label": "pretrain.train.loss",
+                "selected": true,
+                "value": "pretrain.train.loss",
+              },
+              Object {
+                "label": "pretrain.val.loss",
+                "selected": true,
+                "value": "pretrain.val.loss",
+              },
+            ]
+          }
+          enableHTML={true}
+          id="metric_names"
+          includeSelectAllOption={true}
+          maxHeight={300}
+          multiple={true}
+          onChange={[Function]}
+          onDeselectAll={[Function]}
+          onSelectAll={[Function]}
+          selectedClass="metric-name-selected"
         >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              test-attr="plot-metric-name-0"
-              type="checkbox"
-              value="pretrain.train.loss"
-            />
-            pretrain.train.loss
-          </label>
-        </div>
-        <div
-          className="checkbox"
-          key="MetricName2221"
-        >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              test-attr="plot-metric-name-1"
-              type="checkbox"
-              value="pretrain.val.loss"
-            />
-            pretrain.val.loss
-          </label>
-        </div>
+          <select
+            data={
+              Array [
+                Object {
+                  "label": "pretrain.train.loss",
+                  "selected": true,
+                  "value": "pretrain.train.loss",
+                },
+                Object {
+                  "label": "pretrain.val.loss",
+                  "selected": true,
+                  "value": "pretrain.val.loss",
+                },
+              ]
+            }
+            id="metric_names"
+            multiple={true}
+          />
+        </MultiSelect>
       </div>
-      <h4>
+      <h5>
         X-Axis Type
-      </h4>
+      </h5>
       <div
         id="plot-x-axis-types"
       >
@@ -151,9 +168,9 @@ exports[`MetricsPlotView should render correctly 1`] = `
           </label>
         </div>
       </div>
-      <h4>
+      <h5>
         Y-Axis Type
-      </h4>
+      </h5>
       <div
         id="plot-y-axis-types"
       >
@@ -191,16 +208,12 @@ exports[`MetricsPlotView should render correctly 1`] = `
         </div>
       </div>
       <div
-        style={
-          Object {
-            "margin": 0,
-            "width": 120,
-          }
-        }
+        className="smoothing-wrapper"
       >
         <div>
           Smoothing: 
           <NumericInput
+            className="smoothing-input"
             componentClass="input"
             format={null}
             max={0.999}
@@ -226,6 +239,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               }
             >
               <input
+                className="smoothing-input"
                 onBlur={[Function]}
                 onChange={[Function]}
                 onFocus={[Function]}
@@ -337,7 +351,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
         </div>
         <ComponentEnhancer(undefined)
           activeDotStyle={Object {}}
-          className=""
+          className="smoothing-slider"
           disabled={false}
           dotStyle={Object {}}
           dots={false}
@@ -356,6 +370,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
           onChange={[Function]}
           prefixCls="rc-slider"
           railStyle={Object {}}
+          reverse={false}
           step={0.001}
           test-attr="plot-smoothing-slider"
           trackStyle={
@@ -367,7 +382,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
           vertical={false}
         >
           <div
-            className="rc-slider"
+            className="rc-slider smoothing-slider"
             onBlur={[Function]}
             onFocus={[Function]}
             onKeyDown={[Function]}
@@ -384,6 +399,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               included={true}
               length={0}
               offset={0}
+              reverse={false}
               style={Object {}}
               vertical={false}
             >
@@ -392,6 +408,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 style={
                   Object {
                     "left": "0%",
+                    "right": "auto",
                     "width": "0%",
                   }
                 }
@@ -407,6 +424,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               max={0.999}
               min={0}
               prefixCls="rc-slider"
+              reverse={false}
               step={0.001}
               upperBound={0}
               vertical={false}
@@ -423,6 +441,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               min={0}
               offset={0}
               prefixCls="rc-slider"
+              reverse={false}
               style={Object {}}
               value={0}
               vertical={false}
@@ -435,10 +454,13 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 className="rc-slider-handle"
                 onBlur={[Function]}
                 onKeyDown={[Function]}
+                onMouseDown={[Function]}
                 role="slider"
                 style={
                   Object {
                     "left": "0%",
+                    "right": "auto",
+                    "transform": "translateX(-50%)",
                   }
                 }
                 tabIndex={0}
@@ -452,6 +474,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
               max={0.999}
               min={0}
               onClickLabel={[Function]}
+              reverse={false}
               upperBound={0}
               vertical={false}
             >
@@ -462,9 +485,9 @@ exports[`MetricsPlotView should render correctly 1`] = `
           </div>
         </ComponentEnhancer(undefined)>
       </div>
-      <h4>
+      <h5>
         Plot Size
-      </h4>
+      </h5>
       <div
         id="plot-size"
       >
@@ -502,6 +525,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
             onChange={[Function]}
             prefixCls="rc-slider"
             railStyle={Object {}}
+            reverse={false}
             step={50}
             test-attr="plot-width-slider"
             trackStyle={
@@ -530,6 +554,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 included={true}
                 length={20}
                 offset={0}
+                reverse={false}
                 style={Object {}}
                 vertical={false}
               >
@@ -538,6 +563,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   style={
                     Object {
                       "left": "0%",
+                      "right": "auto",
                       "width": "20%",
                     }
                   }
@@ -553,6 +579,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={1200}
                 min={700}
                 prefixCls="rc-slider"
+                reverse={false}
                 step={50}
                 upperBound={800}
                 vertical={false}
@@ -569,6 +596,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 min={700}
                 offset={20}
                 prefixCls="rc-slider"
+                reverse={false}
                 style={Object {}}
                 value={800}
                 vertical={false}
@@ -581,10 +609,13 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   className="rc-slider-handle"
                   onBlur={[Function]}
                   onKeyDown={[Function]}
+                  onMouseDown={[Function]}
                   role="slider"
                   style={
                     Object {
                       "left": "20%",
+                      "right": "auto",
+                      "transform": "translateX(-50%)",
                     }
                   }
                   tabIndex={0}
@@ -598,6 +629,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={1200}
                 min={700}
                 onClickLabel={[Function]}
+                reverse={false}
                 upperBound={800}
                 vertical={false}
               >
@@ -642,6 +674,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
             onChange={[Function]}
             prefixCls="rc-slider"
             railStyle={Object {}}
+            reverse={false}
             step={50}
             test-attr="plot-height-slider"
             trackStyle={
@@ -670,6 +703,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 included={true}
                 length={33.33333333333333}
                 offset={0}
+                reverse={false}
                 style={Object {}}
                 vertical={false}
               >
@@ -678,6 +712,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   style={
                     Object {
                       "left": "0%",
+                      "right": "auto",
                       "width": "33.33333333333333%",
                     }
                   }
@@ -693,6 +728,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={600}
                 min={300}
                 prefixCls="rc-slider"
+                reverse={false}
                 step={50}
                 upperBound={400}
                 vertical={false}
@@ -709,6 +745,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 min={300}
                 offset={33.33333333333333}
                 prefixCls="rc-slider"
+                reverse={false}
                 style={Object {}}
                 value={400}
                 vertical={false}
@@ -721,10 +758,13 @@ exports[`MetricsPlotView should render correctly 1`] = `
                   className="rc-slider-handle"
                   onBlur={[Function]}
                   onKeyDown={[Function]}
+                  onMouseDown={[Function]}
                   role="slider"
                   style={
                     Object {
                       "left": "33.33333333333333%",
+                      "right": "auto",
+                      "transform": "translateX(-50%)",
                     }
                   }
                   tabIndex={0}
@@ -738,6 +778,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 max={600}
                 min={300}
                 onClickLabel={[Function]}
+                reverse={false}
                 upperBound={400}
                 vertical={false}
               >
@@ -754,27 +795,130 @@ exports[`MetricsPlotView should render correctly 1`] = `
       className="metrics-plot-content"
     >
       <PlotlyComponent
-        data={Array []}
+        data={
+          Array [
+            Object {
+              "hoverinfo": "none",
+              "marker": Object {
+                "color": "#1f77b4",
+              },
+              "mode": "lines+points",
+              "name": "222.pretrain.train.loss.unsmoothed",
+              "opacity": 0.2,
+              "showlegend": false,
+              "type": "scatter",
+              "x": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "y": Array [
+                0.7159541824544438,
+                0.3840367944955761,
+                0.3469185283233073,
+                0.30483262065173106,
+                0.28915774130337507,
+              ],
+            },
+            Object {
+              "marker": Object {
+                "color": "#1f77b4",
+              },
+              "mode": "lines+points",
+              "name": "222.pretrain.train.loss",
+              "opacity": 1,
+              "type": "scatter",
+              "x": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "y": Array [
+                0.7159541824544438,
+                0.3840367944955761,
+                0.3469185283233073,
+                0.30483262065173106,
+                0.28915774130337507,
+              ],
+            },
+            Object {
+              "hoverinfo": "none",
+              "marker": Object {
+                "color": "#2ca02c",
+              },
+              "mode": "lines+points",
+              "name": "223.pretrain.val.loss.unsmoothed",
+              "opacity": 0.2,
+              "showlegend": false,
+              "type": "scatter",
+              "x": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "y": Array [
+                0.32177006650114165,
+                0.23237958704995795,
+                0.23340759051386187,
+                0.21925230575196739,
+                0.20541178824900605,
+              ],
+            },
+            Object {
+              "marker": Object {
+                "color": "#2ca02c",
+              },
+              "mode": "lines+points",
+              "name": "223.pretrain.val.loss",
+              "opacity": 1,
+              "type": "scatter",
+              "x": Array [
+                0,
+                1,
+                2,
+                3,
+                4,
+              ],
+              "y": Array [
+                0.32177006650114165,
+                0.23237958704995795,
+                0.23340759051386187,
+                0.21925230575196739,
+                0.20541178824900605,
+              ],
+            },
+          ]
+        }
         debug={false}
         fit={false}
         layout={
           Object {
             "height": 400,
-            "title": "Metrics Plot",
+            "title": Object {
+              "text": "Metrics Plot",
+            },
             "width": 800,
             "xaxis": Object {
               "autorange": true,
               "range": Array [
-                -1,
-                6,
+                0,
+                4,
               ],
+              "type": "linear",
             },
             "yaxis": Object {
               "autorange": true,
               "range": Array [
-                -1,
-                4,
+                0.1770483219042595,
+                0.7443176487991903,
               ],
+              "type": "linear",
             },
           }
         }

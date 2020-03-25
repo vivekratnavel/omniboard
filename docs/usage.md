@@ -18,10 +18,10 @@ and select `extrema` for the rollup
 
 Also, check out [How it works](https://vivekratnavel.github.io/omniboard/#/quick-start?id=metric-columns) documentation for more info on how `Metric Columns` are stored in Mongodb.
 
-## Config Columns
+## Custom Columns
 
-Nested configs can be expanded into separate columns by adding new config column
-in `Manage Config Columns` dialog.
+Nested configs can be expanded into separate columns by adding new custom column
+in `Manage Custom Columns` dialog.
 
 For instance, if you have the following config
 ```json
@@ -37,19 +37,19 @@ For instance, if you have the following config
 ```
 Omniboard automatically adds a new column for `train` and displays the whole
 object as its value `{"batch_size":32,"epochs":100,"lr":0.01}`. By adding a
-new config column, you can expand each of these nested configs into a separate column.
+new custom column, you can expand each of these nested configs into a separate column.
 
-To add a new Config Column:
+To add a new Custom Column:
 
 - Click on Cog/Settings icon located on the top right corner of the dashboard
-- Click on `+/- Config Columns`
+- Click on `+/- Custom Columns`
 - Click on `+ Add Column` button
-- Give a name to the new column and select a config from the list of options in the dropdown
+- Give a name to the new column and select a path from the list of options in the dropdown. You can also give a custom path that is not present in the dropdown. 
 - Click `Apply`
 
-![Manage Config Columns](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/manage-config-columns.png)
+![Manage Custom Columns](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/manage-custom-columns.png)
 
-Also, check out [How it works](https://vivekratnavel.github.io/omniboard/#/quick-start?id=config-columns) documentation for more info on how `Config Columns` are stored in Mongodb.
+Also, check out [How it works](https://vivekratnavel.github.io/omniboard/#/quick-start?id=custom-columns) documentation for more info on how `Custom Columns` are stored in Mongodb.
 
 ## Download Source Files or Artifacts
 
@@ -81,4 +81,21 @@ To delete an unwanted experiment run, hover over its `Id` column and click on th
 
 ![Delete Run](https://raw.githubusercontent.com/vivekratnavel/omniboard/master/docs/assets/screenshots/delete-run.png)
 
-Click on `Delete` button in the confirmation dialog to delete the run from the database.
+Click on `Delete` button in the confirmation dialog to delete the run from the database including its metrics, source files and artifacts.
+
+## Add tags using configs
+
+To add tags to an experiment programmatically, add a config with name `tags` as shown below:
+
+```
+@ex.config
+def my_config():
+    tags = ["tag_1", "tag_2"]
+```
+
+## Add notes using command line
+
+To add notes to an experiment, Sacred has the ability to add a comment to a run through command line with -c option ([Sacred Doc](https://sacred.readthedocs.io/en/stable/command_line.html#comment)). 
+
+The comment added via command line gets stored in MongoDB Runs collection as `meta.comment` and is displayed in Omniboard under `Notes` column.
+To filter runs by `Notes` column, use `regex` as the operator in filter to perform a text search.

@@ -1,44 +1,59 @@
-import React, { Component } from 'reactn';
-import { Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem } from 'react-bootstrap';
-import RunsTable from '../RunsTable/runsTable';
-import backend from '../Backend/backend';
+import React, {Component} from 'reactn';
+import {Navbar, Nav, MenuItem, NavDropdown, Glyphicon, NavItem} from 'react-bootstrap';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-import { parseServerError } from "../Helpers/utils";
+import PropTypes from 'prop-types';
+import {ToastContainer, toast} from 'react-toastify';
+import moment from 'moment-timezone';
+import backend from '../Backend/backend';
+import {parseServerError} from '../Helpers/utils';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
-import moment from 'moment-timezone';
-import { AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL, SETTING_TIMEZONE } from "../../appConstants/app.constants";
-import PropTypes from "prop-types";
+import RunsTable from '../RunsTable/runsTable';
+import {
+  SETTING_TIMEZONE,
+  AUTO_REFRESH_INTERVAL,
+  DEFAULT_AUTO_REFRESH_INTERVAL,
+  INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE, ROW_HEIGHT, DEFAULT_ROW_HEIGHT
+} from '../../appConstants/app.constants';
 
 class App extends Component {
   static propTypes = {
-    match: PropTypes.object,
+    match: PropTypes.object
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      showConfigColumnModal: false,
+      showCustomColumnModal: false,
       dbName: '',
-      showSettingsModal: false
-    }
+      showSettingsModal: false,
+      appVersion: ''
+    };
   }
+
+  static propTypes = {
+    location: PropTypes.shape({
+      search: PropTypes.string
+    }),
+    history: PropTypes.shape({
+      push: PropTypes.func
+    })
+  };
 
   _resetCache = () => {
     localStorage.clear();
     location.reload();
   };
 
-  _showConfigColumnModal = () => {
+  _showCustomColumnModal = () => {
     this.setState({
-      showConfigColumnModal: true
+      showCustomColumnModal: true
     });
   };
 
-  _handleConfigColumnModalClose = () => {
+  _handleCustomColumnModalClose = () => {
     this.setState({
-      showConfigColumnModal: false
+      showCustomColumnModal: false
     });
   };
 
@@ -55,7 +70,7 @@ class App extends Component {
   };
 
   /**
-   * settingsResponse is of type
+   * SettingsResponse is of type
    * [
    *  {
    *   "_id": "5ca1ce94a686ac25c4a78eea",
@@ -63,12 +78,12 @@ class App extends Component {
    *   "value": "America/Los_Angeles"
    *  }
    * ]
-   * @param settingsResponse
+   * @param {array} settingsResponse response for global settings from API.
    * @private
    */
-  _updateGlobalSettings = (settingsResponse) => {
+  _updateGlobalSettings = settingsResponse => {
     const settings = settingsResponse.reduce((acc, current) => {
-      return Object.assign({}, acc, {[current.name]: current});
+      return {...acc, [current.name]: current};
     }, this.global.settings);
 
     this.setGlobal({
@@ -90,29 +105,48 @@ class App extends Component {
   _fetchData = () => {
     axios.all([
       backend.get('api/v1/database'),
-      backend.get('api/v1/Omniboard.Settings')
-    ]).then(axios.spread((dbResponse, settingsResponse) => {
+      backend.get('api/v1/Omniboard.Settings'),
+      backend.get('api/v1/Version')
+    ]).then(axios.spread((dbResponse, settingsResponse, versionResponse) => {
       if (dbResponse && dbResponse.data && dbResponse.data.name) {
         this.setState({
           dbName: dbResponse.data.name
         });
       }
+
+      if (versionResponse && versionResponse.data && versionResponse.data.version) {
+        this.setState({
+          appVersion: `v${versionResponse.data.version}`
+        });
+      }
+
       // Write default settings to the database for the first time
       // Guess the client timezone and set it as default
       const userTimezone = moment.tz.guess();
-      if (settingsResponse && settingsResponse.data && settingsResponse.data.length) {
+      if (settingsResponse && settingsResponse.data && settingsResponse.data.length > 0) {
         const settingsResponseData = settingsResponse.data;
         this._updateGlobalSettings(settingsResponseData);
         if (!settingsResponseData.some(setting => setting.name === SETTING_TIMEZONE)) {
           this._initializeSetting(SETTING_TIMEZONE, userTimezone);
         }
+
         if (!settingsResponseData.some(setting => setting.name === AUTO_REFRESH_INTERVAL)) {
           this._initializeSetting(AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL);
         }
+
+        if (!settingsResponseData.some(setting => setting.name === INITIAL_FETCH_SIZE)) {
+          this._initializeSetting(INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE);
+        }
+
+        if (!settingsResponseData.some(setting => setting.name === ROW_HEIGHT)) {
+          this._initializeSetting(ROW_HEIGHT, DEFAULT_ROW_HEIGHT);
+        }
       } else if (settingsResponse && settingsResponse.status === 200) {
-        // if empty response, then initialize all settings
+        // If empty response, then initialize all settings
         this._initializeSetting(SETTING_TIMEZONE, userTimezone);
         this._initializeSetting(AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL);
+        this._initializeSetting(INITIAL_FETCH_SIZE, DEFAULT_INITIAL_FETCH_SIZE);
+        this._initializeSetting(ROW_HEIGHT, DEFAULT_ROW_HEIGHT);
       }
     })).catch(error => {
       toast.error(parseServerError(error));
@@ -124,18 +158,19 @@ class App extends Component {
     if (params.model !== undefined) {
       backend.defaults.baseURL = '/' + params.model;
     }
+
     this._fetchData();
   }
 
   render() {
-    const {showConfigColumnModal, showSettingsModal, dbName} = this.state;
+    const {showCustomColumnModal, showSettingsModal, dbName, appVersion} = this.state;
     const localStorageKey = 'RunsTable|1';
     return (
-      <div className="App">
+      <div className='App'>
         <Navbar inverse fluid>
           <Navbar.Header>
             <Navbar.Brand>
-              <a href="#">Omniboard</a>
+              <a href='#'>Omniboard <span className='version'>{appVersion}</span></a>
             </Navbar.Brand>
           </Navbar.Header>
           <Navbar.Collapse>
@@ -143,28 +178,29 @@ class App extends Component {
               <NavItem>({dbName})</NavItem>
             </Nav>
             <Nav pullRight>
-              <NavDropdown eventKey={1} title={<Glyphicon glyph="cog"/>} id="settings">
-                <MenuItem test-attr="reset-cache-button" eventKey={1.1} onClick={this._resetCache}>
-                  <Glyphicon glyph="refresh"/>
+              <NavDropdown eventKey={1} title={<Glyphicon glyph='cog'/>} id='settings'>
+                <MenuItem test-attr='reset-cache-button' eventKey={1.1} onClick={this._resetCache}>
+                  <Glyphicon glyph='refresh'/>
                   &nbsp; Reset Cache
                 </MenuItem>
-                <MenuItem test-attr="manage-config-columns-button" eventKey={1.2} onClick={this._showConfigColumnModal}>
-                  +/- Config Columns
+                <MenuItem test-attr='manage-config-columns-button' eventKey={1.2} onClick={this._showCustomColumnModal}>
+                  +/- Custom Columns
                 </MenuItem>
-                <MenuItem test-attr="settings-button" eventKey={1.3} onClick={this._showSettingsModal}>
-                  <Glyphicon glyph="wrench"/>
+                <MenuItem test-attr='settings-button' eventKey={1.3} onClick={this._showSettingsModal}>
+                  <Glyphicon glyph='wrench'/>
                   &nbsp; Settings
                 </MenuItem>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-        <div className="content">
+        <div className='content'>
           <ToastContainer autoClose={false}/>
-          <RunsTable localStorageKey={localStorageKey} showConfigColumnModal={showConfigColumnModal}
-                     handleConfigColumnModalClose={this._handleConfigColumnModalClose}
-                     showSettingsModal={showSettingsModal}
-                     handleSettingsModalClose={this._handleSettingsModalClose}/>
+          <RunsTable localStorageKey={localStorageKey} showCustomColumnModal={showCustomColumnModal}
+            handleCustomColumnModalClose={this._handleCustomColumnModalClose}
+            showSettingsModal={showSettingsModal}
+            handleSettingsModalClose={this._handleSettingsModalClose}
+            location={this.props.location} history={this.props.history}/>
         </div>
       </div>
     );

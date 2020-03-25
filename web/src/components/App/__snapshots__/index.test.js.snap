@@ -14,7 +14,10 @@ exports[`App component should render 1`] = `
         <a
           href="#"
         >
-          Omniboard
+          Omniboard 
+          <span
+            className="version"
+          />
         </a>
       </NavbarBrand>
     </NavbarHeader>
@@ -75,7 +78,7 @@ exports[`App component should render 1`] = `
             onClick={[Function]}
             test-attr="manage-config-columns-button"
           >
-            +/- Config Columns
+            +/- Custom Columns
           </MenuItem>
           <MenuItem
             bsClass="dropdown"
@@ -117,25 +120,25 @@ exports[`App component should render 1`] = `
       pauseOnHover={true}
       position="top-right"
       progressClassName={null}
+      progressStyle={null}
       rtl={false}
       style={null}
       toastClassName={null}
       transition={[Function]}
     />
     <RunsTable
-      handleConfigColumnModalClose={[Function]}
+      handleCustomColumnModalClose={[Function]}
       handleSettingsModalClose={[Function]}
       localStorageKey="RunsTable|1"
-      showConfigColumnModal={false}
+      showCustomColumnModal={false}
       showSettingsModal={false}
       stateFilterKeys={
         Array [
           "dropdownOptions",
           "columnOrder",
           "columnWidths",
-          "defaultSortIndices",
-          "sortIndices",
           "sort",
+          "metricAndCustomColumns",
           "columnNameMap",
           "statusFilterOptions",
           "filters",

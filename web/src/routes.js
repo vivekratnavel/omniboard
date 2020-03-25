@@ -1,18 +1,19 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import {hot} from 'react-hot-loader/root';
+import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 
-import App from './components/App/index';
-import NotFound from './components/NotFound/index';
+import App from './components/App';
+import NotFound from './components/NotFound';
 
-const Routes = (props) => (
+const Routes = props => (
   <Router {...props}>
     <div>
       <Switch>
-        <Route exact path="/:model?" component={App} />
-        <Route component={NotFound} />
+        <Route exact path='/:model?' component={App}/>
+        <Route component={NotFound}/>
       </Switch>
     </div>
   </Router>
 );
 
-export default Routes;
+export default hot(Routes);

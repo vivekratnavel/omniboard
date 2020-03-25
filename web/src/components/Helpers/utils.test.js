@@ -1,5 +1,4 @@
-import React from 'react';
-import { concatArrayBuffers } from './utils';
+import {concatArrayBuffers} from './utils';
 
 describe('Utils', () => {
   describe('concatArrayBuffers', () => {

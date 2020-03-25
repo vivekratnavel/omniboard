@@ -16,5 +16,3 @@ export const STATUS = {
   TIMEOUT,
   QUEUED
 };
-
-export const PROBABLY_DEAD_TIMEOUT = 120000;

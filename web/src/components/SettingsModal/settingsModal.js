@@ -1,21 +1,26 @@
 import PropTypes from 'prop-types';
-import React, { PureComponent } from 'reactn';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, Alert, FormControl,
-  Form, FormGroup, InputGroup, Col, ControlLabel } from 'react-bootstrap';
+import React, {PureComponent} from 'reactn';
+import {Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, Alert, FormControl,
+  Form, FormGroup, InputGroup, Col, ControlLabel} from 'react-bootstrap';
 import './settingsModal.scss';
-import backend from '../Backend/backend';
 import axios from 'axios';
 import Select from 'react-select';
-import { ProgressWrapper } from '../Helpers/hoc';
-import { parseServerError } from '../Helpers/utils';
 import moment from 'moment-timezone';
-import { SETTING_TIMEZONE, AUTO_REFRESH_INTERVAL, DEFAULT_AUTO_REFRESH_INTERVAL } from "../../appConstants/app.constants";
-import { toast } from 'react-toastify';
+import {toast} from 'react-toastify';
+import backend from '../Backend/backend';
+import {ProgressWrapper} from '../Helpers/hoc';
+import {parseServerError} from '../Helpers/utils';
+import {
+  SETTING_TIMEZONE,
+  AUTO_REFRESH_INTERVAL,
+  INITIAL_FETCH_SIZE, ROW_HEIGHT
+} from '../../appConstants/app.constants';
 
 class SettingsModal extends PureComponent {
   static propTypes = {
     handleClose: PropTypes.func.isRequired,
     handleAutoRefreshUpdate: PropTypes.func.isRequired,
+    handleInitialFetchSizeUpdate: PropTypes.func.isRequired,
     show: PropTypes.bool.isRequired
   };
 
@@ -25,39 +30,46 @@ class SettingsModal extends PureComponent {
       initialSettings: {},
       settings: {},
       isInProgress: false,
-      autoRefreshInterval: null,
       timezoneOptions: []
-    }
+    };
   }
 
   _handleApply = () => {
     const {settings, initialSettings} = this.state;
-    const { handleAutoRefreshUpdate } = this.props;
+    const {handleAutoRefreshUpdate, handleInitialFetchSizeUpdate} = this.props;
     const autoRefreshInterval = Number(settings[AUTO_REFRESH_INTERVAL].value);
-    if(isNaN(autoRefreshInterval) || autoRefreshInterval < 5) {
+    const rowHeight = Number(settings[ROW_HEIGHT].value);
+    if (isNaN(autoRefreshInterval) || autoRefreshInterval < 5) {
       this.setState({
         error: 'Auto Refresh Interval must be a Number >= 5'
       });
+    } else if (isNaN(rowHeight)) {
+      this.setState({
+        error: 'Row Height must be a number'
+      });
     } else {
-
       // Get columns that were edited/modified
       const dirtySettings = Object.keys(initialSettings).reduce((accumulator, current) => {
         if (JSON.stringify(settings[current]) !== JSON.stringify(initialSettings[current])) {
           accumulator.push(settings[current]);
         }
+
         return accumulator;
       }, []);
+      // All the settings will have _id if properly initialized in App/index.js
+      // When the app loads for the first time, default values for settings are persisted in db.
       const updateRequests = dirtySettings.map(setting => backend.post(`api/v1/Omniboard.Settings/${setting._id}`,
         setting));
       const closeModal = () => {
         this.setState({isInProgress: false});
         this.props.handleClose();
       };
+
       const sendUpdateRequests = () => {
         axios.all(updateRequests).then(
           res => {
             const errors = res.filter(response => response.status !== 200);
-            if (errors.length) {
+            if (errors.length > 0) {
               this.setState({
                 error: parseServerError(errors[0])
               });
@@ -65,15 +77,20 @@ class SettingsModal extends PureComponent {
               this.setGlobal({
                 settings
               }, () => {
-                // reset polling if auto refresh interval
+                // Reset polling if auto refresh interval
                 // setting was changed
                 if (dirtySettings.find(setting => setting.name === AUTO_REFRESH_INTERVAL)) {
                   handleAutoRefreshUpdate();
                 }
+
+                if (dirtySettings.find(setting => setting.name === INITIAL_FETCH_SIZE)) {
+                  handleInitialFetchSizeUpdate();
+                }
               });
-              toast.success(`Settings saved successfully!`);
+              toast.success('Settings saved successfully!');
               closeModal();
             }
+
             this.setState({
               isInProgress: false
             });
@@ -82,9 +99,10 @@ class SettingsModal extends PureComponent {
             isInProgress: false,
             error: parseServerError(error)
           });
-        })
+        });
       };
-      if (updateRequests.length) {
+
+      if (updateRequests.length > 0) {
         this.setState({isInProgress: true, error: ''});
         sendUpdateRequests();
       } else {
@@ -99,18 +117,28 @@ class SettingsModal extends PureComponent {
     this._handleSettingValueChange(SETTING_TIMEZONE, value);
   };
 
-  _handleAutoRefreshIntervalChange = (event) => {
-    const value = event.target.value;
+  _handleAutoRefreshIntervalChange = event => {
+    const {value} = event.target;
     this._handleSettingValueChange(AUTO_REFRESH_INTERVAL, value);
   };
 
   _handleSettingValueChange = (key, value) => {
     const {settings} = this.state;
-    const settingsClone = Object.assign({}, settings);
-    const setting = Object.assign({}, settings[key], {value});
+    const settingsClone = {...settings};
+    const setting = {...settings[key], value};
     this.setState({
-      settings: Object.assign({}, settingsClone, {[key]: setting})
+      settings: {...settingsClone, [key]: setting}
     });
+  };
+
+  _handleInitialFetchSizeChange = event => {
+    const {value} = event.target;
+    this._handleSettingValueChange(INITIAL_FETCH_SIZE, value);
+  };
+
+  _handleRowHeightChange = event => {
+    const {value} = event.target;
+    this._handleSettingValueChange(ROW_HEIGHT, value);
   };
 
   get isFormDirty() {
@@ -121,7 +149,7 @@ class SettingsModal extends PureComponent {
   get isSubmitDisabled() {
     const {settings, isInProgress} = this.state;
     let isDisabled = false;
-    if (settings && Object.keys(settings).length) {
+    if (settings && Object.keys(settings).length > 0) {
       Object.keys(settings).forEach(key => {
         if (!(settings[key] && settings[key].value)) {
           isDisabled = true;
@@ -130,6 +158,7 @@ class SettingsModal extends PureComponent {
     } else {
       isDisabled = true;
     }
+
     return isDisabled || !this.isFormDirty || isInProgress;
   }
 
@@ -138,7 +167,7 @@ class SettingsModal extends PureComponent {
     this.setState({
       initialSettings: this.global.settings,
       settings: this.global.settings,
-      timezoneOptions: timezoneOptions
+      timezoneOptions
     });
   };
 
@@ -146,14 +175,16 @@ class SettingsModal extends PureComponent {
     this._initializeState();
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
+  componentDidUpdate(prevProps, _prevState, _snapshot) {
     // Load data every time this modal is being popped up
     if (prevProps.show !== this.props.show && this.props.show === true) {
       this._initializeState();
-      // reset error
+      // Reset error
+      /* eslint-disable react/no-did-update-set-state */
       this.setState({
         error: ''
       });
+      /* eslint-enable react/no-did-update-set-state */
     }
   }
 
@@ -164,22 +195,28 @@ class SettingsModal extends PureComponent {
       return {
         label: name,
         value: name
-      }
+      };
     });
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
       return selectValue ? selectValue : '';
     };
 
-    const submitButtonText = isInProgress ? <span>
-      <i className="glyphicon glyphicon-refresh glyphicon-refresh-animate"/> Saving...</span>: <span>Save</span>;
+    const submitButtonText = isInProgress ? (
+      <span>
+        <i className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/> Saving...
+      </span>
+    ) : <span>Save</span>;
 
-    const errorAlert = error ? <Alert bsStyle="danger">{error}</Alert> : '';
+    const errorAlert = error ? <Alert bsStyle='danger'>{error}</Alert> : '';
 
     const timezoneValue = settings && settings[SETTING_TIMEZONE] ? settings[SETTING_TIMEZONE].value : '';
     const autoRefreshInterval = settings && settings[AUTO_REFRESH_INTERVAL] ?
-      settings[AUTO_REFRESH_INTERVAL].value : DEFAULT_AUTO_REFRESH_INTERVAL/1000;
-    return(
+      settings[AUTO_REFRESH_INTERVAL].value : '';
+    const initialFetchSize = settings && settings[INITIAL_FETCH_SIZE] ?
+      settings[INITIAL_FETCH_SIZE].value : '';
+    const rowHeight = settings && settings[ROW_HEIGHT] ? settings[ROW_HEIGHT].value : '';
+    return (
       <Modal show={show} onHide={handleClose}>
         <ModalHeader closeButton>
           <ModalTitle>Manage Settings</ModalTitle>
@@ -195,12 +232,12 @@ class SettingsModal extends PureComponent {
                   </Col>
                   <Col sm={8}>
                     <Select
-                      test-attr={"timezone-select"}
+                      test-attr='timezone-select'
                       options={timezoneOptionsMap}
-                      onChange={this._handleTimezoneChange}
                       value={getSelectValue(timezoneOptionsMap, timezoneValue)}
                       clearable={false}
-                      placeholder="Timezone"
+                      placeholder='Timezone'
+                      onChange={this._handleTimezoneChange}
                     />
                   </Col>
                 </FormGroup>
@@ -211,13 +248,46 @@ class SettingsModal extends PureComponent {
                   <Col sm={4}>
                     <InputGroup>
                       <FormControl
-                        type="text"
-                        test-attr={"auto-refresh-interval"}
+                        type='text'
+                        test-attr='auto-refresh-interval'
                         value={autoRefreshInterval}
-                        placeholder="Enter auto refresh interval"
+                        placeholder='Enter auto refresh interval'
                         onChange={this._handleAutoRefreshIntervalChange}
                       />
                       <InputGroup.Addon>Seconds</InputGroup.Addon>
+                    </InputGroup>
+                  </Col>
+                </FormGroup>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={4}>
+                    Initial No. of Rows to Fetch
+                  </Col>
+                  <Col sm={4}>
+                    <InputGroup>
+                      <FormControl
+                        type='number'
+                        test-attr='initial-fetch-size'
+                        value={initialFetchSize}
+                        placeholder='Enter initial fetch size'
+                        onChange={this._handleInitialFetchSizeChange}
+                      />
+                      <InputGroup.Addon>Rows</InputGroup.Addon>
+                    </InputGroup>
+                  </Col>
+                </FormGroup>
+                <FormGroup>
+                  <Col componentClass={ControlLabel} sm={4}>
+                    Row Height
+                  </Col>
+                  <Col sm={2}>
+                    <InputGroup>
+                      <FormControl
+                        type='number'
+                        test-attr='row-height'
+                        value={rowHeight}
+                        placeholder='Enter row height for the table'
+                        onChange={this._handleRowHeightChange}
+                      />
                     </InputGroup>
                   </Col>
                 </FormGroup>
@@ -226,8 +296,8 @@ class SettingsModal extends PureComponent {
           </ProgressWrapper>
         </ModalBody>
         <ModalFooter>
-          <Button test-attr="close-btn" onClick={handleClose}>Close</Button>
-          <Button test-attr="apply-btn" bsStyle="primary" onClick={this._handleApply} disabled={this.isSubmitDisabled}>
+          <Button test-attr='close-btn' onClick={handleClose}>Close</Button>
+          <Button test-attr='apply-btn' bsStyle='primary' disabled={this.isSubmitDisabled} onClick={this._handleApply}>
             {submitButtonText}
           </Button>
         </ModalFooter>

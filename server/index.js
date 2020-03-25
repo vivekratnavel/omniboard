@@ -10,9 +10,17 @@ const app = express();
 app.use("/static", frontend);
 
 const sections = Object.keys(config);
+var defaultPath = null;
 for (const section in sections) {
+  if (defaultPath === null) {
+    defaultPath = config[sections[section]].path
+  }
   app.use(config[sections[section]].path, subApp(db(config[sections[section]].mongodbURI)));
 }
+function defaultRedirect(req, res) {
+  res.redirect(defaultPath);
+}
+app.use(defaultRedirect);
 
 const startServer = (port) => {
   app.listen(port, () => {
