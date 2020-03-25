@@ -74,7 +74,7 @@ describe('CapturedOutCompareView', () => {
     it('success', async () => {
       expect(mockAxios.get.mock.calls).toHaveLength(1);
 
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/SourceFiles', {
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/SourceFiles', {
         params: {
           query: JSON.stringify({_id: {$in: [1, 2]}})
         }
@@ -123,7 +123,7 @@ describe('CapturedOutCompareView', () => {
 
     expect(wrapper.instance().state.runId1).toEqual('3');
     expect(mockAxios.get.mock.calls).toHaveLength(1);
-    expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/SourceFiles', {
+    expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/SourceFiles', {
       params: {
         query: JSON.stringify({_id: {$in: [3, 2]}})
       }
@@ -142,7 +142,7 @@ describe('CapturedOutCompareView', () => {
 
       expect(wrapper.instance().state.runId2).toEqual('3');
       expect(mockAxios.get.mock.calls).toHaveLength(1);
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/SourceFiles', {
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/SourceFiles', {
         params: {
           query: JSON.stringify({_id: {$in: [1, 3]}})
         }

@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import './sourceFilesCompareView.scss';
-import axios from 'axios';
 import {toast} from 'react-toastify';
 import ReactDiffViewer from 'react-diff-viewer';
 import {
@@ -10,6 +9,7 @@ import {
   AccordionItemTitle,
   AccordionItemBody
 } from 'react-accessible-accordion';
+import backend from '../Backend/backend';
 import {SelectRunsToCompare} from '../SelectRunsToCompare/selectRunsToCompare';
 import {concatArrayBuffers, parseServerError} from '../Helpers/utils';
 import {ProgressWrapper} from '../Helpers/hoc';
@@ -83,7 +83,7 @@ class SourceFilesCompareView extends Component {
           $in: [runId1, runId2]
         }
       });
-      axios.get('/api/v1/SourceFiles', {
+      backend.get('api/v1/SourceFiles', {
         params: {
           query: queryString
         }

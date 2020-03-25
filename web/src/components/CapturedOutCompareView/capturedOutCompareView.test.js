@@ -28,7 +28,7 @@ describe('CapturedOutCompareView', () => {
     it('success', () => {
       expect(mockAxios.get.mock.calls).toHaveLength(1);
 
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/Runs', {params: {select: '_id,captured_out', query: JSON.stringify({_id: {$in: [1, 2]}})}}]);
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/Runs', {params: {select: '_id,captured_out', query: JSON.stringify({_id: {$in: [1, 2]}})}}]);
       expect(wrapper.instance().state.runId1).toEqual('1');
       expect(wrapper.instance().state.runId2).toEqual('2');
       mockAxios.mockResponse({status: 200, data: responseData});
@@ -63,7 +63,7 @@ describe('CapturedOutCompareView', () => {
 
     expect(wrapper.instance().state.runId1).toEqual('3');
     expect(mockAxios.get.mock.calls).toHaveLength(1);
-    expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/Runs', {params: {select: '_id,captured_out', query: JSON.stringify({_id: {$in: [3, 2]}})}}]);
+    expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/Runs', {params: {select: '_id,captured_out', query: JSON.stringify({_id: {$in: [3, 2]}})}}]);
     mockAxios.mockResponse({status: 200, data: []});
   });
 
@@ -78,7 +78,7 @@ describe('CapturedOutCompareView', () => {
 
       expect(wrapper.instance().state.runId2).toEqual('4');
       expect(mockAxios.get.mock.calls).toHaveLength(1);
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/Runs', {params: {select: '_id,captured_out', query: JSON.stringify({_id: {$in: [1, 4]}})}}]);
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/Runs', {params: {select: '_id,captured_out', query: JSON.stringify({_id: {$in: [1, 4]}})}}]);
       mockAxios.mockResponse({status: 200, data: []});
     });
 
