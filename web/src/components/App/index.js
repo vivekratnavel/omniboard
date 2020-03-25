@@ -25,6 +25,7 @@ class App extends Component {
     super(props);
     this.state = {
       showCustomColumnModal: false,
+      otherDbs: [],
       dbName: '',
       showSettingsModal: false,
       appVersion: ''
@@ -104,10 +105,17 @@ class App extends Component {
 
   _fetchData = () => {
     axios.all([
+      axios.get('/api/v1/databases'),
       backend.get('api/v1/database'),
       backend.get('api/v1/Omniboard.Settings'),
       backend.get('api/v1/Version')
-    ]).then(axios.spread((dbResponse, settingsResponse, versionResponse) => {
+    ]).then(axios.spread((allDbResponse, dbResponse, settingsResponse, versionResponse) => {
+      if (allDbResponse && allDbResponse.data) {
+        this.setState({
+          otherDbs: allDbResponse.data
+        });
+      }
+
       if (dbResponse && dbResponse.data && dbResponse.data.name) {
         this.setState({
           dbName: dbResponse.data.name
@@ -163,7 +171,7 @@ class App extends Component {
   }
 
   render() {
-    const {showCustomColumnModal, showSettingsModal, dbName, appVersion} = this.state;
+    const {showCustomColumnModal, showSettingsModal, dbName, otherDbs, appVersion} = this.state;
     const localStorageKey = 'RunsTable|1';
     return (
       <div className='App'>
@@ -174,8 +182,10 @@ class App extends Component {
             </Navbar.Brand>
           </Navbar.Header>
           <Navbar.Collapse>
-            <Nav pullLeft>
-              <NavItem>({dbName})</NavItem>
+            <Nav pullLeft activeKey={dbName}>
+              {otherDbs.map(db => {
+                return <NavItem key={db.name} eventKey={db.name} href={db.path}>({db.name})</NavItem>;
+              })}
             </Nav>
             <Nav pullRight>
               <NavDropdown eventKey={1} title={<Glyphicon glyph='cog'/>} id='settings'>

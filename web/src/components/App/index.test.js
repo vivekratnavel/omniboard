@@ -60,14 +60,16 @@ describe('App component', () => {
     expect(wrapper.state().showSettingsModal).toBeFalsy();
   });
 
-  describe('should fetch database name on mount', () => {
+  describe('should fetch database names on mount', () => {
     it('and handle success', async () => {
       expect(mockAxios.get).toHaveBeenCalledWith('api/v1/database');
+      mockAxios.mockResponse({status: 200, data: [{path: '/', name: 'test_db'}]});
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: [{name: 'timezone', value: 'Atlantic/Reykjavik', _id: 1}]});
       mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
       await tick();
 
+      expect(wrapper.update().state().otherDbs).toEqual([{path: '/', name: 'test_db'}]);
       expect(wrapper.update().state().dbName).toEqual('test_db');
       expect(wrapper.update().state().appVersion).toEqual('v1.0.0');
     });
@@ -88,6 +90,7 @@ describe('App component', () => {
       const autoRefreshSetting = {name: 'auto_refresh_interval', value: 30, _id: 2};
       const initialFetchSize = {name: 'initial_fetch_size', value: 50, _id: 3};
       const rowHeight = {name: 'row_height', value: 70, _id: 4};
+      mockAxios.mockResponse({status: 200, data: [{path: '/', name: 'test_db'}]});
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: []});
       mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});
@@ -116,6 +119,7 @@ describe('App component', () => {
         value: 60,
         _id: 1
       };
+      mockAxios.mockResponse({status: 200, data: [{path: '/', name: 'test_db'}]});
       mockAxios.mockResponse({status: 200, data: {name: 'test_db'}});
       mockAxios.mockResponse({status: 200, data: [autoRefreshSetting]});
       mockAxios.mockResponse({status: 200, data: {version: '1.0.0'}});

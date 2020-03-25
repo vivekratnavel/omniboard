@@ -10,13 +10,20 @@ const app = express();
 app.use("/static", frontend);
 
 const sections = Object.keys(config);
-var defaultPath = null;
+const defaultPath = config[sections[0]].path;
+const allDatabases = [];
 for (const section in sections) {
-  if (defaultPath === null) {
-    defaultPath = config[sections[section]].path
-  }
-  app.use(config[sections[section]].path, subApp(db(config[sections[section]].mongodbURI)));
+  var database = db(config[sections[section]].mongodbURI);
+  allDatabases.push({
+    "path": config[sections[section]].path,
+    "name": database.connection.name});
+  app.use(config[sections[section]].path, subApp(database));
 }
+app.use("/api/v1/databases", function (req, res) {
+  res.json(allDatabases);
+});
+
+
 function defaultRedirect(req, res) {
   res.redirect(defaultPath);
 }
