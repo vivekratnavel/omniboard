@@ -36,7 +36,7 @@ if (process.env.OMNIBOARD_CONFIG) {
   config = {
     "default": {
       "mongodbURI": mongodbURI,
-      "path": "/"
+      "path": "/sacred"
     }
   }
 }
