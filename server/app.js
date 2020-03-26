@@ -310,6 +310,7 @@ export default function (db, key) {
   });
 
   if (process.env.NODE_ENV === 'production') {
+    // Handle React routing, return all requests to React app
     app.use(function (req, res, next) {
       res.sendFile(path.join(__dirname, '/../web/build', 'index.html'));
     });
