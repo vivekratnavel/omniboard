@@ -172,7 +172,11 @@ class App extends Component {
 
   render() {
     const {showCustomColumnModal, showSettingsModal, dbInfo, otherDbs, appVersion} = this.state;
-    const localStorageKey = 'RunsTable|1';
+    if (!dbInfo || !dbInfo.key) {
+      return <span>Loading app...</span>;
+    }
+
+    const localStorageKey = `${dbInfo.key}|RunsTable|1`;
     return (
       <div className='App'>
         <Navbar inverse fluid>
@@ -206,7 +210,8 @@ class App extends Component {
         </Navbar>
         <div className='content'>
           <ToastContainer autoClose={false}/>
-          <RunsTable localStorageKey={localStorageKey} showCustomColumnModal={showCustomColumnModal}
+          <RunsTable dbKey={dbInfo.key} localStorageKey={localStorageKey}
+            showCustomColumnModal={showCustomColumnModal}
             handleCustomColumnModalClose={this._handleCustomColumnModalClose}
             showSettingsModal={showSettingsModal}
             handleSettingsModalClose={this._handleSettingsModalClose}

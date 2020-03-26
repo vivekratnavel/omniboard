@@ -113,6 +113,7 @@ class RunsTable extends Component {
     handleCustomColumnModalClose: PropTypes.func.isRequired,
     showSettingsModal: PropTypes.bool.isRequired,
     handleSettingsModalClose: PropTypes.func.isRequired,
+    dbKey: PropTypes.string.isRequired,
     location: PropTypes.shape({
       search: PropTypes.string
     }),
@@ -1098,10 +1099,11 @@ class RunsTable extends Component {
 
     const runId = this.state.sortedData.getObjectAt(rowIndex)[ID_COLUMN_KEY];
     const {status} = this.state.sortedData.getObjectAt(rowIndex);
+    const {dbKey} = this.props;
     // Local storage key is used for synchronizing state of each drilldown view with local storage
-    const localStorageKey = `DrillDownView|${runId}`;
+    const localStorageKey = `${dbKey}|DrillDownView|${runId}`;
     return (
-      <DrillDownView width={width} height={height} runId={runId} status={status} localStorageKey={localStorageKey}/>
+      <DrillDownView width={width} height={height} runId={runId} status={status} dbKey={dbKey} localStorageKey={localStorageKey}/>
     );
   };
 

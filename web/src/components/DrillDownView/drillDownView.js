@@ -37,7 +37,8 @@ class DrillDownView extends Component {
     height: PropTypes.number,
     runId: PropTypes.number.isRequired,
     width: PropTypes.number,
-    status: PropTypes.string.isRequired
+    status: PropTypes.string.isRequired,
+    dbKey: PropTypes.string.isRequired
   };
 
   // Filter out state objects that need to be synchronized with local storage
@@ -124,14 +125,14 @@ class DrillDownView extends Component {
 
   render() {
     const {selectedNavTab, isTableLoading, runsResponse, metricsResponse} = this.state;
-    const {width, height, runId, status} = this.props;
+    const {width, height, runId, status, dbKey} = this.props;
     const experimentName = runsResponse !== null && 'experiment' in runsResponse ? runsResponse.experiment.name : '';
     // Adjust the width of scrollbar from total width
     const style = {
       height,
       width: width - 17
     };
-    const localStorageKey = `MetricsPlotView|${runId}`;
+    const localStorageKey = `${dbKey}|MetricsPlotView|${runId}`;
     let experimentFiles = [];
     // Convert experiment sources to the same structure as artifacts
     // source is an array with the following structure
@@ -178,7 +179,7 @@ class DrillDownView extends Component {
             content = <div id={DRILLDOWN_VIEW.META_INFO}><JsonView data={runsResponse.meta}/></div>;
             break;
           case DRILLDOWN_VIEW.METRICS:
-            content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} localStorageKey={localStorageKey}/></div>;
+            content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} dbKey={dbKey} localStorageKey={localStorageKey}/></div>;
             break;
           case DRILLDOWN_VIEW.ARTIFACTS:
             content = (

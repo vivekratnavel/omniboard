@@ -19,7 +19,8 @@ class MetricsPlotView extends Component {
   static propTypes = {
     metricsResponse: PropTypes.array,
     runId: PropTypes.any,
-    metricLabel: PropTypes.string
+    metricLabel: PropTypes.string,
+    dbKey: PropTypes.string
   };
 
   // Filter out state objects that need to be synchronized with local storage
@@ -65,12 +66,16 @@ class MetricsPlotView extends Component {
    * @private
    */
   _updateDefaultSelection = selection => {
-    const value = {...JSON.parse(localStorage.getItem(DEFAULT_SELECTION_KEY)), ...selection};
-    localStorage.setItem(DEFAULT_SELECTION_KEY, JSON.stringify(value));
+    const {dbKey} = this.props;
+    const key = dbKey + '|' + DEFAULT_SELECTION_KEY;
+    const value = {...JSON.parse(localStorage.getItem(key)), ...selection};
+    localStorage.setItem(key, JSON.stringify(value));
   };
 
   _setDefaultSelection = () => {
-    const defaultSelection = JSON.parse(localStorage.getItem(DEFAULT_SELECTION_KEY));
+    const {dbKey} = this.props;
+    const key = dbKey + '|' + DEFAULT_SELECTION_KEY;
+    const defaultSelection = JSON.parse(localStorage.getItem(key));
     const metricNames = this.props.metricsResponse.map(metric => metric.name);
     if (defaultSelection) {
       this.setState({
