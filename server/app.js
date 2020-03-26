@@ -91,7 +91,7 @@ export default function (db) {
   const {getSourceFilesCountResponse, getSourceFilesResponse} = makeSourceFilesResponse(databaseConn);
 
   router.get('/api/v1/files/:id', function (req, res) {
-    FilesModel.findById(req.params.id).populate('chunk').exec(function (err, result) {
+    FilesModel(databaseConn).findById(req.params.id).populate('chunk').exec(function (err, result) {
       if (err) throw (err);
       const resultData = new Buffer.from(result.chunk[0].data, 'base64');
       const fileName = result.filename.split('/').splice(-1)[0];
@@ -112,7 +112,7 @@ export default function (db) {
     if (req.query.query) {
       getRunsResponse(req, res, next, null, true);
     } else {
-      RunsModel.estimatedDocumentCount({}, function(err, count) {
+      RunsModel(databaseConn).estimatedDocumentCount({}, function(err, count) {
         if (err) return next(err);
         res.json({count});
       });
@@ -175,7 +175,7 @@ export default function (db) {
 
     const update = moredots(depopulate(req.body));
 
-    RunsModel.findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
+    RunsModel(databaseConn).findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
       if (err) {
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
@@ -187,7 +187,7 @@ export default function (db) {
   });
 
   router.delete('/api/v1/Runs/:id', function(req, res, next) {
-    RunsModel.findOneAndDelete({_id: req.params.id}, function(err, doc) {
+    RunsModel(databaseConn).findOneAndDelete({_id: req.params.id}, function(err, doc) {
       if (err) {
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
@@ -233,7 +233,7 @@ export default function (db) {
     if (!allowedTypes.includes(fileType)) {
       res.status(400).json({message: 'Error: Invalid input for fileType.'});
     } else {
-      RunsModel.findById(req.params.runId).exec(function(err, result) {
+      RunsModel(databaseConn).findById(req.params.runId).exec(function(err, result) {
         if (err) return next(err);
         let files = [];
         if (fileType === FILE_TYPE.SOURCE_FILES) {
