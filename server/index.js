@@ -13,11 +13,20 @@ const sections = Object.keys(config);
 const defaultPath = config[sections[0]].path;
 const allDatabases = [];
 for (const section in sections) {
-  var database = db(config[sections[section]].mongodbURI);
+  const key = sections[section];
+  const database = db(config[key].mongodbURI);
+  if (!config[key].path.startsWith('/')) {
+    console.error(`Error: path for key ${key} is not absolute, prepending a slash...`);
+    config[key].path = '/' + config[key].path;
+  }
+  if (config[key].path == '/') {
+    throw `Fatal: cannot use root path for key ${key}, fix your database config.`;
+  }
   allDatabases.push({
-    "path": config[sections[section]].path,
+    "key": key,
+    "path": config[key].path,
     "name": database.connection.name});
-  app.use(config[sections[section]].path, subApp(database));
+  app.use(config[key].path, subApp(database, key));
 }
 app.use("/api/v1/databases", function (req, res) {
   res.json(allDatabases);

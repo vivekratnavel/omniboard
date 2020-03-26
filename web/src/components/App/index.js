@@ -26,7 +26,7 @@ class App extends Component {
     this.state = {
       showCustomColumnModal: false,
       otherDbs: [],
-      dbName: '',
+      dbInfo: {},
       showSettingsModal: false,
       appVersion: ''
     };
@@ -116,9 +116,9 @@ class App extends Component {
         });
       }
 
-      if (dbResponse && dbResponse.data && dbResponse.data.name) {
+      if (dbResponse && dbResponse.data) {
         this.setState({
-          dbName: dbResponse.data.name
+          dbInfo: dbResponse.data
         });
       }
 
@@ -171,7 +171,7 @@ class App extends Component {
   }
 
   render() {
-    const {showCustomColumnModal, showSettingsModal, dbName, otherDbs, appVersion} = this.state;
+    const {showCustomColumnModal, showSettingsModal, dbInfo, otherDbs, appVersion} = this.state;
     const localStorageKey = 'RunsTable|1';
     return (
       <div className='App'>
@@ -182,9 +182,9 @@ class App extends Component {
             </Navbar.Brand>
           </Navbar.Header>
           <Navbar.Collapse>
-            <Nav pullLeft activeKey={dbName}>
+            <Nav pullLeft activeKey={dbInfo.key}>
               {otherDbs.map(db => {
-                return <NavItem key={db.name} eventKey={db.name} href={db.path}>({db.name})</NavItem>;
+                return <NavItem key={db.key} eventKey={db.key} href={db.path}>({db.name})</NavItem>;
               })}
             </Nav>
             <Nav pullRight>

@@ -17,7 +17,7 @@ import makeGetRunsResponse from './runs.response';
 import makeSourceFilesResponse from './sourceFiles.response';
 
 
-export default function (db) {
+export default function (db, key) {
   const databaseConn = db.connection;
   const gfs = db.gfs;
   const app = express();
@@ -303,7 +303,7 @@ export default function (db) {
 
   router.get('/api/v1/database', function (req, res) {
     if (databaseConn && databaseConn.name) {
-      res.json({name: databaseConn.name});
+      res.json({key: key, name: databaseConn.name});
     } else {
       res.status(500).json({message: 'An unknown error occurred'})
     }

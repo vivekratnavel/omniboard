@@ -23,7 +23,6 @@ exports[`App component should render 1`] = `
     </NavbarHeader>
     <NavbarCollapse>
       <Nav
-        activeKey=""
         bsClass="nav"
         justified={false}
         pullLeft={true}
