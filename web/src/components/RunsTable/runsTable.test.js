@@ -70,7 +70,8 @@ describe('RunsTable', () => {
 
     await tick();
     wrapper = mount(
-      <RunsTable showCustomColumnModal={false} handleCustomColumnModalClose={customColumnModalCloseHandler}
+      <RunsTable dbKey='test' showCustomColumnModal={false}
+        handleCustomColumnModalClose={customColumnModalCloseHandler}
         showSettingsModal={false} location={location} history={history}
         handleSettingsModalClose={settingsModalCloseHandler}/>
     );
