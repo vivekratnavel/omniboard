@@ -67,7 +67,7 @@ function clientErrorHandler (err, req, res, next) {
 
 function errorHandler (err, req, res, next) {
   res.status(500);
-  res.render('error', { message: err });
+  res.send({ message: err.message });
 }
 
 const startServer = (port) => {

@@ -13,6 +13,8 @@ describe('DrillDownView', () => {
   console.error = jest.fn();
   toast.error = jest.fn();
 
+  const dbInfo = {key: 'default', name: 'test_db'};
+
   const runsResponseData = {
     _id: 200,
     meta: {},
@@ -55,7 +57,7 @@ describe('DrillDownView', () => {
 
   beforeEach(() => {
     wrapper = mount(
-      <DrillDownView height={500} runId={200} width={600} status={STATUS.COMPLETED}/>
+      <DrillDownView height={500} runId={200} width={600} status={STATUS.COMPLETED} dbInfo={dbInfo}/>
     );
   });
 
@@ -173,13 +175,13 @@ describe('DrillDownView', () => {
     wrapper.unmount();
     mockAxios.reset();
     wrapper = mount(
-      <DrillDownView height={500} width={600} runId={0} status={STATUS.COMPLETED}/>
+      <DrillDownView height={500} width={600} runId={0} status={STATUS.COMPLETED} dbInfo={dbInfo}/>
     );
 
     expect(mockAxios.get).not.toHaveBeenCalled();
     wrapper.unmount();
     wrapper = mount(
-      <DrillDownView height={500} runId={1} width={600} status={STATUS.COMPLETED}/>
+      <DrillDownView height={500} runId={1} width={600} status={STATUS.COMPLETED} dbInfo={dbInfo}/>
     );
 
     expect(mockAxios.get).toHaveBeenCalledTimes(2);

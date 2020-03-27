@@ -9,7 +9,7 @@ const Routes = props => (
   <Router {...props}>
     <div>
       <Switch>
-        <Route exact path='/:model?' component={App}/>
+        <Route exact path='/:dbPath?' component={App}/>
         <Route component={NotFound}/>
       </Switch>
     </div>

@@ -9,7 +9,7 @@ import {
   AccordionItemTitle,
   AccordionItemBody
 } from 'react-accessible-accordion';
-import backend from '../Backend/backend';
+import backend, {setDbInfo} from '../Backend/backend';
 import {SelectRunsToCompare} from '../SelectRunsToCompare/selectRunsToCompare';
 import {concatArrayBuffers, parseServerError} from '../Helpers/utils';
 import {ProgressWrapper} from '../Helpers/hoc';
@@ -20,7 +20,11 @@ const FILE_DIFF_PREVIEW_LIMIT = 2097152;
 class SourceFilesCompareView extends Component {
   static propTypes = {
     runIds: PropTypes.arrayOf(Number).isRequired,
-    isSelected: PropTypes.bool.isRequired
+    isSelected: PropTypes.bool.isRequired,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired
   };
 
   constructor(props) {
@@ -48,7 +52,8 @@ class SourceFilesCompareView extends Component {
   };
 
   componentDidMount() {
-    const {runIds} = this.props;
+    const {runIds, dbInfo} = this.props;
+    setDbInfo(backend, dbInfo);
     if (runIds && runIds.length >= 2) {
       this._initializeState();
     }
@@ -115,7 +120,7 @@ class SourceFilesCompareView extends Component {
           const fileContents = {};
           const promises = filesToFetch.map(fileId => {
             return new Promise((resolve, reject) => {
-              fetch(`api/v1/files/preview/${fileId}`)
+              fetch(`${backend.defaults.baseURL}/api/v1/files/preview/${fileId}`)
                 .then(response => {
                   // Response body is a ReadableStream
                   const reader = response.body.getReader();

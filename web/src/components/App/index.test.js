@@ -10,7 +10,7 @@ describe('App component', () => {
   toast.error = jest.fn();
 
   beforeEach(async () => {
-    const app = <App match={{params: {model: 'test'}}}/>;
+    const app = <App match={{params: {dbPath: 'test'}}}/>;
     wrapper = shallow(app);
     wrapper.setState({dbInfo: {key: 'default', name: 'test_db'}});
     await tick();

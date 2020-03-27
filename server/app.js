@@ -200,7 +200,7 @@ export default function (db, key) {
 
   router.get('/api/v1/files/download/:id/:fileName', function (req, res) {
     // Read file as stream from Mongo GridFS
-    const readStream = gfs.createReadStream({
+    const readStream = db.gfs.createReadStream({
       _id: req.params.id
     });
     //error handling, e.g. file does not exist
@@ -264,7 +264,7 @@ export default function (db, key) {
           next(err);
         });
         files.forEach(function(file) {
-          const readStream = gfs.createReadStream({
+          const readStream = db.gfs.createReadStream({
             _id: file.file_id
           });
           //error handling, e.g. file does not exist
@@ -288,7 +288,7 @@ export default function (db, key) {
 
   router.get('/api/v1/files/preview/:fileId', function (req, res, next) {
     // Read file as stream from Mongo GridFS
-    const readStream = gfs.createReadStream({
+    const readStream = db.gfs.createReadStream({
       _id: req.params.fileId
     });
     //error handling, e.g. file does not exist
@@ -339,7 +339,7 @@ export default function (db, key) {
 
   function errorHandler (err, req, res, next) {
     res.status(500);
-    res.render('error', { message: err });
+    res.send({ message: err.message });
   }
 
   return app;

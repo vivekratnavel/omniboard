@@ -120,7 +120,12 @@ exports[`App component should render 1`] = `
       transition={[Function]}
     />
     <RunsTable
-      dbKey="default"
+      dbInfo={
+        Object {
+          "key": "default",
+          "name": "test_db",
+        }
+      }
       handleCustomColumnModalClose={[Function]}
       handleSettingsModalClose={[Function]}
       localStorageKey="default|RunsTable|1"

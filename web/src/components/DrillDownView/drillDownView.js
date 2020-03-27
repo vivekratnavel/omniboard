@@ -8,7 +8,7 @@ import {on, off} from 'dom-helpers/events';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
 import {toast} from 'react-toastify';
-import backend from '../Backend/backend';
+import backend, {setDbInfo} from '../Backend/backend';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {parseServerError} from '../Helpers/utils';
 import {DRILLDOWN_VIEW} from '../../appConstants/drillDownView.constants';
@@ -38,7 +38,10 @@ class DrillDownView extends Component {
     runId: PropTypes.number.isRequired,
     width: PropTypes.number,
     status: PropTypes.string.isRequired,
-    dbKey: PropTypes.string.isRequired
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired
   };
 
   // Filter out state objects that need to be synchronized with local storage
@@ -84,7 +87,8 @@ class DrillDownView extends Component {
   };
 
   componentDidMount() {
-    const {runId} = this.props;
+    const {runId, dbInfo} = this.props;
+    setDbInfo(backend, dbInfo);
     if (runId) {
       this.setState({
         isTableLoading: true
@@ -125,14 +129,14 @@ class DrillDownView extends Component {
 
   render() {
     const {selectedNavTab, isTableLoading, runsResponse, metricsResponse} = this.state;
-    const {width, height, runId, status, dbKey} = this.props;
+    const {width, height, runId, status, dbInfo} = this.props;
     const experimentName = runsResponse !== null && 'experiment' in runsResponse ? runsResponse.experiment.name : '';
     // Adjust the width of scrollbar from total width
     const style = {
       height,
       width: width - 17
     };
-    const localStorageKey = `${dbKey}|MetricsPlotView|${runId}`;
+    const localStorageKey = `${dbInfo.key}|MetricsPlotView|${runId}`;
     let experimentFiles = [];
     // Convert experiment sources to the same structure as artifacts
     // source is an array with the following structure
@@ -179,19 +183,19 @@ class DrillDownView extends Component {
             content = <div id={DRILLDOWN_VIEW.META_INFO}><JsonView data={runsResponse.meta}/></div>;
             break;
           case DRILLDOWN_VIEW.METRICS:
-            content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} dbKey={dbKey} localStorageKey={localStorageKey}/></div>;
+            content = <div id={DRILLDOWN_VIEW.METRICS}><MetricsPlotView metricsResponse={metricsResponse} runId={runId} dbInfo={dbInfo} localStorageKey={localStorageKey}/></div>;
             break;
           case DRILLDOWN_VIEW.ARTIFACTS:
             content = (
               <div id={DRILLDOWN_VIEW.ARTIFACTS}>
-                <SourceFilesView key={'artifacts-' + runsResponse._id} type='artifacts' runId={runsResponse._id} files={runsResponse.artifacts}/>
+                <SourceFilesView key={'artifacts-' + runsResponse._id} type='artifacts' dbInfo={dbInfo} runId={runsResponse._id} files={runsResponse.artifacts}/>
               </div>
             );
             break;
           case DRILLDOWN_VIEW.SOURCE_FILES:
             content = (
               <div id={DRILLDOWN_VIEW.SOURCE_FILES}>
-                <SourceFilesView key={'files-' + runsResponse._id} type='source_files' runId={runsResponse._id} files={experimentFiles}/>
+                <SourceFilesView key={'files-' + runsResponse._id} type='source_files' dbInfo={dbInfo} runId={runsResponse._id} files={experimentFiles}/>
               </div>
             );
             break;

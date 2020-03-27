@@ -12,6 +12,7 @@ describe('RunsTable', () => {
   let runsResponse = null;
   const tagsResponse = ['test'];
   const countResponse = {count: 4};
+  const dbInfo = {key: 'default', name: 'test_db'};
   let metricColumnsResponse = null;
   let customColumnsResponse = null;
   let location = null;
@@ -70,7 +71,7 @@ describe('RunsTable', () => {
 
     await tick();
     wrapper = mount(
-      <RunsTable dbKey='test' showCustomColumnModal={false}
+      <RunsTable dbInfo={dbInfo} showCustomColumnModal={false}
         handleCustomColumnModalClose={customColumnModalCloseHandler}
         showSettingsModal={false} location={location} history={history}
         handleSettingsModalClose={settingsModalCloseHandler}/>

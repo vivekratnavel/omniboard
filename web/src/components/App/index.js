@@ -4,7 +4,7 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import {ToastContainer, toast} from 'react-toastify';
 import moment from 'moment-timezone';
-import backend from '../Backend/backend';
+import backend, {setDbInfo} from '../Backend/backend';
 import {parseServerError} from '../Helpers/utils';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
@@ -163,10 +163,7 @@ class App extends Component {
 
   componentDidMount() {
     const {match: {params}} = this.props;
-    if (params.model !== undefined) {
-      backend.defaults.baseURL = '/' + params.model;
-    }
-
+    setDbInfo(backend, {path: params.dbPath});
     this._fetchData();
   }
 
@@ -188,7 +185,7 @@ class App extends Component {
           <Navbar.Collapse>
             <Nav pullLeft activeKey={dbInfo.key}>
               {otherDbs.map(db => {
-                return <NavItem key={db.key} eventKey={db.key} href={db.path}>({db.name})</NavItem>;
+                return <NavItem key={db.key} eventKey={db.key} href={db.path}>{db.key} ({db.name})</NavItem>;
               })}
             </Nav>
             <Nav pullRight>
@@ -210,7 +207,7 @@ class App extends Component {
         </Navbar>
         <div className='content'>
           <ToastContainer autoClose={false}/>
-          <RunsTable dbKey={dbInfo.key} localStorageKey={localStorageKey}
+          <RunsTable dbInfo={dbInfo} localStorageKey={localStorageKey}
             showCustomColumnModal={showCustomColumnModal}
             handleCustomColumnModalClose={this._handleCustomColumnModalClose}
             showSettingsModal={showSettingsModal}

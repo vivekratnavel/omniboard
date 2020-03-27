@@ -16,7 +16,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 import * as QueryString from 'query-string';
 import ms from 'ms';
-import backend from '../Backend/backend';
+import backend, {setDbInfo} from '../Backend/backend';
 import {MetricColumnModal} from '../MetricColumnModal/metricColumnModal';
 import {DataListWrapper} from '../Helpers/dataListWrapper';
 import {EditableCell, SelectCell, ExpandRowCell, TextCell, CollapseCell, HeaderCell,
@@ -113,7 +113,10 @@ class RunsTable extends Component {
     handleCustomColumnModalClose: PropTypes.func.isRequired,
     showSettingsModal: PropTypes.bool.isRequired,
     handleSettingsModalClose: PropTypes.func.isRequired,
-    dbKey: PropTypes.string.isRequired,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired,
     location: PropTypes.shape({
       search: PropTypes.string
     }),
@@ -928,6 +931,7 @@ class RunsTable extends Component {
    * Add event listener
    */
   componentDidMount() {
+    setDbInfo(backend, this.props.dbInfo);
     this.resizeTable();
     window.addEventListener('resize', this.resizeTable);
     // Wait for LocalStorageMixin to setState
@@ -1099,11 +1103,12 @@ class RunsTable extends Component {
 
     const runId = this.state.sortedData.getObjectAt(rowIndex)[ID_COLUMN_KEY];
     const {status} = this.state.sortedData.getObjectAt(rowIndex);
-    const {dbKey} = this.props;
+    const {dbInfo} = this.props;
+
     // Local storage key is used for synchronizing state of each drilldown view with local storage
-    const localStorageKey = `${dbKey}|DrillDownView|${runId}`;
+    const localStorageKey = `${dbInfo.key}|DrillDownView|${runId}`;
     return (
-      <DrillDownView width={width} height={height} runId={runId} status={status} dbKey={dbKey} localStorageKey={localStorageKey}/>
+      <DrillDownView width={width} height={height} runId={runId} status={status} dbInfo={dbInfo} localStorageKey={localStorageKey}/>
     );
   };
 
@@ -1641,7 +1646,7 @@ class RunsTable extends Component {
       lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount, selectedRows, selectAll,
       selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal, rowsToDelete,
       isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress} = this.state;
-    const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
+    const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose, dbInfo} = this.props;
     const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
       sortedData.data = sortedData.getDataArray().map(row => {
@@ -1944,7 +1949,7 @@ class RunsTable extends Component {
         <SettingsModal show={showSettingsModal} handleClose={handleSettingsModalClose}
           handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
         <CompareRunsModal shouldShow={showCompareColumnsModal} handleClose={this._handleCompareColumnsModalClose}
-          runs={compareRuns}/>
+          runs={compareRuns} dbInfo={dbInfo}/>
         <DeleteRunsConfirmationModal handleClose={this._handleDeleteRunsModalClose}
           shouldShow={showDeleteConfirmationModal} runs={rowsToDelete} isDeleteInProgress={isDeleteInProgress}
           handleDelete={this._handleDeleteRuns(rowsToDelete)} progressPercent={deleteProgress}/>

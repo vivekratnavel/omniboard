@@ -2,6 +2,12 @@
 
 exports[`DrillDownView should render correctly 1`] = `
 <DrillDownView
+  dbInfo={
+    Object {
+      "key": "default",
+      "name": "test_db",
+    }
+  }
   height={500}
   runId={200}
   stateFilterKeys={
