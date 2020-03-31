@@ -997,7 +997,7 @@ class RunsTable extends Component {
       isCompareButtonDisabled = true;
       isDeleteButtonDisabled = true;
     } else {
-      isDeleteButtonDisabled = selectedRows.size < 2;
+      isDeleteButtonDisabled = selectedRows.size < 1;
       // Only enable compare when 2 or more runs are selected
       isCompareButtonDisabled = selectedRows.size < 2;
     }
