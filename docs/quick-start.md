@@ -35,6 +35,21 @@ For instance, to connect with a running instance on the cloud service [MongoDB A
 omniboard --mu "mongodb+srv://my-username:my-password@my-cluster-v9zjk.mongodb.net/sacred?retryWrites=true"
 ```
 
+To connect to multiple sacred databases, create a database configuration file, such as:
+```json
+{
+    "db1": {
+      "mongodbURI": "mongodb://my-username:my-password@my-cluster/sacred_db1",
+      "path": "/db1"
+    },
+    "db2": {
+      "mongodbURI": "mongodb://my-username:my-password@my-cluster/sacred_db2",
+      "path": "/db2"
+    }
+}
+```
+Set the environment variable `OMNIBOARD_CONFIG=/path/to/database_config.json` before running omniboard.
+
 For basic authentication, start omniboard with the `-u` option:
 
 ```bash

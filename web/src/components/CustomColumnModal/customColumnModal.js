@@ -4,6 +4,7 @@ import {Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, FormCont
 import './customColumnModal.scss';
 import axios from 'axios';
 import CreatableSelect from 'react-select/lib/Creatable';
+import backend from '../Backend/backend';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {parseServerError} from '../Helpers/utils';
 
@@ -56,8 +57,8 @@ class CustomColumnModal extends PureComponent {
 
       return accumulator;
     }, []);
-    const createRequests = newColumns.map(column => axios.post('/api/v1/Omniboard.Custom.Columns', CustomColumnModal.serializeColumn(column)));
-    const updateRequests = dirtyColumns.map(column => axios.post(`/api/v1/Omniboard.Custom.Columns/${column.id}`, CustomColumnModal.serializeColumn(column)));
+    const createRequests = newColumns.map(column => backend.post('api/v1/Omniboard.Custom.Columns', CustomColumnModal.serializeColumn(column)));
+    const updateRequests = dirtyColumns.map(column => backend.post(`api/v1/Omniboard.Custom.Columns/${column.id}`, CustomColumnModal.serializeColumn(column)));
     const requests = createRequests.concat(updateRequests);
     const closeModal = () => {
       this.setState({isInProgress: false});
@@ -131,7 +132,7 @@ class CustomColumnModal extends PureComponent {
       const {columns} = this.state;
       const columnsClone = columns.slice();
       if (columns[key].id) {
-        axios.delete('/api/v1/Omniboard.Custom.Columns/' + columns[key].id).then(response => {
+        backend.delete('api/v1/Omniboard.Custom.Columns/' + columns[key].id).then(response => {
           if (response.status === 204) {
             columnsClone.splice(key, 1);
             this.setState({
@@ -203,7 +204,7 @@ class CustomColumnModal extends PureComponent {
       isLoadingColumns: true,
       error: ''
     });
-    axios.get('/api/v1/Omniboard.Custom.Columns').then(response => {
+    backend.get('api/v1/Omniboard.Custom.Columns').then(response => {
       const columns = response.data.map(column => {
         return {
           id: column._id,
@@ -250,17 +251,17 @@ class CustomColumnModal extends PureComponent {
     };
 
     axios.all([
-      axios.get('/api/v1/Runs', {
+      backend.get('api/v1/Runs', {
         params: {
           distinct: 'config'
         }
       }),
-      axios.get('/api/v1/Runs', {
+      backend.get('api/v1/Runs', {
         params: {
           distinct: 'host'
         }
       }),
-      axios.get('/api/v1/Runs', {
+      backend.get('api/v1/Runs', {
         params: {
           distinct: 'experiment'
         }

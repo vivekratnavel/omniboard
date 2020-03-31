@@ -2,6 +2,13 @@
 
 exports[`CapturedOutCompareView should load data success 1`] = `
 <SourceFilesCompareView
+  dbInfo={
+    Object {
+      "key": "default",
+      "name": "test_db",
+      "path": "test",
+    }
+  }
   isSelected={true}
   runIds={
     Array [
@@ -2528,6 +2535,13 @@ exports[`CapturedOutCompareView should load data success 1`] = `
 
 exports[`CapturedOutCompareView should load data success 2`] = `
 <SourceFilesCompareView
+  dbInfo={
+    Object {
+      "key": "default",
+      "name": "test_db",
+      "path": "test",
+    }
+  }
   isSelected={true}
   runIds={
     Array [

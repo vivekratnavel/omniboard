@@ -12,6 +12,7 @@ describe('RunsTable', () => {
   let runsResponse = null;
   const tagsResponse = ['test'];
   const countResponse = {count: 4};
+  const dbInfo = {key: 'default', name: 'test_db'};
   let metricColumnsResponse = null;
   let customColumnsResponse = null;
   let location = null;
@@ -70,7 +71,8 @@ describe('RunsTable', () => {
 
     await tick();
     wrapper = mount(
-      <RunsTable showCustomColumnModal={false} handleCustomColumnModalClose={customColumnModalCloseHandler}
+      <RunsTable dbInfo={dbInfo} showCustomColumnModal={false}
+        handleCustomColumnModalClose={customColumnModalCloseHandler}
         showSettingsModal={false} location={location} history={history}
         handleSettingsModalClose={settingsModalCloseHandler}/>
     );
@@ -214,12 +216,12 @@ describe('RunsTable', () => {
         // In between there will be delete calls to source files with count 1
         await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(6);
-        expect(mockAxios.delete.mock.calls[0]).toEqual(['/api/v1/Metrics/', {params: {query: '{"run_id":12}'}}]);
-        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Runs/12']);
-        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Metrics/', {params: {query: '{"run_id":11}'}}]);
-        expect(mockAxios.delete.mock.calls[3][0]).toEqual('/api/v1/Fs.chunks/');
-        expect(mockAxios.delete.mock.calls[4][0]).toEqual('/api/v1/Fs.files/');
-        expect(mockAxios.delete.mock.calls[5]).toEqual(['/api/v1/Runs/11']);
+        expect(mockAxios.delete.mock.calls[0]).toEqual(['api/v1/Metrics/', {params: {query: '{"run_id":12}'}}]);
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['api/v1/Runs/12']);
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['api/v1/Metrics/', {params: {query: '{"run_id":11}'}}]);
+        expect(mockAxios.delete.mock.calls[3][0]).toEqual('api/v1/Fs.chunks/');
+        expect(mockAxios.delete.mock.calls[4][0]).toEqual('api/v1/Fs.files/');
+        expect(mockAxios.delete.mock.calls[5]).toEqual(['api/v1/Runs/11']);
         generateMockResponse(204, 6);
         await tick();
 
@@ -239,9 +241,9 @@ describe('RunsTable', () => {
 
         await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(8);
-        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
               '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
               '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
         generateMockResponse(204, 8);
         await tick();
@@ -259,11 +261,11 @@ describe('RunsTable', () => {
 
         await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(8);
-        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
               '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
               '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[3]).toEqual(['/api/v1/Runs/12']);
+        expect(mockAxios.delete.mock.calls[3]).toEqual(['api/v1/Runs/12']);
         generateMockResponse(204, 4);
         await tick();
 
@@ -280,15 +282,15 @@ describe('RunsTable', () => {
         mockAxios.mockResponse({status: 200, data: [{_id: '5ca67d6f11421a00e53d49fc', count: 1}, {_id: '5ca6805e11421a04b4ba8b48', count: 1}]});
         await tick();
         expect(mockAxios.delete).toHaveBeenCalledTimes(12);
-        expect(mockAxios.delete.mock.calls[1]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+        expect(mockAxios.delete.mock.calls[1]).toEqual(['api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
               '"5c41711ea9eee738179295aa"},{"files_id":"5c41711ea9eee738179295ac"},{"files_id":"5c41711ea9eee738179295ae"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[2]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+        expect(mockAxios.delete.mock.calls[2]).toEqual(['api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
               '"5c41711ea9eee738179295aa"},{"_id":"5c41711ea9eee738179295ac"},{"_id":"5c41711ea9eee738179295ae"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[3]).toEqual(['/api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
+        expect(mockAxios.delete.mock.calls[3]).toEqual(['api/v1/Fs.chunks/', {params: {query: '{"$or":[{"files_id":' +
               '"5ca67d6f11421a00e53d49fc"},{"files_id":"5ca6805e11421a04b4ba8b48"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[4]).toEqual(['/api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
+        expect(mockAxios.delete.mock.calls[4]).toEqual(['api/v1/Fs.files/', {params: {query: '{"$or":[{"_id":' +
               '"5ca67d6f11421a00e53d49fc"},{"_id":"5ca6805e11421a04b4ba8b48"}]}'}}]);
-        expect(mockAxios.delete.mock.calls[5]).toEqual(['/api/v1/Runs/12']);
+        expect(mockAxios.delete.mock.calls[5]).toEqual(['api/v1/Runs/12']);
         generateMockResponse(204, 12);
         await tick();
 
@@ -335,7 +337,7 @@ describe('RunsTable', () => {
 
   describe('should load data', () => {
     const getAPIArguments = (select, queryString) => {
-      return ['/api/v1/Runs', {
+      return ['api/v1/Runs', {
         params: {
           select,
           sort_by: '_id',
@@ -498,8 +500,8 @@ describe('RunsTable', () => {
       }];
     };
 
-    const runsApi = '/api/v1/Runs';
-    const countApi = '/api/v1/Runs/count';
+    const runsApi = 'api/v1/Runs';
+    const countApi = 'api/v1/Runs/count';
 
     beforeEach(async () => {
       await initialRequestResponse();
@@ -675,7 +677,7 @@ describe('RunsTable', () => {
     });
 
     it('for success response', () => {
-      expect(mockAxios.put).toHaveBeenCalledWith('/api/v1/Runs/' + runsResponse[rowIndex]._id, {
+      expect(mockAxios.put).toHaveBeenCalledWith('api/v1/Runs/' + runsResponse[rowIndex]._id, {
         omniboard: {
           tags: ['tag1', 'tag2']
         }
@@ -708,7 +710,7 @@ describe('RunsTable', () => {
     });
 
     it('for success response', () => {
-      expect(mockAxios.put).toHaveBeenCalledWith('/api/v1/Runs/' + runsResponse[rowIndex]._id, {
+      expect(mockAxios.put).toHaveBeenCalledWith('api/v1/Runs/' + runsResponse[rowIndex]._id, {
         omniboard: {
           notes
         }
@@ -743,7 +745,7 @@ describe('RunsTable', () => {
 
   it('should handle sort change correctly', async () => {
     const getAPIArguments = (select, sortBy, orderBy) => {
-      return ['/api/v1/Runs', {
+      return ['api/v1/Runs', {
         params: {
           select,
           sort_by: sortBy,
@@ -1146,7 +1148,7 @@ describe('RunsTable', () => {
 
   describe('_getColumnValueOptions', () => {
     const getAPIArguments = (column, input) => {
-      return ['/api/v1/Runs', {
+      return ['api/v1/Runs', {
         params: {
           distinct: column,
           query: JSON.stringify({

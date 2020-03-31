@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {Alert, Button} from 'react-bootstrap';
 import './sourceFilesView.scss';
-import axios from 'axios';
 import ReactList from 'react-list';
 import {
   Accordion,
@@ -11,6 +10,7 @@ import {
   AccordionItemBody
 } from 'react-accessible-accordion';
 import saveAs from 'file-saver';
+import backend, {setDbInfo} from '../Backend/backend';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {concatArrayBuffers, getFileExtension, parseServerError} from '../Helpers/utils';
 import {imageExtensions} from '../FilePreview/imageExtensions';
@@ -25,6 +25,10 @@ class SourceFilesView extends Component {
   static propTypes = {
     files: PropTypes.array.isRequired,
     type: PropTypes.string.isRequired,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired,
     runId: PropTypes.number.isRequired
   };
 
@@ -53,7 +57,7 @@ class SourceFilesView extends Component {
       files.forEach(file => {
         query.$or.push({_id: file.file_id});
       });
-      axios.get('/api/v1/Fs.files', {
+      backend.get('api/v1/Fs.files', {
         params: {
           query
         }
@@ -85,8 +89,8 @@ class SourceFilesView extends Component {
 
   _downloadFile = (fileId, fileName) => {
     return _event => {
-      axios({
-        url: `/api/v1/files/download/${fileId}/${fileName}`,
+      backend({
+        url: `api/v1/files/download/${fileId}/${fileName}`,
         method: 'GET',
         responseType: 'blob'
       }).then(response => {
@@ -107,8 +111,8 @@ class SourceFilesView extends Component {
       this.setState({
         isZipInProgress: true
       });
-      axios({
-        url: `/api/v1/files/downloadAll/${runId}/${type}`,
+      backend({
+        url: `api/v1/files/downloadAll/${runId}/${type}`,
         method: 'GET',
         responseType: 'blob'
       }).then(response => {
@@ -131,6 +135,7 @@ class SourceFilesView extends Component {
   };
 
   componentDidMount() {
+    setDbInfo(backend, this.props.dbInfo);
     this._fetchSourceFiles();
   }
 
@@ -149,7 +154,7 @@ class SourceFilesView extends Component {
         isAccordionDataLoading: true
       });
 
-      fetch(`api/v1/files/preview/${fileId}`)
+      fetch(`${backend.defaults.baseURL}/api/v1/files/preview/${fileId}`)
         .then(response => {
           // Response body is a ReadableStream
           const reader = response.body.getReader();

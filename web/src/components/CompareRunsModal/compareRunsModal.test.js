@@ -7,11 +7,12 @@ describe('CompareRunsModal', () => {
   let wrapper = null;
   const runIds = [1, 2, 3, 4];
   const handleCloseMock = jest.fn();
+  const dbInfo = {key: 'default', name: 'test_db'};
   console.error = jest.fn();
 
   beforeEach(() => {
     wrapper = mount(
-      <CompareRunsModal shouldShow runs={runIds} handleClose={handleCloseMock}/>
+      <CompareRunsModal shouldShow runs={runIds} handleClose={handleCloseMock} dbInfo={dbInfo}/>
     );
   });
 

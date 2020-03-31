@@ -7,6 +7,7 @@ import axios from 'axios';
 import Select from 'react-select';
 import moment from 'moment-timezone';
 import {toast} from 'react-toastify';
+import backend from '../Backend/backend';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {parseServerError} from '../Helpers/utils';
 import {
@@ -57,7 +58,7 @@ class SettingsModal extends PureComponent {
       }, []);
       // All the settings will have _id if properly initialized in App/index.js
       // When the app loads for the first time, default values for settings are persisted in db.
-      const updateRequests = dirtySettings.map(setting => axios.post(`/api/v1/Omniboard.Settings/${setting._id}`,
+      const updateRequests = dirtySettings.map(setting => backend.post(`api/v1/Omniboard.Settings/${setting._id}`,
         setting));
       const closeModal = () => {
         this.setState({isInProgress: false});

@@ -43,7 +43,7 @@ class FilePreview extends PureComponent {
       }
 
       if (imageExtensions.includes(extension) && fileId) {
-        const imgSource = `/api/v1/files/download/${fileId}/${fileName}`;
+        const imgSource = `api/v1/files/download/${fileId}/${fileName}`;
         return (<img src={imgSource} alt='image'/>);
       }
 

@@ -50,7 +50,7 @@ describe('CapturedOutView', () => {
       expect(mockAxios.get.mock.calls).toHaveLength(0);
       jest.runAllTimers();
 
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/Runs/16', {params: {select: 'captured_out,status,heartbeat'}}]);
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/Runs/16', {params: {select: 'captured_out,status,heartbeat'}}]);
       mockAxios.mockResponse({status: 200, data: responseData});
 
       expect(wrapper.update()).toMatchSnapshot();

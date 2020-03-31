@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import './capturedOutCompareView.scss';
-import axios from 'axios';
 import {toast} from 'react-toastify';
 import ReactDiffViewer from 'react-diff-viewer';
+import backend from '../Backend/backend';
 import {parseServerError} from '../Helpers/utils';
 import {SelectRunsToCompare} from '../SelectRunsToCompare/selectRunsToCompare';
 
@@ -63,7 +63,7 @@ class CapturedOutCompareView extends Component {
           $in: [runId1, runId2]
         }
       });
-      axios.get('/api/v1/Runs', {
+      backend.get('api/v1/Runs', {
         params: {
           query: queryString,
           select: '_id,captured_out'

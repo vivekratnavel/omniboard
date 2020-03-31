@@ -6,11 +6,12 @@ import './style.scss';
 
 export default class NotFound extends Component {
   static propTypes = {
-    className: PropTypes.string
+    className: PropTypes.string,
+    staticContext: PropTypes.array
   };
 
   render() {
-    const {className, ...props} = this.props;
+    const {className, staticContext: _ignored, ...props} = this.props;
     return (
       <div className={classnames('NotFound', className)} {...props}>
         <h1>

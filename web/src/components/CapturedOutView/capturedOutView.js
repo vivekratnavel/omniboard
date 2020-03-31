@@ -2,8 +2,8 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Glyphicon} from 'react-bootstrap';
 import './capturedOutView.scss';
-import axios from 'axios';
 import {toast} from 'react-toastify';
+import backend from '../Backend/backend';
 import {STATUS} from '../../appConstants/status.constants';
 import {parseServerError} from '../Helpers/utils';
 
@@ -46,7 +46,7 @@ class CapturedOutView extends Component {
   _loadData = () => {
     const {runId} = this.props;
     const {errorCount} = this.state;
-    axios.get(`/api/v1/Runs/${runId}`, {
+    backend.get(`api/v1/Runs/${runId}`, {
       params: {
         select: 'captured_out,status,heartbeat'
       }

@@ -16,6 +16,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 import * as QueryString from 'query-string';
 import ms from 'ms';
+import backend, {setDbInfo} from '../Backend/backend';
 import {MetricColumnModal} from '../MetricColumnModal/metricColumnModal';
 import {DataListWrapper} from '../Helpers/dataListWrapper';
 import {EditableCell, SelectCell, ExpandRowCell, TextCell, CollapseCell, HeaderCell,
@@ -112,6 +113,10 @@ class RunsTable extends Component {
     handleCustomColumnModalClose: PropTypes.func.isRequired,
     showSettingsModal: PropTypes.bool.isRequired,
     handleSettingsModalClose: PropTypes.func.isRequired,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired,
     location: PropTypes.shape({
       search: PropTypes.string
     }),
@@ -461,8 +466,8 @@ class RunsTable extends Component {
 
   _handleNewColumnAddition = () => {
     axios.all([
-      axios.get('/api/v1/Omniboard.Metric.Columns'),
-      axios.get('/api/v1/Omniboard.Custom.Columns')
+      backend.get('api/v1/Omniboard.Metric.Columns'),
+      backend.get('api/v1/Omniboard.Custom.Columns')
     ]).then(axios.spread((metricColumns, customColumns) => {
       const latestMetricAndCustomColumns = this._getLatestMetricAndCustomColumns(metricColumns.data, customColumns.data);
       this._updateRuns(latestMetricAndCustomColumns);
@@ -569,8 +574,8 @@ class RunsTable extends Component {
 
     // First retrieve metric columns and custom config columns to decide which metrics and columns need to be populated.
     axios.all([
-      axios.get('/api/v1/Omniboard.Metric.Columns'),
-      axios.get('/api/v1/Omniboard.Custom.Columns')
+      backend.get('api/v1/Omniboard.Metric.Columns'),
+      backend.get('api/v1/Omniboard.Custom.Columns')
     ]).then(axios.spread((metricColumns, customColumns) => {
       metricColumnsData = metricColumns.data;
       customColumnsData = customColumns.data;
@@ -580,15 +585,15 @@ class RunsTable extends Component {
       // The value of resolved is not used because
       // it breaks all unit tests and makes it impossible to write unit tests.
       axios.all([
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: runQueryParams
         }),
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: {
             distinct: 'omniboard.tags'
           }
         }),
-        axios.get('/api/v1/Runs/count', {
+        backend.get('api/v1/Runs/count', {
           params: {
             query: runQueryParams.query
           }
@@ -687,13 +692,13 @@ class RunsTable extends Component {
     });
 
     // Fetch count of runs
-    axios.get('/api/v1/Runs/count', {
+    backend.get('api/v1/Runs/count', {
       params: runQueryParams
     }).then(runsCountResponse => {
       const latestRunsCount = runsCountResponse.data && 'count' in runsCountResponse.data ? runsCountResponse.data.count : 0;
       if (latestRunsCount > runsCount) {
         const newRunsCount = Number(latestRunsCount) - Number(runsCount);
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: runQueryParams
         }).then(runsResponse => {
           const newData = this._parseRunsResponseData(runsResponse.data, customColumns);
@@ -730,7 +735,7 @@ class RunsTable extends Component {
         isFetchingUpdates: true
       });
 
-      axios.get('/api/v1/Runs', {
+      backend.get('api/v1/Runs', {
         params: runQueryParams
       }).then(runsResponse => {
         let runsResponseData = runsResponse.data;
@@ -772,7 +777,7 @@ class RunsTable extends Component {
         isSelectLoading: {...prevState.isSelectLoading, [rowIndex]: true}
       };
     });
-    axios.put('/api/v1/Runs/' + id, {
+    backend.put('api/v1/Runs/' + id, {
       omniboard: {
         tags: tagValues
       }
@@ -803,7 +808,7 @@ class RunsTable extends Component {
   };
 
   updateNotes = (id, notes, rowIndex) => {
-    axios.put('/api/v1/Runs/' + id, {
+    backend.put('api/v1/Runs/' + id, {
       omniboard: {
         notes
       }
@@ -926,6 +931,7 @@ class RunsTable extends Component {
    * Add event listener
    */
   componentDidMount() {
+    setDbInfo(backend, this.props.dbInfo);
     this.resizeTable();
     window.addEventListener('resize', this.resizeTable);
     // Wait for LocalStorageMixin to setState
@@ -1097,10 +1103,12 @@ class RunsTable extends Component {
 
     const runId = this.state.sortedData.getObjectAt(rowIndex)[ID_COLUMN_KEY];
     const {status} = this.state.sortedData.getObjectAt(rowIndex);
+    const {dbInfo} = this.props;
+
     // Local storage key is used for synchronizing state of each drilldown view with local storage
-    const localStorageKey = `DrillDownView|${runId}`;
+    const localStorageKey = `${dbInfo.key}|DrillDownView|${runId}`;
     return (
-      <DrillDownView width={width} height={height} runId={runId} status={status} localStorageKey={localStorageKey}/>
+      <DrillDownView width={width} height={height} runId={runId} status={status} dbInfo={dbInfo} localStorageKey={localStorageKey}/>
     );
   };
 
@@ -1333,7 +1341,7 @@ class RunsTable extends Component {
         const value = inputValue && !isNaN(inputValue) ? inputValue : regex;
         const queryJson = {[filterColumnName]: {[operator]: value}};
         // Fetch autocomplete suggestions
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: {
             distinct: filterColumnName,
             query: JSON.stringify(queryJson)
@@ -1358,7 +1366,7 @@ class RunsTable extends Component {
             if (filterColumnName === 'config.tags' || filterColumnName === 'omniboard.tags') {
               const additionalColumn = filterColumnName === 'config.tags' ? 'omniboard.tags' : 'config.tags';
               const query = {[additionalColumn]: {[operator]: value}};
-              axios.get('/api/v1/Runs', {
+              backend.get('api/v1/Runs', {
                 params: {
                   distinct: additionalColumn,
                   query: JSON.stringify(query)
@@ -1444,7 +1452,7 @@ class RunsTable extends Component {
     e.stopPropagation();
 
     const buildChunksQuery = chunksQuery => {
-      return axios.delete('/api/v1/Fs.chunks/', {
+      return backend.delete('api/v1/Fs.chunks/', {
         params: {
           query: JSON.stringify({
             $or: chunksQuery
@@ -1454,7 +1462,7 @@ class RunsTable extends Component {
     };
 
     const buildFilesQuery = filesQuery => {
-      return axios.delete('/api/v1/Fs.files/', {
+      return backend.delete('api/v1/Fs.files/', {
         params: {
           query: JSON.stringify({
             $or: filesQuery
@@ -1472,12 +1480,12 @@ class RunsTable extends Component {
       experimentIds.forEach(experimentId => {
         if (experimentId && !isNaN(experimentId)) {
           axios.all([
-            axios.get('/api/v1/Runs/' + experimentId, {
+            backend.get('api/v1/Runs/' + experimentId, {
               params: {
                 select: 'artifacts,experiment.sources'
               }
             }),
-            axios.get('/api/v1/SourceFilesCount/' + experimentId)
+            backend.get('api/v1/SourceFilesCount/' + experimentId)
           ]).then(axios.spread(async (runsResponse, sourceFilesCountResponse) => {
             runsResponse = runsResponse.data;
             sourceFilesCountResponse = sourceFilesCountResponse.data;
@@ -1487,7 +1495,7 @@ class RunsTable extends Component {
             // from metrics collection associated with the given run id
             // without checking if metric rows are present or not.
             deleteApis.push(
-              axios.delete('/api/v1/Metrics/', {
+              backend.delete('api/v1/Metrics/', {
                 params: {
                   query: JSON.stringify({
                     run_id: experimentId
@@ -1527,7 +1535,7 @@ class RunsTable extends Component {
 
             // Delete run.
             deleteApis.push(
-              axios.delete('/api/v1/Runs/' + experimentId)
+              backend.delete('api/v1/Runs/' + experimentId)
             );
 
             await axios.all(deleteApis).then(axios.spread((...deleteResponses) => {
@@ -1607,10 +1615,10 @@ class RunsTable extends Component {
 
     return new Promise((resolve, reject) => {
       axios.all([
-        axios.get('/api/v1/Runs', {
+        backend.get('api/v1/Runs', {
           params: runQueryParams
         }),
-        axios.get('/api/v1/Runs/count', {
+        backend.get('api/v1/Runs/count', {
           params: {
             query: runQueryParams.query
           }
@@ -1638,7 +1646,7 @@ class RunsTable extends Component {
       lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount, selectedRows, selectAll,
       selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal, rowsToDelete,
       isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress} = this.state;
-    const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose} = this.props;
+    const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose, dbInfo} = this.props;
     const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
       sortedData.data = sortedData.getDataArray().map(row => {
@@ -1941,7 +1949,7 @@ class RunsTable extends Component {
         <SettingsModal show={showSettingsModal} handleClose={handleSettingsModalClose}
           handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
         <CompareRunsModal shouldShow={showCompareColumnsModal} handleClose={this._handleCompareColumnsModalClose}
-          runs={compareRuns}/>
+          runs={compareRuns} dbInfo={dbInfo}/>
         <DeleteRunsConfirmationModal handleClose={this._handleDeleteRunsModalClose}
           shouldShow={showDeleteConfirmationModal} runs={rowsToDelete} isDeleteInProgress={isDeleteInProgress}
           handleDelete={this._handleDeleteRuns(rowsToDelete)} progressPercent={deleteProgress}/>

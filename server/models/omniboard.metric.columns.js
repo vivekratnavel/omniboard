@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import {databaseConn} from '../config/database';
 
 const Schema = mongoose.Schema;
 mongoose.Promise = Promise;
@@ -12,4 +11,6 @@ export const OmniboardMetricColumnsSchema = new Schema({
   strict: false
 });
 
-export default databaseConn.model('omniboard.metric.columns', OmniboardMetricColumnsSchema);
+export default function (databaseConn) {
+  return databaseConn.model('omniboard.metric.columns', OmniboardMetricColumnsSchema);
+};

@@ -2,6 +2,13 @@
 
 exports[`SourceFilesView should render correctly 1`] = `
 <SourceFilesView
+  dbInfo={
+    Object {
+      "key": "default",
+      "name": "test_db",
+      "path": "test",
+    }
+  }
   files={
     Array [
       Object {
@@ -38,6 +45,13 @@ exports[`SourceFilesView should render correctly 1`] = `
 
 exports[`SourceFilesView should render correctly 2`] = `
 <SourceFilesView
+  dbInfo={
+    Object {
+      "key": "default",
+      "name": "test_db",
+      "path": "test",
+    }
+  }
   files={
     Array [
       Object {

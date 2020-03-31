@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import {databaseConn} from '../config/database';
 import {FilesSchema} from "./fs.files";
 
 const Schema = mongoose.Schema;
@@ -18,4 +17,6 @@ MetricsSchema.virtual('run', {
   foreignField: '_id'
 });
 
-export default databaseConn.model('metrics', MetricsSchema);
+export default function(databaseConn) {
+  return databaseConn.model('metrics', MetricsSchema);
+};

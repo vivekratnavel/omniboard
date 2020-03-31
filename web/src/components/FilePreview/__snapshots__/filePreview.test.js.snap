@@ -7,7 +7,7 @@ exports[`FilePreview should render correctly image files 1`] = `
   >
     <img
       alt="image"
-      src="/api/v1/files/download/4/output.png"
+      src="api/v1/files/download/4/output.png"
     />
   </ProgressWrapper>
 </div>
@@ -20,7 +20,7 @@ exports[`FilePreview should render correctly svg files 1`] = `
   >
     <img
       alt="image"
-      src="/api/v1/files/download/3/test.svg"
+      src="api/v1/files/download/3/test.svg"
     />
   </ProgressWrapper>
 </div>

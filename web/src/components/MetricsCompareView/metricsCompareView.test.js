@@ -38,7 +38,7 @@ describe('MetricsCompareView', () => {
     it('success', async () => {
       expect(mockAxios.get.mock.calls).toHaveLength(1);
 
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/Metrics', {params: {query: JSON.stringify({run_id: {$in: [1, 2, 3, 4]}}), populate: 'run'}}]);
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/Metrics', {params: {query: JSON.stringify({run_id: {$in: [1, 2, 3, 4]}}), populate: 'run'}}]);
       expect(wrapper.instance().state.isLoadingRuns).toBeTruthy();
       mockAxios.mockResponse({status: 200, data: responseData});
 

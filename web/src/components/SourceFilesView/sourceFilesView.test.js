@@ -8,6 +8,7 @@ describe('SourceFilesView', () => {
   let wrapper = null;
   const type = 'artifacts';
   const runId = 1;
+  const dbInfo = {key: 'default', name: 'test_db', path: 'test'};
   const files = [
     {
       name: '/src/hello_world.py',
@@ -35,7 +36,7 @@ describe('SourceFilesView', () => {
 
   beforeEach(() => {
     wrapper = mount(
-      <SourceFilesView files={files} runId={runId} type={type}/>
+      <SourceFilesView files={files} runId={runId} dbInfo={dbInfo} type={type}/>
     );
   });
 
@@ -124,7 +125,7 @@ describe('SourceFilesView', () => {
       wrapper.instance()._handleAccordionItemChange(fileId);
 
       expect(fetch.mock.calls).toHaveLength(1);
-      expect(fetch.mock.calls[0][0]).toEqual(`api/v1/files/preview/${fileId}`);
+      expect(fetch.mock.calls[0][0]).toEqual(`/test/api/v1/files/preview/${fileId}`);
 
       await tick();
 
@@ -135,7 +136,7 @@ describe('SourceFilesView', () => {
 
   it('should show warning message when there are no files', async () => {
     wrapper = shallow(
-      <SourceFilesView files={[]} runId={1} type='artifacts'/>
+      <SourceFilesView files={[]} runId={1} dbInfo={dbInfo} type='artifacts'/>
     );
 
     expect(wrapper.find('[test-attr="warn-alert"]')).toHaveLength(1);

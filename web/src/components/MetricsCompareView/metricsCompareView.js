@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import './metricsCompareView.scss';
-import axios from 'axios';
 import Multiselect from 'react-bootstrap-multiselect';
 import {Well, Alert} from 'react-bootstrap';
 import Select from 'react-select';
+import backend from '../Backend/backend';
 import {parseServerError} from '../Helpers/utils';
 import {MetricsPlotView} from '../MetricsPlotView/metricsPlotView';
 import {ProgressWrapper} from '../Helpers/hoc';
@@ -96,7 +96,7 @@ class MetricsCompareView extends Component {
           $in: runIds
         }
       });
-      axios.get('/api/v1/Metrics', {
+      backend.get('api/v1/Metrics', {
         params: {
           query: queryString,
           populate: 'run'

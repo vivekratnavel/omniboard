@@ -56,11 +56,12 @@ describe('CapturedOutCompareView', () => {
   const responseData3 = 'INFO - hello_config_3\nProgress: 20/100\nProgress: 74/100\n';
   const responseData4 = 'INFO - hello_config_4\nProgress: 30/100\nProgress: 54/100\n';
   const runIds = [1, 2, 3];
+  const dbInfo = {key: 'default', name: 'test_db', path: 'test'};
   toast.error = jest.fn();
 
   beforeEach(() => {
     wrapper = mount(
-      <SourceFilesCompareView isSelected runIds={runIds}/>
+      <SourceFilesCompareView isSelected runIds={runIds} dbInfo={dbInfo}/>
     );
   });
 
@@ -74,7 +75,7 @@ describe('CapturedOutCompareView', () => {
     it('success', async () => {
       expect(mockAxios.get.mock.calls).toHaveLength(1);
 
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/SourceFiles', {
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/SourceFiles', {
         params: {
           query: JSON.stringify({_id: {$in: [1, 2]}})
         }
@@ -87,7 +88,7 @@ describe('CapturedOutCompareView', () => {
       mockAxios.mockResponse({status: 200, data: responseData});
 
       expect(fetch.mock.calls).toHaveLength(4);
-      expect(fetch.mock.calls[3][0]).toEqual('api/v1/files/preview/4vdsgsfgsg');
+      expect(fetch.mock.calls[3][0]).toEqual('/test/api/v1/files/preview/4vdsgsfgsg');
       await tick();
       expect(wrapper.update()).toMatchSnapshot();
 
@@ -110,7 +111,7 @@ describe('CapturedOutCompareView', () => {
     wrapper.unmount();
     mockAxios.reset();
     wrapper = mount(
-      <SourceFilesCompareView isSelected runIds={[1]}/>
+      <SourceFilesCompareView isSelected runIds={[1]} dbInfo={dbInfo}/>
     );
     expect(wrapper.instance().state.runId1).toEqual('');
     expect(mockAxios.get.mock.calls).toHaveLength(0);
@@ -123,7 +124,7 @@ describe('CapturedOutCompareView', () => {
 
     expect(wrapper.instance().state.runId1).toEqual('3');
     expect(mockAxios.get.mock.calls).toHaveLength(1);
-    expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/SourceFiles', {
+    expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/SourceFiles', {
       params: {
         query: JSON.stringify({_id: {$in: [3, 2]}})
       }
@@ -142,7 +143,7 @@ describe('CapturedOutCompareView', () => {
 
       expect(wrapper.instance().state.runId2).toEqual('3');
       expect(mockAxios.get.mock.calls).toHaveLength(1);
-      expect(mockAxios.get.mock.calls[0]).toEqual(['/api/v1/SourceFiles', {
+      expect(mockAxios.get.mock.calls[0]).toEqual(['api/v1/SourceFiles', {
         params: {
           query: JSON.stringify({_id: {$in: [1, 3]}})
         }

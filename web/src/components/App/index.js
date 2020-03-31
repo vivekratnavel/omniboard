@@ -4,6 +4,7 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import {ToastContainer, toast} from 'react-toastify';
 import moment from 'moment-timezone';
+import backend, {setDbInfo} from '../Backend/backend';
 import {parseServerError} from '../Helpers/utils';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './style.scss';
@@ -16,11 +17,16 @@ import {
 } from '../../appConstants/app.constants';
 
 class App extends Component {
+  static propTypes = {
+    match: PropTypes.object
+  };
+
   constructor(props) {
     super(props);
     this.state = {
       showCustomColumnModal: false,
-      dbName: '',
+      otherDbs: [],
+      dbInfo: {},
       showSettingsModal: false,
       appVersion: ''
     };
@@ -87,7 +93,7 @@ class App extends Component {
   };
 
   _initializeSetting = (setting, value) => {
-    axios.post('/api/v1/Omniboard.Settings', {
+    backend.post('api/v1/Omniboard.Settings', {
       name: setting,
       value
     }).then(response => {
@@ -99,13 +105,20 @@ class App extends Component {
 
   _fetchData = () => {
     axios.all([
-      axios.get('/api/v1/database'),
-      axios.get('/api/v1/Omniboard.Settings'),
-      axios.get('/api/v1/Version')
-    ]).then(axios.spread((dbResponse, settingsResponse, versionResponse) => {
-      if (dbResponse && dbResponse.data && dbResponse.data.name) {
+      axios.get('/api/v1/databases'),
+      backend.get('api/v1/database'),
+      backend.get('api/v1/Omniboard.Settings'),
+      backend.get('api/v1/Version')
+    ]).then(axios.spread((allDbResponse, dbResponse, settingsResponse, versionResponse) => {
+      if (allDbResponse && allDbResponse.data) {
         this.setState({
-          dbName: dbResponse.data.name
+          otherDbs: allDbResponse.data
+        });
+      }
+
+      if (dbResponse && dbResponse.data) {
+        this.setState({
+          dbInfo: dbResponse.data
         });
       }
 
@@ -149,12 +162,18 @@ class App extends Component {
   };
 
   componentDidMount() {
+    const {match: {params}} = this.props;
+    setDbInfo(backend, {path: params.dbPath});
     this._fetchData();
   }
 
   render() {
-    const {showCustomColumnModal, showSettingsModal, dbName, appVersion} = this.state;
-    const localStorageKey = 'RunsTable|1';
+    const {showCustomColumnModal, showSettingsModal, dbInfo, otherDbs, appVersion} = this.state;
+    if (!dbInfo || !dbInfo.key) {
+      return <span>Loading app...</span>;
+    }
+
+    const localStorageKey = `${dbInfo.key}|RunsTable|1`;
     return (
       <div className='App'>
         <Navbar inverse fluid>
@@ -164,8 +183,10 @@ class App extends Component {
             </Navbar.Brand>
           </Navbar.Header>
           <Navbar.Collapse>
-            <Nav pullLeft>
-              <NavItem>({dbName})</NavItem>
+            <Nav pullLeft activeKey={dbInfo.key}>
+              {otherDbs.map(db => {
+                return <NavItem key={db.key} eventKey={db.key} href={db.path}>{db.key} ({db.name})</NavItem>;
+              })}
             </Nav>
             <Nav pullRight>
               <NavDropdown eventKey={1} title={<Glyphicon glyph='cog'/>} id='settings'>
@@ -186,7 +207,8 @@ class App extends Component {
         </Navbar>
         <div className='content'>
           <ToastContainer autoClose={false}/>
-          <RunsTable localStorageKey={localStorageKey} showCustomColumnModal={showCustomColumnModal}
+          <RunsTable dbInfo={dbInfo} localStorageKey={localStorageKey}
+            showCustomColumnModal={showCustomColumnModal}
             handleCustomColumnModalClose={this._handleCustomColumnModalClose}
             showSettingsModal={showSettingsModal}
             handleSettingsModalClose={this._handleSettingsModalClose}

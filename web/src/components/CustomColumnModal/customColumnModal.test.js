@@ -53,7 +53,7 @@ describe('CustomColumnModal', () => {
   it('should fetch config columns on mount', async () => {
     mockAxios.mockResponse({status: 200, data: responseData});
 
-    expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/Runs', {params: {distinct: 'config'}});
+    expect(mockAxios.get).toHaveBeenCalledWith('api/v1/Runs', {params: {distinct: 'config'}});
     expect(wrapper.state().isLoadingConfigs).toBeTruthy();
     mockAxios.mockResponse({status: 200, data: runsConfigResponse});
     mockAxios.mockResponse({status: 200, data: hostResponse});
@@ -316,6 +316,6 @@ describe('CustomColumnModal', () => {
 
     expect(wrapper.update().state().isLoadingColumns).toBeTruthy();
     expect(wrapper.state().isLoadingConfigs).toBeTruthy();
-    expect(mockAxios.get).toHaveBeenCalledWith('/api/v1/Runs', {params: {distinct: 'config'}});
+    expect(mockAxios.get).toHaveBeenCalledWith('api/v1/Runs', {params: {distinct: 'config'}});
   });
 });

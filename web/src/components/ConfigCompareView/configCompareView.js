@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import './configCompareView.scss';
-import axios from 'axios';
 import * as jsondiffpatch from 'jsondiffpatch';
 import 'jsondiffpatch/dist/formatters-styles/html.css';
 import renderHTML from 'react-render-html';
 import {toast} from 'react-toastify';
+import backend from '../Backend/backend';
 import {parseServerError} from '../Helpers/utils';
 import {SelectRunsToCompare} from '../SelectRunsToCompare/selectRunsToCompare';
 
@@ -65,7 +65,7 @@ class ConfigCompareView extends Component {
           $in: [runId1, runId2]
         }
       });
-      axios.get('/api/v1/Runs', {
+      backend.get('api/v1/Runs', {
         params: {
           query: queryString,
           select: '_id,config'

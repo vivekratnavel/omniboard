@@ -12,7 +12,11 @@ class CompareRunsModal extends PureComponent {
   static propTypes = {
     handleClose: PropTypes.func.isRequired,
     shouldShow: PropTypes.bool.isRequired,
-    runs: PropTypes.arrayOf(PropTypes.number).isRequired
+    runs: PropTypes.arrayOf(PropTypes.number).isRequired,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired
   };
 
   constructor(props) {
@@ -29,7 +33,7 @@ class CompareRunsModal extends PureComponent {
   };
 
   render() {
-    const {shouldShow, handleClose, runs} = this.props;
+    const {shouldShow, handleClose, runs, dbInfo} = this.props;
     const {selectedNavTab} = this.state;
     // When there are more than 5 runs selected, then the title should show up as [1, 2, 3, 4, 5, ...]
     const runIds = runs.length <= 5 ? runs.join(', ') : runs.slice(0, 5).join(', ') + ', ...';
@@ -57,7 +61,7 @@ class CompareRunsModal extends PureComponent {
         case DRILLDOWN_VIEW.SOURCE_FILES:
           content = (
             <div id={DRILLDOWN_VIEW.SOURCE_FILES}>
-              <SourceFilesCompareView runIds={runs} isSelected={selectedNavTab === DRILLDOWN_VIEW.SOURCE_FILES}/>
+              <SourceFilesCompareView dbInfo={dbInfo} runIds={runs} isSelected={selectedNavTab === DRILLDOWN_VIEW.SOURCE_FILES}/>
             </div>
           );
           break;

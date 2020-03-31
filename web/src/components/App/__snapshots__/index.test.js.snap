@@ -23,20 +23,13 @@ exports[`App component should render 1`] = `
     </NavbarHeader>
     <NavbarCollapse>
       <Nav
+        activeKey="default"
         bsClass="nav"
         justified={false}
         pullLeft={true}
         pullRight={false}
         stacked={false}
-      >
-        <NavItem
-          active={false}
-          disabled={false}
-        >
-          (
-          )
-        </NavItem>
-      </Nav>
+      />
       <Nav
         bsClass="nav"
         justified={false}
@@ -127,9 +120,15 @@ exports[`App component should render 1`] = `
       transition={[Function]}
     />
     <RunsTable
+      dbInfo={
+        Object {
+          "key": "default",
+          "name": "test_db",
+        }
+      }
       handleCustomColumnModalClose={[Function]}
       handleSettingsModalClose={[Function]}
-      localStorageKey="RunsTable|1"
+      localStorageKey="default|RunsTable|1"
       showCustomColumnModal={false}
       showSettingsModal={false}
       stateFilterKeys={
