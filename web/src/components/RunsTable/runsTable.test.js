@@ -142,9 +142,8 @@ describe('RunsTable', () => {
       await initialRequestResponse();
       wrapper.update().find('[test-attr="cell-row_selection-0"]').simulate('click');
       wrapper.find('#delete_runs').at(1).simulate('click');
-      // Should not open modal when only one row is selected
-      expect(wrapper.update().state().showDeleteConfirmationModal).toBeFalsy();
-      expect(wrapper.update().state().isDeleteButtonDisabled).toBeTruthy();
+      expect(wrapper.update().state().showDeleteConfirmationModal).toBeTruthy();
+      expect(wrapper.update().state().isDeleteButtonDisabled).toBeFalsy();
 
       wrapper.update().find('[test-attr="cell-row_selection-1"]').simulate('click');
       wrapper.find('#delete_runs').at(1).simulate('click');
