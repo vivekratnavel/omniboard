@@ -54,7 +54,7 @@
     "react-accessible-accordion": "^2.4.4",
     "react-bootstrap": "^0.31.5",
     "react-bootstrap-multiselect": "^2.4.1",
-    "react-dev-utils": "^4.2.1",
+    "react-dev-utils": "^10.2.1",
     "react-diff-viewer": "^2.0.1",
     "react-dom": "^16.8.6",
     "react-hot-loader": "^4.8.3",
