@@ -17,7 +17,7 @@ for (const section in sections) {
     console.error(`Error: path for key ${key} is not absolute, prepending a slash...`);
     config[key].path = '/' + config[key].path;
   }
-  if (config[key].path == '/') {
+  if (config[key].path === '/') {
     throw `Fatal: cannot use root path for key ${key}, fix your database config.`;
   }
   allDatabases.push({
