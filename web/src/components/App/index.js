@@ -17,10 +17,6 @@ import {
 } from '../../appConstants/app.constants';
 
 class App extends Component {
-  static propTypes = {
-    match: PropTypes.object
-  };
-
   constructor(props) {
     super(props);
     this.state = {
@@ -33,6 +29,7 @@ class App extends Component {
   }
 
   static propTypes = {
+    match: PropTypes.object,
     location: PropTypes.shape({
       search: PropTypes.string
     }),

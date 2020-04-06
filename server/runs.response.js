@@ -22,6 +22,25 @@ const getAllColumnsFromQuery = (query) => {
   return columns;
 };
 
+/**
+ * Check if array includes any parent of the key
+ * Ex: array(config.path)
+ * key: config.path.path1 -> true
+ * key: config.path.path1.path2 -> true.
+ *
+ * @param array
+ * @param key
+ * @return boolean if given array includes any parent of key.
+ */
+const deepIncludes = (array, key) => {
+  const keyArray = key.split('.');
+  let keyToCheck;
+  return keyArray.some(subKey => {
+    keyToCheck = keyToCheck ? `${keyToCheck}.${subKey}` : subKey;
+    return array.includes(keyToCheck);
+  });
+};
+
 export default function (databaseConn) {
   return {
     getRunsResponse(req, res, next, id = null, isCount = false) {
@@ -87,7 +106,9 @@ export default function (databaseConn) {
             columnsWithFilters.forEach(column => {
               // Only if there is some projection, we need to add required columns
               // to projection. If not, by default all columns will be available.
-              if (selectArray.length > 0 && !selectArray.includes(column)) {
+              // Also, check if none of the parent projections are already included.
+              // Ex: config.train.batch_size filter while config.train is already part of the projection. (#205)
+              if (selectArray.length > 0 && !deepIncludes(selectArray, column)) {
                 projection[column] = 1;
                 projectionsToRemove.$project[column] = 0;
               }
@@ -247,77 +268,77 @@ export default function (databaseConn) {
             });
 
             aggregatePipeline.push({
-              "$addFields": {
-                // $lookup returns an array. In this case, it will never return more than one element
-                // in the array. So, take the first element.
-                "metrics": {
-                  "$arrayElemAt": [
-                    "$metrics",
-                    0
-                  ]
+                "$addFields": {
+                  // $lookup returns an array. In this case, it will never return more than one element
+                  // in the array. So, take the first element.
+                  "metrics": {
+                    "$arrayElemAt": [
+                      "$metrics",
+                      0
+                    ]
+                  }
                 }
-              }
-            },
-                                   {
-                                     "$group": {
-                                       "_id": "$_id",
-                                       "metrics": {
-                                         "$push": {
-                                           "$let": {
-                                             "vars": {
-                                               "metric_name": {
-                                                 // Replace dots in metric names to "_"
-                                                 // Since mongodb doesn't support dot notation in field names
-                                                 "$reduce": {
-                                                   "input": {"$split": ["$metrics.name", "."]},
-                                                   "initialValue": "",
-                                                   "in": {
-                                                     "$concat": [
-                                                       "$$value",
-                                                       {"$cond": [{"$eq": ["$$value", ""]}, "", "_"]},
-                                                       "$$this"]
-                                                   }
-                                                 }
-                                               }
-                                             },
-                                             "in": {
-                                               "$cond": [
-                                                 {
-                                                   "$gt": [
-                                                     "$metrics",
-                                                     null
-                                                   ]
-                                                 },
-                                                 {
-                                                   "k": "$$metric_name",
-                                                   "v": "$metrics"
-                                                 },
-                                                 {
-                                                   "k": "empty",
-                                                   "v": ""
-                                                 }
-                                               ]
-                                             }
-                                           }
-                                         }
-                                       },
-                                       "runs": {
-                                         "$first": "$$ROOT"
-                                       }
-                                     }
-                                   },
-                                   {
-                                     "$addFields": {
-                                       "runs.metrics": {
-                                         "$arrayToObject": "$metrics"
-                                       }
-                                     }
-                                   },
-                                   {
-                                     "$replaceRoot": {
-                                       "newRoot": "$runs"
-                                     }
-                                   });
+              },
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "metrics": {
+                    "$push": {
+                      "$let": {
+                        "vars": {
+                          "metric_name": {
+                            // Replace dots in metric names to "_"
+                            // Since mongodb doesn't support dot notation in field names
+                            "$reduce": {
+                              "input": {"$split": ["$metrics.name", "."]},
+                              "initialValue": "",
+                              "in": {
+                                "$concat": [
+                                  "$$value",
+                                  {"$cond": [{"$eq": ["$$value", ""]}, "", "_"]},
+                                  "$$this"]
+                              }
+                            }
+                          }
+                        },
+                        "in": {
+                          "$cond": [
+                            {
+                              "$gt": [
+                                "$metrics",
+                                null
+                              ]
+                            },
+                            {
+                              "k": "$$metric_name",
+                              "v": "$metrics"
+                            },
+                            {
+                              "k": "empty",
+                              "v": ""
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "runs": {
+                    "$first": "$$ROOT"
+                  }
+                }
+              },
+              {
+                "$addFields": {
+                  "runs.metrics": {
+                    "$arrayToObject": "$metrics"
+                  }
+                }
+              },
+              {
+                "$replaceRoot": {
+                  "newRoot": "$runs"
+                }
+              });
 
             // Remove metrics column from runs
             aggregatePipeline.push({
