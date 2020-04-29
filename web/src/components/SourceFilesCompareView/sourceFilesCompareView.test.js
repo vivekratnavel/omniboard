@@ -56,7 +56,7 @@ describe('CapturedOutCompareView', () => {
   const responseData3 = 'INFO - hello_config_3\nProgress: 20/100\nProgress: 74/100\n';
   const responseData4 = 'INFO - hello_config_4\nProgress: 30/100\nProgress: 54/100\n';
   const runIds = [1, 2, 3];
-  const dbInfo = {key: 'default', name: 'test_db', path: 'test'};
+  const dbInfo = {key: 'default', name: 'test_db', path: '/test'};
   toast.error = jest.fn();
 
   beforeEach(() => {

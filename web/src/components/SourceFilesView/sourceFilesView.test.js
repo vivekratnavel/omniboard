@@ -8,7 +8,7 @@ describe('SourceFilesView', () => {
   let wrapper = null;
   const type = 'artifacts';
   const runId = 1;
-  const dbInfo = {key: 'default', name: 'test_db', path: 'test'};
+  const dbInfo = {key: 'default', name: 'test_db', path: '/test'};
   const files = [
     {
       name: '/src/hello_world.py',

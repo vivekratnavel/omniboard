@@ -6,7 +6,7 @@ exports[`CapturedOutCompareView should load data success 1`] = `
     Object {
       "key": "default",
       "name": "test_db",
-      "path": "test",
+      "path": "/test",
     }
   }
   isSelected={true}
@@ -2539,7 +2539,7 @@ exports[`CapturedOutCompareView should load data success 2`] = `
     Object {
       "key": "default",
       "name": "test_db",
-      "path": "test",
+      "path": "/test",
     }
   }
   isSelected={true}

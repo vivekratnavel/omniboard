@@ -28,11 +28,15 @@ class FilePreview extends PureComponent {
     sourceFiles: PropTypes.object.isRequired,
     fileId: PropTypes.string.isRequired,
     isLoading: PropTypes.bool.isRequired,
-    errorMessage: PropTypes.string
+    errorMessage: PropTypes.string,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired
   };
 
   render() {
-    const {fileName, sourceFiles, fileId, errorMessage, isLoading} = this.props;
+    const {fileName, sourceFiles, fileId, errorMessage, isLoading, dbInfo} = this.props;
     const extension = getFileExtension(fileName);
     const fileInfo = sourceFiles[fileId];
     const isFileTooLarge = fileInfo && fileInfo.fileLength && fileInfo.fileLength > FILE_PREVIEW_LIMIT;
@@ -43,7 +47,8 @@ class FilePreview extends PureComponent {
       }
 
       if (imageExtensions.includes(extension) && fileId) {
-        const imgSource = `api/v1/files/download/${fileId}/${fileName}`;
+        const pathPrefix = dbInfo.path ? `${dbInfo.path}/` : '';
+        const imgSource = `${pathPrefix}api/v1/files/download/${fileId}/${fileName}`;
         return (<img src={imgSource} alt='image'/>);
       }
 

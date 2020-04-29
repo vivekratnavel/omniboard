@@ -223,7 +223,7 @@ class SourceFilesView extends Component {
             </div>
           </div>
           <FilePreview fileName={file.name} fileId={file.file_id} sourceFiles={sourceFiles}
-            isLoading={isAccordionDataLoading} errorMessage={accordionError}/>
+            isLoading={isAccordionDataLoading} errorMessage={accordionError} dbInfo={this.props.dbInfo}/>
         </AccordionItemBody>
       </AccordionItem>
     );

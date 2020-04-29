@@ -23,9 +23,11 @@ describe('FilePreview', () => {
     }
   };
 
+  const dbInfo = {key: 'test', name: 'sacred', path: '/db1'};
+
   beforeEach(() => {
     wrapper = shallow(
-      <FilePreview fileId='1' fileName='hello_world.py' sourceFiles={sourceFiles} isLoading={false}/>
+      <FilePreview fileId='1' fileName='hello_world.py' sourceFiles={sourceFiles} isLoading={false} dbInfo={dbInfo}/>
     );
   });
 
@@ -36,7 +38,7 @@ describe('FilePreview', () => {
 
     it('svg files', () => {
       wrapper = shallow(
-        <FilePreview fileId='3' fileName='test.svg' sourceFiles={sourceFiles} isLoading={false}/>
+        <FilePreview fileId='3' fileName='test.svg' sourceFiles={sourceFiles} isLoading={false} dbInfo={dbInfo}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -44,7 +46,7 @@ describe('FilePreview', () => {
 
     it('image files', () => {
       wrapper = shallow(
-        <FilePreview fileId='4' fileName='output.png' sourceFiles={sourceFiles} isLoading={false}/>
+        <FilePreview fileId='4' fileName='output.png' sourceFiles={sourceFiles} isLoading={false} dbInfo={dbInfo}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -52,7 +54,7 @@ describe('FilePreview', () => {
 
     it('when file size is too large', () => {
       wrapper = shallow(
-        <FilePreview fileId='5' fileName='out.txt' sourceFiles={sourceFiles} isLoading={false}/>
+        <FilePreview fileId='5' fileName='out.txt' sourceFiles={sourceFiles} isLoading={false} dbInfo={dbInfo}/>
       );
 
       expect(wrapper).toMatchSnapshot();
@@ -60,7 +62,7 @@ describe('FilePreview', () => {
 
     it('when there is error', () => {
       wrapper = shallow(
-        <FilePreview fileId='6' fileName='out.txt' sourceFiles={sourceFiles} errorMessage='error' isLoading={false}/>
+        <FilePreview fileId='6' fileName='out.txt' sourceFiles={sourceFiles} errorMessage='error' isLoading={false} dbInfo={dbInfo}/>
       );
 
       expect(wrapper).toMatchSnapshot();
