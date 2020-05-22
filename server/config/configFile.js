@@ -10,7 +10,6 @@ if (process.env.OMNIBOARD_CONFIG) {
   const defaultDatabase = 'sacred';
   let mongodbURI = '';
 
-  console.log(argv);
   if ('m' in argv) {
     if (argv['m'] && argv['m'].indexOf(':')) {
       // Parse argument in format -m host:port:database
