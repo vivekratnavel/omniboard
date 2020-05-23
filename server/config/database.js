@@ -35,7 +35,7 @@ const createConnection = function(mongodbURI, mongoOptions) {
           // But we still need this empty catch to avoid unhandled rejections.
         }, mongoOptions.reconnectInterval);
       } else {
-        console.log(`Failed to establish connection to ${mongodbURI} after ${mongoOptions.reconnectTries} retries. Exiting now...`);
+        console.log(`Failed to establish connection to "${db.name}" database at mongodb://${db.host}:${db.port} after ${mongoOptions.reconnectTries} retries. Exiting now...`);
         process.exit(1);
       }
   });
@@ -51,7 +51,7 @@ export default function (mongodbURI) {
   };
 
   db.once('open', function() {
-    console.log(`Connection to ${mongodbURI} established successfully!`);
+    console.log(`Connection to ${db.name} at mongodb://${db.host}:${db.port} established successfully!`);
     dbExport.gfs = Grid(db.db, mongoose.mongo);
   });
 
