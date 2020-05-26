@@ -44,6 +44,7 @@ const STATUS_COLUMN_KEY = 'status';
 const START_TIME_KEY = 'start_time';
 const STOP_TIME_KEY = 'stop_time';
 const HEARTBEAT_KEY = 'heartbeat';
+const CONFIG_PREFIX = 'c_';
 const OPERATOR = {
   EQUALS: '$eq',
   NOT_EQUALS: '$ne',
@@ -193,7 +194,10 @@ class RunsTable extends Component {
 
   _getColumnNameMap = (configs, rootName) => {
     return Object.keys(configs).reduce((configMap, conf) => {
-      configMap[conf] = `${rootName}.${conf}`;
+      // Remove the config prefix if present in value to get the correct mapping
+      const confValue = conf.startsWith(CONFIG_PREFIX) ? conf.slice(CONFIG_PREFIX.length) : conf;
+
+      configMap[conf] = `${rootName}.${confValue}`;
       return configMap;
     }, {});
   };
@@ -371,9 +375,14 @@ class RunsTable extends Component {
     const parsedRuns = runsResponseData.map(data => {
       if ('config' in data) {
         const {config} = data;
+        // Add a prefix to config keys to avoid polluting the keys in root namespace
+        const prefixedConfig = Object.keys(config).reduce((prevValue, currentValue) => {
+          prevValue[`${CONFIG_PREFIX}${currentValue}`] = config[currentValue];
+          return prevValue;
+        }, {});
         // Expand each key of config column as individual columns
-        data = {...data, ...config};
-        const configNameMap = this._getColumnNameMap(config, 'config');
+        data = {...data, ...prefixedConfig};
+        const configNameMap = this._getColumnNameMap(prefixedConfig, 'config');
         columnNameMap = {...columnNameMap, ...configNameMap};
       }
 
@@ -417,10 +426,13 @@ class RunsTable extends Component {
       }
 
       // Convert config.tags into array
-      if ('tags' in data) {
-        const {tags} = data;
+      const tagsKey = `${CONFIG_PREFIX}tags`;
+      if (tagsKey in data) {
+        const tags = data[tagsKey];
         if (typeof tags === 'string' && tags.length > 0) {
           data.tags = tags.split(',');
+        } else if (Array.isArray(tags)) {
+          data.tags = tags;
         }
       }
 

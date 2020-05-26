@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import yargs from 'yargs';
 import Grid from 'gridfs-stream';
 
 const mongoOptions = {
