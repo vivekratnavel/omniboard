@@ -286,7 +286,7 @@ export default function (db, configKey, uriPath, runsCollectionName, metricsColl
     }
   });
 
-  router.get('/api/v1/files/preview/:fileId', function (req, res, next) {
+  router.get('/api/v1/files/preview/:fileId/:fileName?', function (req, res, next) {
     // Read file as stream from Mongo GridFS
     const readStream = db.gfs.createReadStream({
       _id: req.params.fileId
@@ -296,6 +296,11 @@ export default function (db, configKey, uriPath, runsCollectionName, metricsColl
       console.error('An error occurred: ', err);
       throw err;
     });
+
+    const fileName = req.params.fileName;
+    if (fileName) {
+      res.contentType(fileName);
+    }
 
     // Pipe the file stream to http response
     readStream.pipe(res);

@@ -58,6 +58,7 @@
     "react-diff-viewer": "^2.0.1",
     "react-dom": "^16.8.6",
     "react-hot-loader": "^4.8.3",
+    "react-iframe": "^1.8.0",
     "react-json-view": "^1.16.0",
     "react-list": "^0.8.11",
     "react-localstorage": "^0.3.1",
