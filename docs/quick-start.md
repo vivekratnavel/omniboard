@@ -40,11 +40,15 @@ To connect to multiple sacred databases, create a database configuration file, s
 {
     "db1": {
       "mongodbURI": "mongodb://my-username:my-password@my-cluster/sacred_db1",
-      "path": "/db1"
+      "path": "/db1",
+      "runsCollectionName": "runs", // optional
+      "metricsCollectionName": "metrics" // optional
     },
     "db2": {
       "mongodbURI": "mongodb://my-username:my-password@my-cluster/sacred_db2",
-      "path": "/db2"
+      "path": "/db2",
+      "runsCollectionName": "runs", // optional
+      "metricsCollectionName": "metrics" // optional
     }
 }
 ```

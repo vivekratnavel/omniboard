@@ -17,7 +17,7 @@ import makeGetRunsResponse from './runs.response';
 import makeSourceFilesResponse from './sourceFiles.response';
 
 
-export default function (db, configKey, uriPath) {
+export default function (db, configKey, uriPath, runsCollectionName, metricsCollectionName) {
   const databaseConn = db.connection;
   const gfs = db.gfs;
   const app = express();
@@ -79,7 +79,7 @@ export default function (db, configKey, uriPath) {
     next();
   });
 
-  restify.serve(router, MetricsModel(databaseConn));
+  restify.serve(router, MetricsModel(databaseConn, metricsCollectionName));
   restify.serve(router, OmniboardMetricColumnsModel(databaseConn));
   restify.serve(router, OmniboardCustomColumnsModel(databaseConn));
   restify.serve(router, OmniboardSettingsModel(databaseConn));
@@ -87,8 +87,8 @@ export default function (db, configKey, uriPath) {
   restify.serve(router, ChunksModel(databaseConn));
   app.use(router);
 
-  const {getRunsResponse} = makeGetRunsResponse(databaseConn);
-  const {getSourceFilesCountResponse, getSourceFilesResponse} = makeSourceFilesResponse(databaseConn);
+  const {getRunsResponse} = makeGetRunsResponse(databaseConn, runsCollectionName);
+  const {getSourceFilesCountResponse, getSourceFilesResponse} = makeSourceFilesResponse(databaseConn, runsCollectionName);
 
   router.get('/api/v1/files/:id', function (req, res) {
     FilesModel(databaseConn).findById(req.params.id).populate('chunk').exec(function (err, result) {
@@ -112,7 +112,7 @@ export default function (db, configKey, uriPath) {
     if (req.query.query) {
       getRunsResponse(req, res, next, null, true);
     } else {
-      RunsModel(databaseConn).estimatedDocumentCount({}, function(err, count) {
+      RunsModel(databaseConn, runsCollectionName).estimatedDocumentCount({}, function(err, count) {
         if (err) return next(err);
         res.json({count});
       });
@@ -175,7 +175,7 @@ export default function (db, configKey, uriPath) {
 
     const update = moredots(depopulate(req.body));
 
-    RunsModel(databaseConn).findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
+    RunsModel(databaseConn, runsCollectionName).findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
       if (err) {
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
@@ -187,7 +187,7 @@ export default function (db, configKey, uriPath) {
   });
 
   router.delete('/api/v1/Runs/:id', function(req, res, next) {
-    RunsModel(databaseConn).findOneAndDelete({_id: req.params.id}, function(err, doc) {
+    RunsModel(databaseConn, runsCollectionName).findOneAndDelete({_id: req.params.id}, function(err, doc) {
       if (err) {
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
@@ -233,7 +233,7 @@ export default function (db, configKey, uriPath) {
     if (!allowedTypes.includes(fileType)) {
       res.status(400).json({message: 'Error: Invalid input for fileType.'});
     } else {
-      RunsModel(databaseConn).findById(req.params.runId).exec(function(err, result) {
+      RunsModel(databaseConn, runsCollectionName).findById(req.params.runId).exec(function(err, result) {
         if (err) return next(err);
         let files = [];
         if (fileType === FILE_TYPE.SOURCE_FILES) {

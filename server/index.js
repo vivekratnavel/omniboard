@@ -14,6 +14,8 @@ for (const section in sections) {
   const key = sections[section];
   const database = db(config[key].mongodbURI);
   let path = config[key].path;
+  const runsCollectionName = "runsCollectionName" in config[key] ? config[key]["runsCollectionName"] : 'runs';
+  const metricsCollectionName = "metricsCollectionName" in config[key] ? config[key]["metricsCollectionName"] : 'metrics';
   if (!path.startsWith('/')) {
     console.error(`Error: path for key ${key} is not absolute, prepending a slash...`);
     path = '/' + path;
@@ -25,7 +27,7 @@ for (const section in sections) {
     key,
     path,
     "name": database.connection.name});
-  app.use(config[key].path, subApp(database, key, path));
+  app.use(config[key].path, subApp(database, key, path, runsCollectionName, metricsCollectionName));
 }
 
 app.get("/api/v1/databases", function (req, res) {

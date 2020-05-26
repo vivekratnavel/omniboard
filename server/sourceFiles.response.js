@@ -1,6 +1,6 @@
 import RunsModel from "./models/runs";
 
-export default function (databaseConn) {
+export default function (databaseConn, runsCollectionName) {
   return {
     getSourceFilesResponse(req, res, next) {
       const limit = req.query.limit; // Set default limit to 200
@@ -92,7 +92,7 @@ export default function (databaseConn) {
         }
       });
 
-      const query = RunsModel(databaseConn).aggregate(
+      const query = RunsModel(databaseConn, runsCollectionName).aggregate(
         aggregatePipeline
       ).allowDiskUse(true);
 
@@ -163,7 +163,7 @@ export default function (databaseConn) {
         }
       }];
 
-      const query = RunsModel(databaseConn).aggregate(
+      const query = RunsModel(databaseConn, runsCollectionName).aggregate(
         aggregatePipeline
       ).allowDiskUse(true);
 

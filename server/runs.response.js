@@ -41,7 +41,7 @@ const deepIncludes = (array, key) => {
   });
 };
 
-export default function (databaseConn) {
+export default function (databaseConn, runsCollectionName) {
   return {
     getRunsResponse(req, res, next, id = null, isCount = false) {
       const limit = req.query.limit || 200; // Set default limit to 200
@@ -62,7 +62,7 @@ export default function (databaseConn) {
       }
 
       if (distinct) {
-        RunsModel(databaseConn).distinct(distinct, function (err, result) {
+        RunsModel(databaseConn, runsCollectionName).distinct(distinct, function (err, result) {
           if (err) return next(err);
           res.status(200).send(result);
         });
@@ -441,7 +441,7 @@ export default function (databaseConn) {
             }
           }
 
-          const query = RunsModel(databaseConn).aggregate(
+          const query = RunsModel(databaseConn, runsCollectionName).aggregate(
             aggregatePipeline
           ).allowDiskUse(true);
 

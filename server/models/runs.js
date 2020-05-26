@@ -28,6 +28,6 @@ RunsSchema.virtual('metrics', {
   foreignField: 'run_id'
 });
 
-export default function (databaseConn) {
-  return databaseConn.model('runs', RunsSchema);
+export default function (databaseConn, runsCollectionName) {
+  return databaseConn.model(runsCollectionName, RunsSchema);
 };
