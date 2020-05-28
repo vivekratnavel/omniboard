@@ -3,11 +3,61 @@
 exports[`MetricsPlotView should render correctly 1`] = `
 <MetricsPlotView
   localStorageKey="metricsPlot|222"
+  metricLabels={
+    Array [
+      "_id",
+      "experiment.name",
+    ]
+  }
   metricsResponse={
     Array [
       Object {
         "_id": "5a2b5a8c9c7a505a652f6127",
         "name": "pretrain.train.loss",
+        "run": Array [
+          Object {
+            "_id": 222,
+            "config": Object {
+              "message": "Hello world!",
+              "recipient": "world",
+              "seed": 797676031,
+              "tags": Array [
+                "test1",
+                "test2",
+              ],
+              "train": Object {
+                "batch_size": 50,
+                "epochs": 68,
+                "lr": 0.01,
+                "settings": Object {
+                  "epochs": 43,
+                },
+              },
+            },
+            "experiment": Object {
+              "base_dir": "/Users/Documents/sacred_experiment",
+              "dependencies": Array [
+                "CairoSVG==2.4.1",
+                "sacred==0.7.5",
+                "svgwrite==1.3.1",
+              ],
+              "mainfile": "hello2.py",
+              "name": "hello_config",
+              "repositories": Array [],
+            },
+            "host": Object {
+              "ENV": Object {},
+              "cpu": "AMD Ryzen 5",
+              "hostname": "imac.lan",
+              "os": Array [
+                "Darwin",
+              ],
+              "python_version": "3.7.7",
+            },
+            "info": Object {},
+            "status": "COMPLETED",
+          },
+        ],
         "run_id": 222,
         "steps": Array [
           0,
@@ -34,6 +84,50 @@ exports[`MetricsPlotView should render correctly 1`] = `
       Object {
         "_id": "5a2b5aa09c7a505a652f6146",
         "name": "pretrain.val.loss",
+        "run": Array [
+          Object {
+            "_id": 223,
+            "config": Object {
+              "message": "Hello world!",
+              "recipient": "world",
+              "seed": 797676031,
+              "tags": Array [
+                "test1",
+                "test2",
+              ],
+              "train": Object {
+                "batch_size": 50,
+                "epochs": 68,
+                "lr": 0.01,
+                "settings": Object {
+                  "epochs": 43,
+                },
+              },
+            },
+            "experiment": Object {
+              "base_dir": "/Users/Documents/sacred_experiment",
+              "dependencies": Array [
+                "CairoSVG==2.4.1",
+                "sacred==0.7.5",
+                "svgwrite==1.3.1",
+              ],
+              "mainfile": "hello2.py",
+              "name": "hello_config",
+              "repositories": Array [],
+            },
+            "host": Object {
+              "ENV": Object {},
+              "cpu": "AMD Ryzen 5",
+              "hostname": "imac.lan",
+              "os": Array [
+                "Darwin",
+              ],
+              "python_version": "3.7.7",
+            },
+            "info": Object {},
+            "status": "COMPLETED",
+          },
+        ],
         "run_id": 223,
         "steps": Array [
           0,
@@ -803,7 +897,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 "color": "#1f77b4",
               },
               "mode": "lines+points",
-              "name": "222.pretrain.train.loss.unsmoothed",
+              "name": "222-hello_config-pretrain.train.loss.unsmoothed",
               "opacity": 0.2,
               "showlegend": false,
               "type": "scatter",
@@ -827,7 +921,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 "color": "#1f77b4",
               },
               "mode": "lines+points",
-              "name": "222.pretrain.train.loss",
+              "name": "222-hello_config-pretrain.train.loss",
               "opacity": 1,
               "type": "scatter",
               "x": Array [
@@ -851,7 +945,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 "color": "#2ca02c",
               },
               "mode": "lines+points",
-              "name": "223.pretrain.val.loss.unsmoothed",
+              "name": "223-hello_config-pretrain.val.loss.unsmoothed",
               "opacity": 0.2,
               "showlegend": false,
               "type": "scatter",
@@ -875,7 +969,7 @@ exports[`MetricsPlotView should render correctly 1`] = `
                 "color": "#2ca02c",
               },
               "mode": "lines+points",
-              "name": "223.pretrain.val.loss",
+              "name": "223-hello_config-pretrain.val.loss",
               "opacity": 1,
               "type": "scatter",
               "x": Array [

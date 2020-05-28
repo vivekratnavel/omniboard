@@ -6,7 +6,7 @@ import axios from 'axios';
 import CreatableSelect from 'react-select/lib/Creatable';
 import backend from '../Backend/backend';
 import {ProgressWrapper} from '../Helpers/hoc';
-import {parseServerError} from '../Helpers/utils';
+import {parseServerError, getAllPaths} from '../Helpers/utils';
 
 class CustomColumnModal extends PureComponent {
   static propTypes = {
@@ -230,25 +230,6 @@ class CustomColumnModal extends PureComponent {
     this.setState({
       isLoadingConfigs: true
     });
-    const getAllPaths = (prefix, data) => {
-      return Object.keys(data).reduce((paths, key) => {
-        paths = [...paths, `${prefix}.${key}`];
-        if (typeof data[key] === 'object' && !Array.isArray(data[key]) && data[key]) {
-          const newPaths = Object.keys(data[key]).reduce((acc, item) => {
-            if (typeof data[key][item] !== 'object' && data[key][item]) {
-              const path = prefix ? `${prefix}.${key}.${item}` : `${key}.${item}`;
-              acc.push(path);
-            }
-
-            return acc;
-          }, []);
-          const recursivePaths = getAllPaths(`${prefix}.${key}`, data[key]);
-          return [...paths, ...recursivePaths, ...newPaths];
-        }
-
-        return paths;
-      }, []);
-    };
 
     axios.all([
       backend.get('api/v1/Runs', {

@@ -67,6 +67,14 @@ describe('FilePreview', () => {
 
       expect(wrapper).toMatchSnapshot();
     });
+
+    it('html files', () => {
+      wrapper = shallow(
+        <FilePreview fileId='7' fileName='output.html' sourceFiles={sourceFiles} isLoading={false} dbInfo={dbInfo}/>
+      );
+
+      expect(wrapper).toMatchSnapshot();
+    });
   });
 
   it('should map language from filename correctly', () => {

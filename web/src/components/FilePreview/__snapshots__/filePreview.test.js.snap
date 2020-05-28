@@ -1,5 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`FilePreview should render correctly html files 1`] = `
+<div>
+  <ProgressWrapper
+    loading={false}
+  >
+    <Iframe
+      height="1000px"
+      url="/db1/api/v1/files/preview/7/output.html"
+      width="100%"
+    />
+  </ProgressWrapper>
+</div>
+`;
+
 exports[`FilePreview should render correctly image files 1`] = `
 <div>
   <ProgressWrapper

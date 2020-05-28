@@ -10,15 +10,18 @@ describe('MetricsPlotView', () => {
   const metricsResponseData = [
     {_id: '5a2b5a8c9c7a505a652f6127', name: 'pretrain.train.loss', run_id: 222, steps: [0, 1, 2, 3, 4],
       values: [0.7159541824544438, 0.3840367944955761, 0.3469185283233073, 0.30483262065173106, 0.28915774130337507],
-      timestamps: ['2017-12-09T03:37:44.425Z', '2017-12-09T03:41:54.414Z', '2017-12-09T03:46:01.766Z', '2017-12-09T03:50:07.365Z', '2017-12-09T03:54:12.560Z']},
+      timestamps: ['2017-12-09T03:37:44.425Z', '2017-12-09T03:41:54.414Z', '2017-12-09T03:46:01.766Z', '2017-12-09T03:50:07.365Z', '2017-12-09T03:54:12.560Z'],
+      run: [{_id: 222, experiment: {name: 'hello_config', base_dir: '/Users/Documents/sacred_experiment', dependencies: ['CairoSVG==2.4.1', 'sacred==0.7.5', 'svgwrite==1.3.1'], repositories: [], mainfile: 'hello2.py'}, host: {hostname: 'imac.lan', os: ['Darwin'], python_version: '3.7.7', cpu: 'AMD Ryzen 5', ENV: {}}, config: {message: 'Hello world!', recipient: 'world', seed: 797676031, tags: ['test1', 'test2'], train: {batch_size: 50, epochs: 68, lr: 0.01, settings: {epochs: 43}}}, status: 'COMPLETED', info: {}}]},
     {_id: '5a2b5aa09c7a505a652f6146', name: 'pretrain.val.loss', run_id: 223, steps: [0, 1, 2, 3, 4],
       values: [0.32177006650114165, 0.23237958704995795, 0.23340759051386187, 0.21925230575196739, 0.20541178824900605],
-      timestamps: ['2017-12-09T03:38:01.945Z', '2017-12-09T03:42:11.673Z', '2017-12-09T03:46:18.843Z', '2017-12-09T03:50:24.377Z', '2017-12-09T03:54:29.752Z']}
+      timestamps: ['2017-12-09T03:38:01.945Z', '2017-12-09T03:42:11.673Z', '2017-12-09T03:46:18.843Z', '2017-12-09T03:50:24.377Z', '2017-12-09T03:54:29.752Z'],
+      run: [{_id: 223, experiment: {name: 'hello_config', base_dir: '/Users/Documents/sacred_experiment', dependencies: ['CairoSVG==2.4.1', 'sacred==0.7.5', 'svgwrite==1.3.1'], repositories: [], mainfile: 'hello2.py'}, host: {hostname: 'imac.lan', os: ['Darwin'], python_version: '3.7.7', cpu: 'AMD Ryzen 5', ENV: {}}, config: {message: 'Hello world!', recipient: 'world', seed: 797676031, tags: ['test1', 'test2'], train: {batch_size: 50, epochs: 68, lr: 0.01, settings: {epochs: 43}}}, status: 'COMPLETED', info: {}}]}
   ];
+  const metricLabels = ['_id', 'experiment.name'];
 
   beforeEach(async () => {
     wrapper = mount(
-      <MetricsPlotView metricsResponse={metricsResponseData} runId={222} localStorageKey='metricsPlot|222'/>
+      <MetricsPlotView metricsResponse={metricsResponseData} runId={222} localStorageKey='metricsPlot|222' metricLabels={metricLabels}/>
     );
   });
 

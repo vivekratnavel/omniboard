@@ -2,10 +2,10 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import './metricsCompareView.scss';
 import Multiselect from 'react-bootstrap-multiselect';
-import {Well, Alert} from 'react-bootstrap';
+import {Well, Alert, Button} from 'react-bootstrap';
 import Select from 'react-select';
 import backend from '../Backend/backend';
-import {parseServerError} from '../Helpers/utils';
+import {parseServerError, getAllPaths} from '../Helpers/utils';
 import {MetricsPlotView} from '../MetricsPlotView/metricsPlotView';
 import {ProgressWrapper} from '../Helpers/hoc';
 
@@ -17,14 +17,6 @@ class MetricsCompareView extends Component {
 
   runIdOptionsDomNode = null;
 
-  metricLabelOptions = [{
-    label: 'Run Id',
-    value: '_id'
-  }, {
-    label: 'Experiment Name',
-    value: 'experiment.name'
-  }];
-
   constructor(props) {
     super(props);
     this.state = {
@@ -32,7 +24,8 @@ class MetricsCompareView extends Component {
       metrics: [],
       runIdOptions: [],
       error: '',
-      metricLabel: '_id'
+      metricLabels: ['_id'],
+      metricLabelOptions: []
     };
   }
 
@@ -96,14 +89,38 @@ class MetricsCompareView extends Component {
           $in: runIds
         }
       });
+      // Populate run with only required columns
       backend.get('api/v1/Metrics', {
         params: {
           query: queryString,
-          populate: 'run'
+          populate: {
+            path: 'run',
+            select: ['-captured_out',
+              '-meta',
+              '-heartbeat',
+              '-result',
+              '-start_time',
+              '-stop_time',
+              '-resources',
+              '-artifacts',
+              '-format',
+              '-command',
+              '-info.metrics',
+              '-experiment.sources']}
         }
       }).then(response => {
+        // Recursively get all paths for populating select options for metric label
+        const paths = response.data.reduce((acc, current) => {
+          const keys = getAllPaths('', current.run[0], true);
+          return [...new Set([...acc, ...keys])];
+        }, []);
+        const metricLabelOptions = paths.map(value => ({
+          label: value,
+          value
+        }));
         this.setState({
           metrics: response.data,
+          metricLabelOptions,
           isLoadingRuns: false
         });
       }).catch(error => {
@@ -120,21 +137,66 @@ class MetricsCompareView extends Component {
     }
   };
 
-  _handleMetricLabelChange = ({value}) => {
-    this.setState({
-      metricLabel: value
+  _handleMetricLabelChange = index => ({value}) => {
+    this.setState(({metricLabels}) => {
+      const metricLabelsClone = [...metricLabels];
+      metricLabelsClone[index] = value;
+      return {metricLabels: metricLabelsClone};
+    });
+  };
+
+  _handleAddLabel = () => {
+    // Add run id as default metric label
+    this.setState(({metricLabels}) => ({
+      metricLabels: [...metricLabels, '_id']
+    }));
+  };
+
+  _handleDeleteLabel = index => () => {
+    this.setState(({metricLabels}) => {
+      const metricLabelsClone = [...metricLabels].filter((_label, i) => index !== i);
+      return {metricLabels: metricLabelsClone};
     });
   };
 
   render() {
-    const {metrics, isLoadingRuns, runIdOptions, error, metricLabel} = this.state;
+    const {metrics, isLoadingRuns, runIdOptions, error, metricLabels, metricLabelOptions} = this.state;
     const selectedRunIds = this._getSelectedRunIds(runIdOptions);
     const metricsResponseForPlot = metrics.filter(metric => selectedRunIds.includes(metric.run_id));
     const errorAlert = error ? <Alert bsStyle='danger'>{error}</Alert> : '';
     const getOption = value => {
-      return this.metricLabelOptions.find(option => option.value === value);
+      return metricLabelOptions.find(option => option.value === value);
     };
 
+    const metricLabelsDom = metricLabels.map((label, index) => {
+      const selectTestAttr = `select-metric-label-${index}`;
+      // Include separator for all selects except the last one
+      const separator = metricLabels.length - 1 === index ? '' : '-';
+      // Add delete button for all selects except the first one
+      const deleteTestAttr = `delete-label-btn-${index}`;
+      const deleteButton = index === 0 ? '' : (
+        <Button className='minus-button' test-attr={deleteTestAttr} bsStyle='danger' bsSize='small' onClick={this._handleDeleteLabel(index)}>
+          <span className='glyphicon glyphicon-minus' aria-hidden='true'/>
+        </Button>
+      );
+      return (
+        <span key={'metric-label-' + index}>
+          <div className='metric-label-options-wrapper'>
+            <Select
+              className='select-metric-label'
+              test-attr={selectTestAttr}
+              options={metricLabelOptions}
+              isLoading={isLoadingRuns}
+              placeholder='Metric Label'
+              value={getOption(label)}
+              onChange={this._handleMetricLabelChange(index)}
+            />
+          </div>
+          {deleteButton}
+          {separator}
+        </span>
+      );
+    });
     return (
       <div className='metrics-compare-view'>
         <ProgressWrapper id='metrics-compare-progress-wrapper' loading={isLoadingRuns}>
@@ -165,18 +227,14 @@ class MetricsCompareView extends Component {
               </div>
 
               <h5>Metric Label: </h5>
-              <div className='metric-label-options-wrapper'>
-                <Select
-                  className='select-metric-label'
-                  test-attr='select-metric-label'
-                  options={this.metricLabelOptions}
-                  placeholder='Metric Label'
-                  value={getOption(metricLabel)}
-                  onChange={this._handleMetricLabelChange}
-                />
+              {metricLabelsDom}
+              <div className='plus-button'>
+                <Button test-attr='add-label-btn' bsStyle='info' bsSize='small' onClick={this._handleAddLabel}>
+                  <span className='glyphicon glyphicon-plus' aria-hidden='true'/>
+                </Button>
               </div>
             </Well>
-            <MetricsPlotView metricsResponse={metricsResponseForPlot} runId='' metricLabel={metricLabel}/>
+            <MetricsPlotView metricsResponse={metricsResponseForPlot} runId='' metricLabels={metricLabels}/>
           </div>
         </ProgressWrapper>
       </div>

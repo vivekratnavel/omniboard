@@ -19,7 +19,7 @@ class MetricsPlotView extends Component {
   static propTypes = {
     metricsResponse: PropTypes.array,
     runId: PropTypes.any,
-    metricLabel: PropTypes.string,
+    metricLabels: PropTypes.array,
     dbKey: PropTypes.string
   };
 
@@ -146,18 +146,25 @@ class MetricsPlotView extends Component {
   };
 
   render() {
-    const {metricsResponse, runId, metricLabel} = this.props;
+    const {metricsResponse, runId, metricLabels} = this.props;
     const {selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing, metricNameOptions} = this.state;
     let metricsResponseMap = {};
     let metricNames = [];
     const distinctRuns = [...new Set(metricsResponse.map(metric => metric.run_id))];
     const runMap = {};
+    // Get metric labels concatenated with a '-' separator
+    const getConcatenatedLabels = (metricLabels, run) => {
+      return metricLabels.reduce((result, metricLabelPath) => {
+        const label = resolveObjectPath(run, metricLabelPath, 'NA');
+        return `${result}${label}-`;
+      }, '');
+    };
+
     if (metricsResponse && metricsResponse.length > 0) {
       metricsResponseMap = metricsResponse.reduce((map, metric) => {
-        // Display run id with metric name while showing plot with multiple runs
-        const metricNameLabel = metricLabel && 'run' in metric && metric.run.length > 0 ?
-          `${resolveObjectPath(metric.run[0], metricLabel, metric.run_id)}.${metric.name}` :
-          `${metric.run_id}.${metric.name}`;
+        const metricNameLabel = metricLabels && 'run' in metric && metric.run.length > 0 ?
+          `${getConcatenatedLabels(metricLabels, metric.run[0])}${metric.name}` :
+          `${metric.run_id}-${metric.name}`;
         const metricName = distinctRuns.length > 1 ?
           metricNameLabel : metric.name;
         runMap[metric.run_id] = 'run' in metric && metric.run.length > 0 ? metric.run[0] : {};
@@ -189,8 +196,8 @@ class MetricsPlotView extends Component {
     const selectedMetricNames = this._getSelectedMetrics(metricNameOptions);
     const plotData = [...selectedMetricNames].reduce((r, metricName) => {
       distinctRuns.forEach((runId, i) => {
-        const metricNameLabel = metricLabel && runId in runMap ?
-          `${resolveObjectPath(runMap[runId], metricLabel, runId)}.${metricName}` : `${runId}.${metricName}`;
+        const metricNameLabel = metricLabels && runId in runMap ?
+          `${getConcatenatedLabels(metricLabels, runMap[runId])}${metricName}` : `${runId}-${metricName}`;
         const metricNameKey = distinctRuns.length > 1 ? metricNameLabel : metricName;
         // Original data
         const colorindex = ((r.length / 2) + i) % colors.length;

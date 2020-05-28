@@ -60,45 +60,169 @@ exports[`MetricsCompareView should load data success 1`] = `
         <h5>
           Metric Label: 
         </h5>
-        <div
-          className="metric-label-options-wrapper"
+        <span
+          key="metric-label-0"
         >
-          <StateManager
-            className="select-metric-label"
-            defaultInputValue=""
-            defaultMenuIsOpen={false}
-            defaultValue={null}
-            onChange={[Function]}
-            options={
-              Array [
-                Object {
-                  "label": "Run Id",
-                  "value": "_id",
-                },
-                Object {
-                  "label": "Experiment Name",
-                  "value": "experiment.name",
-                },
-              ]
-            }
-            placeholder="Metric Label"
-            test-attr="select-metric-label"
-            value={
-              Object {
-                "label": "Run Id",
-                "value": "_id",
+          <div
+            className="metric-label-options-wrapper"
+          >
+            <StateManager
+              className="select-metric-label"
+              defaultInputValue=""
+              defaultMenuIsOpen={false}
+              defaultValue={null}
+              isLoading={false}
+              onChange={[Function]}
+              options={
+                Array [
+                  Object {
+                    "label": "_id",
+                    "value": "_id",
+                  },
+                  Object {
+                    "label": "experiment.name",
+                    "value": "experiment.name",
+                  },
+                  Object {
+                    "label": "experiment.base_dir",
+                    "value": "experiment.base_dir",
+                  },
+                  Object {
+                    "label": "experiment.mainfile",
+                    "value": "experiment.mainfile",
+                  },
+                  Object {
+                    "label": "host.hostname",
+                    "value": "host.hostname",
+                  },
+                  Object {
+                    "label": "host.python_version",
+                    "value": "host.python_version",
+                  },
+                  Object {
+                    "label": "host.cpu",
+                    "value": "host.cpu",
+                  },
+                  Object {
+                    "label": "config.message",
+                    "value": "config.message",
+                  },
+                  Object {
+                    "label": "config.recipient",
+                    "value": "config.recipient",
+                  },
+                  Object {
+                    "label": "config.seed",
+                    "value": "config.seed",
+                  },
+                  Object {
+                    "label": "config.train.batch_size",
+                    "value": "config.train.batch_size",
+                  },
+                  Object {
+                    "label": "config.train.epochs",
+                    "value": "config.train.epochs",
+                  },
+                  Object {
+                    "label": "config.train.lr",
+                    "value": "config.train.lr",
+                  },
+                  Object {
+                    "label": "config.train.settings.epochs",
+                    "value": "config.train.settings.epochs",
+                  },
+                  Object {
+                    "label": "status",
+                    "value": "status",
+                  },
+                ]
               }
-            }
-          />
+              placeholder="Metric Label"
+              test-attr="select-metric-label-0"
+              value={
+                Object {
+                  "label": "_id",
+                  "value": "_id",
+                }
+              }
+            />
+          </div>
+        </span>
+        <div
+          className="plus-button"
+        >
+          <Button
+            active={false}
+            block={false}
+            bsClass="btn"
+            bsSize="small"
+            bsStyle="info"
+            disabled={false}
+            onClick={[Function]}
+            test-attr="add-label-btn"
+          >
+            <span
+              aria-hidden="true"
+              className="glyphicon glyphicon-plus"
+            />
+          </Button>
         </div>
       </Well>
       <MetricsPlotView
-        metricLabel="_id"
+        metricLabels={
+          Array [
+            "_id",
+          ]
+        }
         metricsResponse={
           Array [
             Object {
               "_id": "5a2b5a8c9c7a505a652f6127",
               "name": "pretrain.train.loss",
+              "run": Array [
+                Object {
+                  "_id": 1,
+                  "config": Object {
+                    "message": "Hello world!",
+                    "recipient": "world",
+                    "seed": 797676031,
+                    "tags": Array [
+                      "test1",
+                      "test2",
+                    ],
+                    "train": Object {
+                      "batch_size": 50,
+                      "epochs": 68,
+                      "lr": 0.01,
+                      "settings": Object {
+                        "epochs": 43,
+                      },
+                    },
+                  },
+                  "experiment": Object {
+                    "base_dir": "/Users/Documents/sacred_experiment",
+                    "dependencies": Array [
+                      "CairoSVG==2.4.1",
+                      "sacred==0.7.5",
+                      "svgwrite==1.3.1",
+                    ],
+                    "mainfile": "hello2.py",
+                    "name": "hello_config",
+                    "repositories": Array [],
+                  },
+                  "host": Object {
+                    "ENV": Object {},
+                    "cpu": "AMD Ryzen 5",
+                    "hostname": "imac.lan",
+                    "os": Array [
+                      "Darwin",
+                    ],
+                    "python_version": "3.7.7",
+                  },
+                  "info": Object {},
+                  "status": "COMPLETED",
+                },
+              ],
               "run_id": 1,
               "steps": Array [
                 0,
@@ -125,6 +249,50 @@ exports[`MetricsCompareView should load data success 1`] = `
             Object {
               "_id": "5a2b5aa09c7a505a652f6146",
               "name": "pretrain.val.loss",
+              "run": Array [
+                Object {
+                  "_id": 2,
+                  "config": Object {
+                    "message": "Hello world!",
+                    "recipient": "world",
+                    "seed": 797676031,
+                    "tags": Array [
+                      "test1",
+                      "test2",
+                    ],
+                    "train": Object {
+                      "batch_size": 50,
+                      "epochs": 68,
+                      "lr": 0.01,
+                      "settings": Object {
+                        "epochs": 43,
+                      },
+                    },
+                  },
+                  "experiment": Object {
+                    "base_dir": "/Users/Documents/sacred_experiment",
+                    "dependencies": Array [
+                      "CairoSVG==2.4.1",
+                      "sacred==0.7.5",
+                      "svgwrite==1.3.1",
+                    ],
+                    "mainfile": "hello2.py",
+                    "name": "hello_config",
+                    "repositories": Array [],
+                  },
+                  "host": Object {
+                    "ENV": Object {},
+                    "cpu": "AMD Ryzen 5",
+                    "hostname": "imac.lan",
+                    "os": Array [
+                      "Darwin",
+                    ],
+                    "python_version": "3.7.7",
+                  },
+                  "info": Object {},
+                  "status": "COMPLETED",
+                },
+              ],
               "run_id": 2,
               "steps": Array [
                 0,
@@ -151,6 +319,50 @@ exports[`MetricsCompareView should load data success 1`] = `
             Object {
               "_id": "5a2b5a8c9c7a505a652f6127",
               "name": "pretrain.train.loss",
+              "run": Array [
+                Object {
+                  "_id": 3,
+                  "config": Object {
+                    "message": "Hello world!",
+                    "recipient": "world",
+                    "seed": 797676031,
+                    "tags": Array [
+                      "test1",
+                      "test2",
+                    ],
+                    "train": Object {
+                      "batch_size": 50,
+                      "epochs": 68,
+                      "lr": 0.01,
+                      "settings": Object {
+                        "epochs": 43,
+                      },
+                    },
+                  },
+                  "experiment": Object {
+                    "base_dir": "/Users/Documents/sacred_experiment",
+                    "dependencies": Array [
+                      "CairoSVG==2.4.1",
+                      "sacred==0.7.5",
+                      "svgwrite==1.3.1",
+                    ],
+                    "mainfile": "hello2.py",
+                    "name": "hello_config",
+                    "repositories": Array [],
+                  },
+                  "host": Object {
+                    "ENV": Object {},
+                    "cpu": "AMD Ryzen 5",
+                    "hostname": "imac.lan",
+                    "os": Array [
+                      "Darwin",
+                    ],
+                    "python_version": "3.7.7",
+                  },
+                  "info": Object {},
+                  "status": "COMPLETED",
+                },
+              ],
               "run_id": 3,
               "steps": Array [
                 0,
@@ -177,6 +389,50 @@ exports[`MetricsCompareView should load data success 1`] = `
             Object {
               "_id": "5a2b5aa09c7a505a652f6146",
               "name": "pretrain.val.loss",
+              "run": Array [
+                Object {
+                  "_id": 4,
+                  "config": Object {
+                    "message": "Hello world!",
+                    "recipient": "world",
+                    "seed": 797676031,
+                    "tags": Array [
+                      "test1",
+                      "test2",
+                    ],
+                    "train": Object {
+                      "batch_size": 50,
+                      "epochs": 68,
+                      "lr": 0.01,
+                      "settings": Object {
+                        "epochs": 43,
+                      },
+                    },
+                  },
+                  "experiment": Object {
+                    "base_dir": "/Users/Documents/sacred_experiment",
+                    "dependencies": Array [
+                      "CairoSVG==2.4.1",
+                      "sacred==0.7.5",
+                      "svgwrite==1.3.1",
+                    ],
+                    "mainfile": "hello2.py",
+                    "name": "hello_config",
+                    "repositories": Array [],
+                  },
+                  "host": Object {
+                    "ENV": Object {},
+                    "cpu": "AMD Ryzen 5",
+                    "hostname": "imac.lan",
+                    "os": Array [
+                      "Darwin",
+                    ],
+                    "python_version": "3.7.7",
+                  },
+                  "info": Object {},
+                  "status": "COMPLETED",
+                },
+              ],
               "run_id": 4,
               "steps": Array [
                 0,
