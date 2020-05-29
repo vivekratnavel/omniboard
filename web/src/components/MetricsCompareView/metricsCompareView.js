@@ -5,7 +5,7 @@ import Multiselect from 'react-bootstrap-multiselect';
 import {Well, Alert, Button} from 'react-bootstrap';
 import Select from 'react-select';
 import backend from '../Backend/backend';
-import {parseServerError, getAllPaths} from '../Helpers/utils';
+import {parseServerError, getAllPaths, getOption} from '../Helpers/utils';
 import {MetricsPlotView} from '../MetricsPlotView/metricsPlotView';
 import {ProgressWrapper} from '../Helpers/hoc';
 
@@ -164,9 +164,6 @@ class MetricsCompareView extends Component {
     const selectedRunIds = this._getSelectedRunIds(runIdOptions);
     const metricsResponseForPlot = metrics.filter(metric => selectedRunIds.includes(metric.run_id));
     const errorAlert = error ? <Alert bsStyle='danger'>{error}</Alert> : '';
-    const getOption = value => {
-      return metricLabelOptions.find(option => option.value === value);
-    };
 
     const metricLabelsDom = metricLabels.map((label, index) => {
       const selectTestAttr = `select-metric-label-${index}`;
@@ -188,7 +185,7 @@ class MetricsCompareView extends Component {
               options={metricLabelOptions}
               isLoading={isLoadingRuns}
               placeholder='Metric Label'
-              value={getOption(label)}
+              value={getOption(label, metricLabelOptions)}
               onChange={this._handleMetricLabelChange(index)}
             />
           </div>

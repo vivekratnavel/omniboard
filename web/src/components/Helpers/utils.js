@@ -98,3 +98,7 @@ export const getAllPaths = (prefix, data, excludeObjectType = false) => {
     return paths;
   }, []);
 };
+
+export const getOption = (value, options) => {
+  return options.find(option => option.value === value);
+};

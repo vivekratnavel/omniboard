@@ -46,7 +46,8 @@ describe('MetricsPlotView', () => {
   it('should set default selection correctly', () => {
     localStorage.getItem.mockImplementationOnce(() => '{"metricNameOptions": [{"label": "pretrain.val.loss",' +
       ' "value": "pretrain.val.loss", "selected": true}],' +
-      ' "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450}');
+      ' "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450, "plotMode":' +
+      ' "markers"}');
     wrapper.instance()._setDefaultSelection();
 
     let selectedMetrics = wrapper.state().metricNameOptions.filter(option => option.selected === true);
@@ -55,6 +56,7 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().selectedYAxis).toEqual('linear');
     expect(wrapper.state().plotWidth).toEqual(900);
     expect(wrapper.state().plotHeight).toEqual(450);
+    expect(wrapper.state().plotMode).toEqual('markers');
 
     localStorage.getItem.mockImplementationOnce(() => '{}');
     wrapper.instance()._setDefaultSelection();
@@ -65,6 +67,7 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUES[0]);
     expect(wrapper.state().plotWidth).toEqual(800);
     expect(wrapper.state().plotHeight).toEqual(400);
+    expect(wrapper.state().plotMode).toEqual('lines+markers');
     // Reset localStorage
     localStorage.clear();
   });
@@ -131,6 +134,12 @@ describe('MetricsPlotView', () => {
       sliderHandleWrapper.simulate('keyDown', {keyCode: keyCode.UP});
 
       expect(wrapper.update().state().smoothing).toEqual(0.501);
+    });
+
+    it('plot mode change correctly', async () => {
+      wrapper.instance()._plotModeChangeHandler({value: 'lines'});
+
+      expect(wrapper.update().state().plotMode).toEqual('lines');
     });
   });
 });
