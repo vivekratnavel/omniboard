@@ -306,6 +306,52 @@ export default function (db, configKey, uriPath, runsCollectionName, metricsColl
     readStream.pipe(res);
   });
 
+  router.get('/api/v1/files/source/:runId', function (req, res, next) {
+    // get all source files for given run id
+    const runId = req.params.runId;
+    if (runId) {
+      RunsModel(databaseConn, runsCollectionName).findById(runId).exec(function (err, result) {
+        if (err) throw (err);
+        if (result && 'experiment' in result && 'sources' in result.experiment) {
+          const fileIds = result.experiment.sources.map(source => source[1]);
+          FilesModel(databaseConn).find({
+            _id: {
+              $in: fileIds
+            }
+          }).exec(function (err1, result1) {
+            if (err1) throw (err1);
+            res.json(result1);
+          });
+        } else {
+          res.status(500).json({message: `Run id ${runId} not found in the runs collection.`})
+        }
+      });
+    }
+  });
+
+  router.get('/api/v1/files/artifacts/:runId', function (req, res, next) {
+    // get all artifacts for given run id
+    const runId = req.params.runId;
+    if (runId) {
+      RunsModel(databaseConn, runsCollectionName).findById(runId).exec(function (err, result) {
+        if (err) throw (err);
+        if (result && 'artifacts' in result) {
+          const fileIds = result.artifacts.map(artifact => artifact.file_id);
+          FilesModel(databaseConn).find({
+            _id: {
+              $in: fileIds
+            }
+          }).exec(function (err1, result1) {
+            if (err1) throw (err1);
+            res.json(result1);
+          });
+        } else {
+          res.status(500).json({message: `Run id ${runId} not found in the runs collection.`})
+        }
+      });
+    }
+  });
+
   router.get('/api/v1/database', function (req, res) {
     if (databaseConn && databaseConn.name) {
       res.json({key: configKey, name: databaseConn.name, path: uriPath});

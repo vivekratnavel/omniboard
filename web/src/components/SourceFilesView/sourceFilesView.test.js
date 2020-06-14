@@ -141,4 +141,12 @@ describe('SourceFilesView', () => {
 
     expect(wrapper.find('[test-attr="warn-alert"]')).toHaveLength(1);
   });
+
+  it('should show error message when type is invalid', async () => {
+    wrapper = shallow(
+      <SourceFilesView files={files} runId={1} dbInfo={dbInfo} type='invalid'/>
+    );
+
+    expect(wrapper.find('[test-attr="error-alert"]')).toHaveLength(1);
+  });
 });
