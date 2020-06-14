@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import XEditable from './xEditable';
+import './editableTextArea.scss';
 
 export default class EditableTextArea extends React.Component {
   static propTypes = {
     id: PropTypes.string,
     name: PropTypes.string,
-    className: PropTypes.string,
     value: PropTypes.node,
     rows: PropTypes.number,
     cols: PropTypes.number,
@@ -48,7 +49,7 @@ export default class EditableTextArea extends React.Component {
 
   render() {
     if (this.state.isEditing) {
-      const textareaClassName = `form-control ${this.props.className}`;
+      const textareaClassName = 'form-control editable-text-area';
       return (
         <XEditable isLoading={false} save={this.save} cancel={this.cancel}>
           <textarea ref={node => this._textAreaDom = node} id={this.props.id}
@@ -63,15 +64,26 @@ export default class EditableTextArea extends React.Component {
     }
 
     let aClassName = 'editable editable-click';
-    let content = <pre>{this.state.value}</pre>;
+    let content = <pre className='pre-notes'>{this.state.value}</pre>;
     if (!this.state.value) {
       aClassName += ' editable-empty';
       content = this.state.defaultText;
     }
 
+    const tooltipId = `tooltip-${this.props.id}`;
+    const tooltip = (
+      <Tooltip id={tooltipId}>
+        {this.state.value}
+      </Tooltip>
+    );
+    const contentWithTooltip = this.state.value ? (
+      <OverlayTrigger placement='right' overlay={tooltip}>
+        {content}
+      </OverlayTrigger>
+    ) : content;
     return (
       <a test-attr='edit-button' data-version={this.props.dataVersion} role='button' className={aClassName} style={this.state.textStyle} onClick={this.handleLinkClick}>
-        {content}
+        {contentWithTooltip}
       </a>
     );
   }

@@ -16,9 +16,36 @@ exports[`EditableTextArea should render correctly 1`] = `
     role="button"
     test-attr="edit-button"
   >
-    <pre>
-      test note
-    </pre>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      overlay={
+        <Tooltip
+          bsClass="tooltip"
+          id="tooltip-text_area_id"
+          placement="right"
+        >
+          test note
+        </Tooltip>
+      }
+      placement="right"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <pre
+        className="pre-notes"
+        onBlur={[Function]}
+        onClick={null}
+        onFocus={[Function]}
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        test note
+      </pre>
+    </OverlayTrigger>
   </a>
 </EditableTextArea>
 `;
@@ -59,7 +86,7 @@ exports[`EditableTextArea should render correctly 2`] = `
                 }
               >
                 <textarea
-                  className="form-control text-area"
+                  className="form-control editable-text-area"
                   cols={50}
                   defaultValue="test note"
                   id="text_area_id"
