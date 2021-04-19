@@ -316,6 +316,10 @@ exports[`MetricColumnModal should render correctly 2`] = `
                       "label": "last",
                       "value": "last",
                     },
+                    Object {
+                      "label": "last average",
+                      "value": "last_avg",
+                    },
                   ]
                 }
                 placeholder="Extrema"
@@ -427,6 +431,10 @@ exports[`MetricColumnModal should render correctly 2`] = `
                     Object {
                       "label": "last",
                       "value": "last",
+                    },
+                    Object {
+                      "label": "last average",
+                      "value": "last_avg",
                     },
                   ]
                 }

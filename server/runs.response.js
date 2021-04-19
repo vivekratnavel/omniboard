@@ -382,7 +382,22 @@ export default function (databaseConn, runsCollectionName) {
                       }
                     }
                   });
-                } else {
+                } else if (metricColumn.extrema === 'last_avg') {
+                    aggregatePipeline.push({
+                    "$addFields": {
+                      [metricColumn.name]: {
+                        "$cond": {
+                          "if": {"$and": [{"$isArray": metricValues}, {"$size": metricValues}]},
+                          "then": {
+                            "$avg": { "$slice": [ metricValues, -10 ] }
+                          },
+                          "else": null
+                        }
+                      }
+                    }
+                  });
+                }
+                 else {
                   aggregatePipeline.push({
                     "$addFields": {
                       [metricColumn.name]: {

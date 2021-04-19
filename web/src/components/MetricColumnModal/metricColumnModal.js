@@ -313,6 +313,9 @@ class MetricColumnModal extends PureComponent {
     }, {
       label: 'last',
       value: 'last'
+    }, {
+      label: 'last average',
+      value: 'last_avg'
     }];
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
