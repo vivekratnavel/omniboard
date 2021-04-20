@@ -352,6 +352,7 @@ export default function (databaseConn, runsCollectionName) {
             metricColumnsResponse.forEach(metricColumn => {
               if (selectAndFilterProjections.includes(metricColumn.name)) {
                 const aggregate = `$${metricColumn.extrema}`;
+                const lastn = metricColumn.lastn;
                 // Replace dots in metric name with "_"
                 const metricName = metricColumn.metric_name.replace(/\./g,'_');
                 const metricValues = `$metrics.${metricName}.values`;
@@ -389,7 +390,7 @@ export default function (databaseConn, runsCollectionName) {
                         "$cond": {
                           "if": {"$and": [{"$isArray": metricValues}, {"$size": metricValues}]},
                           "then": {
-                            "$avg": { "$slice": [ metricValues, -10 ] }
+                            "$avg": { "$slice": [ metricValues, -lastn ] }
                           },
                           "else": null
                         }
