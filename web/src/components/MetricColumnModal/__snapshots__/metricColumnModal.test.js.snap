@@ -331,7 +331,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                       "value": "last",
                     },
                     Object {
-                      "label": "last average",
+                      "label": "last N average",
                       "value": "last_avg",
                     },
                   ]
@@ -456,7 +456,7 @@ exports[`MetricColumnModal should render correctly 2`] = `
                       "value": "last",
                     },
                     Object {
-                      "label": "last average",
+                      "label": "last N average",
                       "value": "last_avg",
                     },
                   ]
