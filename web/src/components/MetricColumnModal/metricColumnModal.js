@@ -333,7 +333,7 @@ class MetricColumnModal extends PureComponent {
       label: 'last',
       value: 'last'
     }, {
-      label: 'last average',
+      label: 'last N average',
       value: 'last_avg'
     }];
     const getSelectValue = (options, value) => {
