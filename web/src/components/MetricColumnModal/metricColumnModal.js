@@ -32,7 +32,8 @@ class MetricColumnModal extends PureComponent {
     return {
       name: column.columnName,
       metric_name: column.metricName,
-      extrema: column.extrema
+      extrema: column.extrema,
+      lastn: column.lastn
     };
   };
 
@@ -168,7 +169,8 @@ class MetricColumnModal extends PureComponent {
         id: null,
         columnName: '',
         metricName: '',
-        extrema: ''
+        extrema: '',
+        lastn: 1
       });
       return {columns: columnsClone};
     });
@@ -207,6 +209,17 @@ class MetricColumnModal extends PureComponent {
     };
   };
 
+  _handleColumnLastnChange = key => {
+    return e => {
+      const {columns} = this.state;
+      const columnsClone = columns.slice();
+      columnsClone[key].lastn = parseInt(e.target.value, 10) || 1;
+      this.setState({
+        columns: columnsClone
+      });
+    };
+  };
+
   get isFormDirty() {
     const {initialColumns, columns} = this.state;
     return initialColumns.length !== columns.length || JSON.stringify(initialColumns) !== JSON.stringify(columns);
@@ -223,7 +236,8 @@ class MetricColumnModal extends PureComponent {
           id: column._id,
           columnName: column.name,
           metricName: column.metric_name,
-          extrema: column.extrema
+          extrema: column.extrema,
+          lastn: column.lastn
         };
       });
       this.setState({
@@ -292,6 +306,11 @@ class MetricColumnModal extends PureComponent {
     const {show, handleClose} = this.props;
     const {columns, metricNames, isLoadingMetricNames, isLoadingColumns, isInProgress, error} = this.state;
     const getValidationState = (columnRow, key) => {
+      if (key === 'lastn') {
+        // Should be >= 1
+        return (parseInt(columnRow[key], 10) || 0) ? 'success' : 'error';
+      }
+
       return columnRow[key] ? 'success' : 'error';
     };
 
@@ -313,6 +332,9 @@ class MetricColumnModal extends PureComponent {
     }, {
       label: 'last',
       value: 'last'
+    }, {
+      label: 'last N average',
+      value: 'last_avg'
     }];
     const getSelectValue = (options, value) => {
       const selectValue = options.find(option => option.value === value);
@@ -322,7 +344,7 @@ class MetricColumnModal extends PureComponent {
     const renderColumnRow = (columnRow, key) => {
       return (
         <div key={key} className='row'>
-          <div className='col-xs-4'>
+          <div className='col-xs-3'>
             <FormGroup
               controlId='formColumnName'
               validationState={getValidationState(columnRow, 'columnName')}
@@ -336,7 +358,7 @@ class MetricColumnModal extends PureComponent {
               />
             </FormGroup>
           </div>
-          <div className='col-xs-4'>
+          <div className='col-xs-3'>
             <Select
               test-attr={'metric-name-' + key}
               options={metricNameOptions}
@@ -356,6 +378,20 @@ class MetricColumnModal extends PureComponent {
               placeholder='Extrema'
               onChange={this._handleExtremaChange(key)}
             />
+          </div>
+          <div className='col-xs-2'>
+            <FormGroup
+              controlId='formColumnLastn'
+              validationState={getValidationState(columnRow, 'lastn')}
+            >
+              { (columnRow.extrema === 'last_avg') &&
+                <FormControl
+                  type='text'
+                  test-attr={'column-lastn-text-' + key}
+                  value={columnRow.lastn}
+                  placeholder='Last n'
+                  onChange={this._handleColumnLastnChange(key)}/>}
+            </FormGroup>
           </div>
           <div className='col-xs-1'>
             <i className='glyphicon glyphicon-remove delete-icon' test-attr={'delete-' + key} onClick={this._handleDeleteColumn(key)}/>
@@ -386,14 +422,17 @@ class MetricColumnModal extends PureComponent {
             <div>
               <form>
                 <div className='row' style={{paddingBottom: '10px'}}>
-                  <div className='col-xs-4 text-center'>
+                  <div className='col-xs-3 text-center'>
                     <strong>Column</strong>
                   </div>
-                  <div className='col-xs-4 text-center'>
+                  <div className='col-xs-3 text-center'>
                     <strong>Metric</strong>
                   </div>
-                  <div className='col-xs-4 text-center'>
+                  <div className='col-xs-3 text-center'>
                     <strong>Extrema</strong>
+                  </div>
+                  <div className='col-xs-2 text-center'>
+                    <strong>Last N</strong>
                   </div>
                 </div>
                 {columns.map((columnRow, i) => renderColumnRow(columnRow, i))}
