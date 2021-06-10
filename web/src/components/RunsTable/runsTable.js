@@ -253,7 +253,9 @@ class RunsTable extends Component {
     // Process advanced filters
     if (filters && filters.advanced.length > 0) {
       filters.advanced.forEach(filter => {
-        if (filter.operator === '$in') {
+        if (filter.disabled === true) {
+          // ignore
+        } else if (filter.operator === '$in') {
           let orFilters = [{[filter.name]: filter.value}];
           if (filter.name === 'status') {
             orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
@@ -1222,7 +1224,8 @@ class RunsTable extends Component {
       const newFilter = {
         name: filterColumnName,
         operator: filterColumnOperator,
-        value: filterColumnValue
+        value: filterColumnValue,
+        disabled: false
       };
       advancedFilters.push(newFilter);
       this.setState({
@@ -1428,6 +1431,28 @@ class RunsTable extends Component {
         const advancedFilters = filters.advanced.reduce((advFilters, advFilter) => {
           if (advFilter.name !== filter.name || advFilter.operator !== filter.operator ||
             JSON.stringify(advFilter.value) !== JSON.stringify(filter.value)) {
+            advFilters.push(advFilter);
+          }
+
+          return advFilters;
+        }, []);
+        this.setState({
+          filters: {...filters, advanced: advancedFilters}
+        }, this.loadData);
+      }
+    };
+  };
+
+  _handleDisableFilter = filter => {
+    return () => {
+      const {filters} = this.state;
+      if ('name' in filter && 'operator' in filter && 'value' in filter) {
+        const advancedFilters = filters.advanced.reduce((advFilters, advFilter) => {
+          if (advFilter.name !== filter.name || advFilter.operator !== filter.operator ||
+            JSON.stringify(advFilter.value) !== JSON.stringify(filter.value)) {
+            advFilters.push(advFilter);
+          } else {
+            advFilter.disabled = advFilter.disabled === false;
             advFilters.push(advFilter);
           }
 
@@ -1757,7 +1782,7 @@ class RunsTable extends Component {
                   filters.advanced.map((filter, i) => (
                     <div key={i} className='item'>
                       <div className='tags'>
-                        <span className='tag'>{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
+                        <span className={'tag ' + (filter.disabled ? 'filter-disabled' : '')} onClick={this._handleDisableFilter(filter)}>{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
                         <a className='tag is-delete' onClick={this._handleDeleteFilter(filter)}/>
                       </div>
                     </div>
