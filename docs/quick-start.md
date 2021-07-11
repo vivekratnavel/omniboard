@@ -4,7 +4,7 @@
 
 ### NPM
 
-> Note: Omniboard requires [Node.js](https://nodejs.org/en/download/) v8 or higher installed in your system.
+> Note: Omniboard requires [Node.js](https://nodejs.org/en/download/) v12 or higher installed in your system.
 
 ##### Install: #####
 
