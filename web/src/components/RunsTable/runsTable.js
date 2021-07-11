@@ -256,10 +256,8 @@ class RunsTable extends Component {
         if (filter.disabled === true) {
           // ignore
         } else if (filter.operator === '$in') {
-          let orFilters = [{[filter.name]: filter.value}];
-          if (filter.name === 'status') {
-            orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
-          } else if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
+          let orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
+          if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
             const orFilters1 = buildQueryFilter('$in', 'config.tags')(filter.value);
             const orFilters2 = buildQueryFilter('$in', 'omniboard.tags')(filter.value);
             orFilters = [orFilters1, orFilters2];

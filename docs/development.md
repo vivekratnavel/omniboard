@@ -11,7 +11,7 @@ then run the following commands to start both server and web in dev mode
 yarn install
 yarn run dev
 ```
-Go to http://localhost:3000 to access omniboard.
+Go to http://localhost:3000/sacred to access omniboard.
 
 ## Unit tests
 
