@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import axios from 'axios';
 import ReactJson from 'react-json-view';
 import './drillDownView.scss';
-import {Nav, NavItem} from 'react-bootstrap';
+import {Nav, NavItem, Glyphicon} from 'react-bootstrap';
 import {on, off} from 'dom-helpers/events';
 import LocalStorageMixin from 'react-localstorage';
 import reactMixin from 'react-mixin';
@@ -41,7 +41,9 @@ class DrillDownView extends Component {
     dbInfo: PropTypes.shape({
       path: PropTypes.string,
       key: PropTypes.string
-    }).isRequired
+    }).isRequired,
+    handleExpandViewClick: PropTypes.func,
+    showHeader: PropTypes.bool
   };
 
   // Filter out state objects that need to be synchronized with local storage
@@ -129,7 +131,7 @@ class DrillDownView extends Component {
 
   render() {
     const {selectedNavTab, isTableLoading, runsResponse, metricsResponse} = this.state;
-    const {width, height, runId, status, dbInfo} = this.props;
+    const {width, height, runId, status, dbInfo, handleExpandViewClick, showHeader} = this.props;
     const experimentName = runsResponse !== null && 'experiment' in runsResponse ? runsResponse.experiment.name : '';
     // Adjust the width of scrollbar from total width
     const style = {
@@ -209,11 +211,20 @@ class DrillDownView extends Component {
       return <ProgressWrapper id='ddv-progress-wrapper' loading={isTableLoading}>{content}</ProgressWrapper>;
     };
 
+    const getHeaderContent = showHeader ? (
+      <nav className='navbar navbar-light'>
+        <span className='navbar-brand'>
+          <a onClick={() => handleExpandViewClick(runId, status)}>
+            Details for: <strong>{experimentName}</strong> (Id: {runId}) &nbsp;
+            <Glyphicon glyph='resize-full'/>
+          </a>
+        </span>
+      </nav>
+    ) : null;
+
     return (
       <div style={style} className='drilldown-view'>
-        <nav className='navbar navbar-light'>
-          <span className='navbar-brand'>Details for: <strong>{experimentName}</strong> (Id: {runId}) </span>
-        </nav>
+        {getHeaderContent}
         <div className='sidebar-wrapper'>
           <div className='sidebar-container full-height'>
             <div id='sidebar'>

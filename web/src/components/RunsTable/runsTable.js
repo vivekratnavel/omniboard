@@ -31,6 +31,7 @@ import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE, ROW_HEIGHT} from '../../appCo
 import {SettingsModal} from '../SettingsModal/settingsModal';
 import {CompareRunsModal} from '../CompareRunsModal/compareRunsModal';
 import {DeleteRunsConfirmationModal} from '../DeleteRunsConfirmationModal/deleteRunsConfirmationModal';
+import {DrillDownRunModal} from '../DrillDownRunModal/drillDownRunModal';
 
 export const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -184,6 +185,9 @@ class RunsTable extends Component {
       dataVersion: 0,
       isCompareButtonDisabled: true,
       showCompareColumnsModal: false,
+      showDrillDownRunModal: false,
+      runIdToExpand: null,
+      runIdStatus: null,
       isDeleteButtonDisabled: true,
       showDeleteConfirmationModal: false,
       isDeleteInProgress: false,
@@ -1062,6 +1066,24 @@ class RunsTable extends Component {
         showCompareColumnsModal: queryString.showCompareModal === 'true'
       });
     }
+
+    if (queryString.showDrillDownRunModal) {
+      this.setState({
+        showDrillDownRunModal: queryString.showDrillDownRunModal === 'true'
+      });
+    }
+
+    if (queryString.runIdToExpand) {
+      this.setState({
+        runIdToExpand: queryString.runIdToExpand
+      });
+    }
+
+    if (queryString.runIdStatus) {
+      this.setState({
+        runIdStatus: queryString.runIdStatus
+      });
+    }
   };
 
   /**
@@ -1108,6 +1130,8 @@ class RunsTable extends Component {
     return this.state.expandedRows.has(index) ? DEFAULT_EXPANDED_ROW_HEIGHT : 0;
   };
 
+  _getLocalStorageKeyForDrillDown = (dbInfo, runId) => `${dbInfo.key}|DrillDownView|${runId}`;
+
   _rowExpandedGetter = ({rowIndex, width, height}) => {
     if (!this.state.expandedRows.has(rowIndex)) {
       return null;
@@ -1118,9 +1142,9 @@ class RunsTable extends Component {
     const {dbInfo} = this.props;
 
     // Local storage key is used for synchronizing state of each drilldown view with local storage
-    const localStorageKey = `${dbInfo.key}|DrillDownView|${runId}`;
+    const localStorageKey = this._getLocalStorageKeyForDrillDown(dbInfo, runId);
     return (
-      <DrillDownView width={width} height={height} runId={runId} status={status} dbInfo={dbInfo} localStorageKey={localStorageKey}/>
+      <DrillDownView showHeader width={width} height={height} runId={runId} status={status} dbInfo={dbInfo} localStorageKey={localStorageKey} handleExpandViewClick={this._handleDrillDownRunExpandClick}/>
     );
   };
 
@@ -1204,6 +1228,10 @@ class RunsTable extends Component {
     this._updateQueryString({showCompareModal: true});
   };
 
+  _handleDrillDownRunExpandClick = (runId, status) => {
+    this._updateQueryString({showDrillDownRunModal: true, runIdToExpand: runId, runIdStatus: status});
+  };
+
   _handleDeleteRunsClick = rowsToDelete => () => {
     this.setState({
       showDeleteConfirmationModal: true,
@@ -1257,6 +1285,10 @@ class RunsTable extends Component {
   _handleCompareColumnsModalClose = () => {
     this._updateQueryString({showCompareModal: false});
   };
+
+  _handleDrillDownRunModalClose = () => {
+    this._updateQueryString({showDrillDownRunModal: false});
+  }
 
   _handleDeleteRunsModalClose = () => {
     this.setState({
@@ -1680,7 +1712,8 @@ class RunsTable extends Component {
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
       lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount, selectedRows, selectAll,
       selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal, rowsToDelete,
-      isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress} = this.state;
+      isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress,
+      showDrillDownRunModal, runIdToExpand, runIdStatus} = this.state;
     const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose, dbInfo} = this.props;
     const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
@@ -1746,6 +1779,7 @@ class RunsTable extends Component {
       'count-text': true,
       hide: isTableLoading
     });
+    const localStorageKey = (runIdToExpand === null) ? null : this._getLocalStorageKeyForDrillDown(dbInfo, runIdToExpand);
     return (
       <div>
         <div className='table-header'>
@@ -1985,6 +2019,10 @@ class RunsTable extends Component {
           handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
         <CompareRunsModal shouldShow={showCompareColumnsModal} handleClose={this._handleCompareColumnsModalClose}
           runs={compareRuns} dbInfo={dbInfo}/>
+        <DrillDownRunModal shouldShow={showDrillDownRunModal} handleClose={this._handleDrillDownRunModalClose}
+          runId={runIdToExpand} status={runIdStatus} dbInfo={dbInfo}
+          localStorageKey={localStorageKey}
+        />
         <DeleteRunsConfirmationModal handleClose={this._handleDeleteRunsModalClose}
           shouldShow={showDeleteConfirmationModal} runs={rowsToDelete} isDeleteInProgress={isDeleteInProgress}
           handleDelete={this._handleDeleteRuns(rowsToDelete)} progressPercent={deleteProgress}/>

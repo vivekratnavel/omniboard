@@ -1,0 +1,50 @@
+$SIDEBAR_WIDTH: 200;
+$HEADER_HEIGHT: 52;
+$light-steel-blue: #b0c4de;
+
+.full-height {
+  height: 100%;
+}
+
+.drilldown-run-modal {
+  width: 95vw;
+  height: calc(95vh - 15px);
+  .modal-content {
+    height: 100%;
+  }
+  .modal-header {
+    height: #{$HEADER_HEIGHT}px;
+  }
+  .modal-body {
+    height: calc(95vh - #{$HEADER_HEIGHT}px - 15px);
+  }
+  .sidebar-wrapper {
+    height: 100%;
+    border: 1px solid $light-steel-blue;
+    .sidebar-container {
+      float: left;
+      width: #{$SIDEBAR_WIDTH}px;
+      height: 100%;
+      background-color: #F0FFFF;
+      border-right: 1px solid #e2e2e2;
+    }
+    .sidebar-content {
+      margin-left: #{$SIDEBAR_WIDTH}px;
+      height: 100%;
+      background-color: white;
+      .tab-content {
+        background-color: white;
+        height: 100%;
+        padding: 17px 20px;
+        overflow: scroll;
+        .metrics-plot-left {
+          float: left;
+          width: 250px;
+        }
+        .metrics-plot-content {
+          margin-left: 250px;
+        }
+      }
+    }
+  }
+}

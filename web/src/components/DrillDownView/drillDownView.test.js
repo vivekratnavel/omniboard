@@ -57,7 +57,7 @@ describe('DrillDownView', () => {
 
   beforeEach(() => {
     wrapper = mount(
-      <DrillDownView height={500} runId={200} width={600} status={STATUS.COMPLETED} dbInfo={dbInfo}/>
+      <DrillDownView showHeader height={500} runId={200} width={600} status={STATUS.COMPLETED} dbInfo={dbInfo}/>
     );
   });
 
