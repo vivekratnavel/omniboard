@@ -1,5 +1,5 @@
 # build environment
-FROM node:10.13.0 as builder
+FROM node:12.13.0 as builder
 
 RUN mkdir -p /usr/omniboard
 WORKDIR /usr/omniboard
@@ -14,7 +14,7 @@ RUN yarn run prepublishOnly
 
 EXPOSE 9000
 
-FROM node:10-alpine
+FROM node:12-alpine
 
 WORKDIR /usr/omniboard
 RUN apk add --no-cache tini
