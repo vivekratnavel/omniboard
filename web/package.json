@@ -18,7 +18,7 @@
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
     "autoprefixer": "7.1.6",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "babel-loader": "^8.0.0-beta.6",
     "bootstrap": "^3.3.7",
     "case-sensitive-paths-webpack-plugin": "2.1.1",
