@@ -15,9 +15,10 @@ const DEFAULT_SELECTION_KEY = 'MetricsPlotView|default';
 const DEFAULT_PLOT_WIDTH = 800;
 const DEFAULT_PLOT_HEIGHT = 400;
 const DEFAULT_PLOT_SMOOTHING = 0;
-const DEFAULT_PLOT_MODE = 'lines+markers';
+const PLOT_MODE_OPTIONS = ['lines', 'lines+markers', 'markers', 'dashdot', 'dot'];
+const DEFAULT_PLOT_MODE = PLOT_MODE_OPTIONS[0];
 
-const plotModeOptions = ['lines', 'lines+markers', 'markers'].map(value => ({
+const plotModeOptions = PLOT_MODE_OPTIONS.map(value => ({
   label: value,
   value
 }));
@@ -45,7 +46,7 @@ class MetricsPlotView extends Component {
       smoothing: DEFAULT_PLOT_SMOOTHING,
       plotWidth: DEFAULT_PLOT_WIDTH,
       plotHeight: DEFAULT_PLOT_HEIGHT,
-      plotModes: [DEFAULT_PLOT_MODE, plotModeOptions[0].value],
+      plotModes: [DEFAULT_PLOT_MODE, PLOT_MODE_OPTIONS[3]],
       metricNameOptions: []
     };
   }
@@ -91,7 +92,7 @@ class MetricsPlotView extends Component {
         selectedYAxis: defaultSelection.selectedYAxis || SCALE_VALUES[0],
         plotWidth: defaultSelection.plotWidth || DEFAULT_PLOT_WIDTH,
         plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT,
-        plotModes: defaultSelection.plotModes || [DEFAULT_PLOT_MODE, plotModeOptions[0].value],
+        plotModes: defaultSelection.plotModes || [DEFAULT_PLOT_MODE, PLOT_MODE_OPTIONS[3]],
         smoothing: defaultSelection.smoothing || DEFAULT_PLOT_SMOOTHING
       });
     }
@@ -223,16 +224,27 @@ class MetricsPlotView extends Component {
         // Original data
         const colorindex = ((r.length / 2) + i) % colors.length;
         if (metricsResponseMap[metricNameKey]) {
+          let mode = plotModes[i];
+          const line = {
+            dash: 'solid',
+            width: 2
+          };
+          if (mode === PLOT_MODE_OPTIONS[3] || mode === PLOT_MODE_OPTIONS[4]) {
+            line.dash = mode;
+            mode = PLOT_MODE_OPTIONS[0];
+          }
+
           r.push({
             type: 'scatter',
-            mode: plotModes[i],
+            mode,
             name: metricNameKey + '.unsmoothed',
             x: metricsResponseMap[metricNameKey][selectedXAxis],
             y: metricsResponseMap[metricNameKey].values,
             opacity: 0.2,
             marker: {color: colors[colorindex]},
             showlegend: false,
-            hoverinfo: 'none'
+            hoverinfo: 'none',
+            line
           });
 
           // Calculate smoothed graph
@@ -246,12 +258,13 @@ class MetricsPlotView extends Component {
           // Smoothed data
           r.push({
             type: 'scatter',
-            mode: plotModes[i],
+            mode,
             name: metricNameKey,
             x: metricsResponseMap[metricNameKey][selectedXAxis],
             y: smoothed,
             opacity: 1,
-            marker: {color: colors[colorindex]}
+            marker: {color: colors[colorindex]},
+            line
           });
         }
       });

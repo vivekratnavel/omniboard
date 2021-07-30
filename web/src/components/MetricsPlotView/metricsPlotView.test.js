@@ -68,7 +68,8 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUES[0]);
     expect(wrapper.state().plotWidth).toEqual(800);
     expect(wrapper.state().plotHeight).toEqual(400);
-    expect(wrapper.state().plotModes).toContainEqual('lines+markers');
+    expect(wrapper.state().plotModes).toContainEqual('dashdot');
+    expect(wrapper.state().plotModes).toContainEqual('lines');
     // Reset localStorage
     localStorage.clear();
   });
