@@ -8,7 +8,7 @@ describe('SourceFilesView', () => {
   let wrapper = null;
   const type = 'artifacts';
   const runId = 1;
-  const dbInfo = {key: 'default', name: 'test_db', path: 'test'};
+  const dbInfo = {key: 'default', name: 'test_db', path: '/test'};
   const files = [
     {
       name: '/src/hello_world.py',
@@ -140,5 +140,13 @@ describe('SourceFilesView', () => {
     );
 
     expect(wrapper.find('[test-attr="warn-alert"]')).toHaveLength(1);
+  });
+
+  it('should show error message when type is invalid', async () => {
+    wrapper = shallow(
+      <SourceFilesView files={files} runId={1} dbInfo={dbInfo} type='invalid'/>
+    );
+
+    expect(wrapper.find('[test-attr="error-alert"]')).toHaveLength(1);
   });
 });

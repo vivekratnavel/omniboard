@@ -41,7 +41,7 @@ const deepIncludes = (array, key) => {
   });
 };
 
-export default function (databaseConn) {
+export default function (databaseConn, runsCollectionName) {
   return {
     getRunsResponse(req, res, next, id = null, isCount = false) {
       const limit = req.query.limit || 200; // Set default limit to 200
@@ -62,7 +62,7 @@ export default function (databaseConn) {
       }
 
       if (distinct) {
-        RunsModel(databaseConn).distinct(distinct, function (err, result) {
+        RunsModel(databaseConn, runsCollectionName).distinct(distinct, function (err, result) {
           if (err) return next(err);
           res.status(200).send(result);
         });
@@ -352,6 +352,7 @@ export default function (databaseConn) {
             metricColumnsResponse.forEach(metricColumn => {
               if (selectAndFilterProjections.includes(metricColumn.name)) {
                 const aggregate = `$${metricColumn.extrema}`;
+                const lastn = metricColumn.lastn;
                 // Replace dots in metric name with "_"
                 const metricName = metricColumn.metric_name.replace(/\./g,'_');
                 const metricValues = `$metrics.${metricName}.values`;
@@ -382,7 +383,22 @@ export default function (databaseConn) {
                       }
                     }
                   });
-                } else {
+                } else if (metricColumn.extrema === 'last_avg') {
+                    aggregatePipeline.push({
+                    "$addFields": {
+                      [metricColumn.name]: {
+                        "$cond": {
+                          "if": {"$and": [{"$isArray": metricValues}, {"$size": metricValues}]},
+                          "then": {
+                            "$avg": { "$slice": [ metricValues, -lastn ] }
+                          },
+                          "else": null
+                        }
+                      }
+                    }
+                  });
+                }
+                 else {
                   aggregatePipeline.push({
                     "$addFields": {
                       [metricColumn.name]: {
@@ -441,7 +457,7 @@ export default function (databaseConn) {
             }
           }
 
-          const query = RunsModel(databaseConn).aggregate(
+          const query = RunsModel(databaseConn, runsCollectionName).aggregate(
             aggregatePipeline
           ).allowDiskUse(true);
 

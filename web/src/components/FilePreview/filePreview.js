@@ -5,6 +5,7 @@ import SyntaxHighlighter, {registerLanguage} from 'react-syntax-highlighter/pris
 import json from 'react-syntax-highlighter/languages/prism/json';
 import python from 'react-syntax-highlighter/languages/prism/python';
 import {Alert} from 'react-bootstrap';
+import Iframe from 'react-iframe';
 import {ProgressWrapper} from '../Helpers/hoc';
 import {FILE_PREVIEW_LIMIT} from '../SourceFilesView/sourceFilesView';
 import {getFileExtension} from '../Helpers/utils';
@@ -28,11 +29,15 @@ class FilePreview extends PureComponent {
     sourceFiles: PropTypes.object.isRequired,
     fileId: PropTypes.string.isRequired,
     isLoading: PropTypes.bool.isRequired,
-    errorMessage: PropTypes.string
+    errorMessage: PropTypes.string,
+    dbInfo: PropTypes.shape({
+      path: PropTypes.string,
+      key: PropTypes.string
+    }).isRequired
   };
 
   render() {
-    const {fileName, sourceFiles, fileId, errorMessage, isLoading} = this.props;
+    const {fileName, sourceFiles, fileId, errorMessage, isLoading, dbInfo} = this.props;
     const extension = getFileExtension(fileName);
     const fileInfo = sourceFiles[fileId];
     const isFileTooLarge = fileInfo && fileInfo.fileLength && fileInfo.fileLength > FILE_PREVIEW_LIMIT;
@@ -42,9 +47,21 @@ class FilePreview extends PureComponent {
         return (<Alert bsStyle='warning'>{warningMessage}</Alert>);
       }
 
+      const pathPrefix = dbInfo.path ? `${dbInfo.path}/` : '';
       if (imageExtensions.includes(extension) && fileId) {
-        const imgSource = `api/v1/files/download/${fileId}/${fileName}`;
+        const imgSource = `${pathPrefix}api/v1/files/download/${fileId}/${fileName}`;
         return (<img src={imgSource} alt='image'/>);
+      }
+
+      // Render html in iframe
+      if (extension === 'html') {
+        return (
+          <Iframe
+            url={`${pathPrefix}api/v1/files/preview/${fileId}/${fileName}`}
+            width='100%'
+            height='1000px'
+          />
+        );
       }
 
       if (fileInfo && fileInfo.data) {

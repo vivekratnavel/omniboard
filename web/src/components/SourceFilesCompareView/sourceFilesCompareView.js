@@ -125,7 +125,7 @@ class SourceFilesCompareView extends Component {
                   // Response body is a ReadableStream
                   const reader = response.body.getReader();
                   // Result is concatenated Array Buffer
-                  let result = null;
+                  let result = new ArrayBuffer(0);
                   const onStreamDone = () => {
                     // Convert array buffer to string
                     fileContents[fileId] = new TextDecoder().decode(result);
@@ -200,7 +200,7 @@ class SourceFilesCompareView extends Component {
         <AccordionItemBody>
           {(source1.length > 0 || source2.length > 0) ?
             <ReactDiffViewer splitView oldValue={source1} newValue={source2}/> :
-            <div className='text-center'>Diffs of large files cannot be rendered.</div>}
+            <div className='text-center'>Diffs of large files cannot be rendered (or file is empty).</div>}
         </AccordionItemBody>
       </AccordionItem>
     );

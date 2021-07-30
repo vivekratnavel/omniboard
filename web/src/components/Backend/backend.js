@@ -6,7 +6,7 @@ const axiosDefault = axios.create({
 
 export function setDbInfo(backend, dbInfo) {
   if (dbInfo.path !== undefined) {
-    backend.defaults.baseURL = '/' + dbInfo.path;
+    backend.defaults.baseURL = dbInfo.path;
   }
 }
 

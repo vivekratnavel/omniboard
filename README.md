@@ -33,8 +33,8 @@ Omniboard is written with React, Node.js, Express and Bootstrap.
 * Show metric graphs
 * Show console output with support for live reload
 * Show all runtime library dependencies
-* View or download source files
-* View or download artifacts
+* View or download source files (supports images, html and text formats)
+* View or download artifacts (supports images, html and text formats)
 * Show hardware spec of the host (e.g., OS version, CPU / GPU device info, driver versions)
 * Show git hash/version control info
 

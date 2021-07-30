@@ -60,6 +60,12 @@ $light-steel-blue: #b0c4de;
       background-color: #e3f2fd;
       border: 1px solid $light-steel-blue;
     }
+
+    .navbar-brand {
+      &:hover {
+        cursor: pointer;
+      }
+    }
   }
 
   .nav-pills > li > a {

@@ -75,3 +75,30 @@ export const concatArrayBuffers = (buffer1, buffer2) => {
 
 export const resolveObjectPath = (object, path, defaultValue) =>
   path.split('.').reduce((o, p) => o && Object.prototype.hasOwnProperty.call(o, p) ? o[p] : defaultValue, object);
+
+export const getAllPaths = (prefix, data, excludeObjectType = false) => {
+  return Object.keys(data).reduce((paths, key) => {
+    const newPath = prefix ? `${prefix}.${key}` : key;
+    if (!excludeObjectType || typeof data[key] !== 'object') {
+      paths = [...paths, newPath];
+    }
+
+    if (typeof data[key] === 'object' && !Array.isArray(data[key]) && data[key]) {
+      const newPaths = Object.keys(data[key]).reduce((acc, item) => {
+        if (typeof data[key][item] !== 'object' && data[key][item]) {
+          acc.push(`${newPath}.${item}`);
+        }
+
+        return acc;
+      }, []);
+      const recursivePaths = getAllPaths(newPath, data[key], excludeObjectType);
+      return [...paths, ...recursivePaths, ...newPaths];
+    }
+
+    return paths;
+  }, []);
+};
+
+export const getOption = (value, options) => {
+  return options.find(option => option.value === value);
+};

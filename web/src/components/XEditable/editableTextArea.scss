@@ -1,0 +1,20 @@
+.pre-notes {
+  padding: 2px;
+  font-size: 11px;
+  word-break: break-word;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -o-pre-wrap;
+}
+
+.editable-text-area {
+  font-size: 11px;
+  padding: 3px;
+}
+
+.editable-submit, .editable-cancel {
+  padding: 2px 4px;
+  font-size: 10px;
+  margin-right: 3px;
+}

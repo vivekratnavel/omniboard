@@ -45,23 +45,20 @@ class SourceFilesView extends Component {
   }
 
   _fetchSourceFiles = () => {
-    const {files} = this.props;
-    if (files.length > 0) {
+    const {runId, type} = this.props;
+    if (runId && ['source_files', 'artifacts'].includes(type)) {
       this.setState({
         isLoadingSourceFiles: true,
         error: ''
       });
-      const query = {
-        $or: []
-      };
-      files.forEach(file => {
-        query.$or.push({_id: file.file_id});
-      });
-      backend.get('api/v1/Fs.files', {
-        params: {
-          query
-        }
-      }).then(response => {
+      let url = '';
+      if (type === 'source_files') {
+        url = `api/v1/files/source/${runId}`;
+      } else if (type === 'artifacts') {
+        url = `api/v1/files/artifacts/${runId}`;
+      }
+
+      backend.get(url).then(response => {
         const sourceFiles = response.data.reduce((files, file) => {
           files[file._id] = {
             id: file._id,
@@ -83,6 +80,10 @@ class SourceFilesView extends Component {
           isLoadingSourceFiles: false,
           error: message
         });
+      });
+    } else {
+      this.setState({
+        error: 'Invalid run id or type.'
       });
     }
   };
@@ -223,7 +224,7 @@ class SourceFilesView extends Component {
             </div>
           </div>
           <FilePreview fileName={file.name} fileId={file.file_id} sourceFiles={sourceFiles}
-            isLoading={isAccordionDataLoading} errorMessage={accordionError}/>
+            isLoading={isAccordionDataLoading} errorMessage={accordionError} dbInfo={this.props.dbInfo}/>
         </AccordionItemBody>
       </AccordionItem>
     );
@@ -233,7 +234,7 @@ class SourceFilesView extends Component {
     const {files, type} = this.props;
     const {isLoadingSourceFiles, isZipInProgress, error} = this.state;
 
-    const errorAlert = error ? <Alert bsStyle='danger'>{error}</Alert> : '';
+    const errorAlert = error ? <Alert bsStyle='danger' test-attr='error-alert'>{error}</Alert> : '';
     const warningText = `Oops! There are no ${type} available for this run.`;
     const accordions = (
       <ProgressWrapper loading={isLoadingSourceFiles}>

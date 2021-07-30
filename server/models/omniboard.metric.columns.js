@@ -6,7 +6,9 @@ mongoose.Promise = Promise;
 export const OmniboardMetricColumnsSchema = new Schema({
   name: {type: String},
   metric_name: {type: String},
-  extrema: {type: String}
+  extrema: {type: String},
+  lastn: {type: Number, min: 1}
+
 }, {
   strict: false
 });

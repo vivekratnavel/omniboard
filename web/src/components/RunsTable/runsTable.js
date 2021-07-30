@@ -31,6 +31,7 @@ import {AUTO_REFRESH_INTERVAL, INITIAL_FETCH_SIZE, ROW_HEIGHT} from '../../appCo
 import {SettingsModal} from '../SettingsModal/settingsModal';
 import {CompareRunsModal} from '../CompareRunsModal/compareRunsModal';
 import {DeleteRunsConfirmationModal} from '../DeleteRunsConfirmationModal/deleteRunsConfirmationModal';
+import {DrillDownRunModal} from '../DrillDownRunModal/drillDownRunModal';
 
 export const DEFAULT_COLUMN_WIDTH = 150;
 const DEFAULT_HEADER_HEIGHT = 50;
@@ -44,6 +45,7 @@ const STATUS_COLUMN_KEY = 'status';
 const START_TIME_KEY = 'start_time';
 const STOP_TIME_KEY = 'stop_time';
 const HEARTBEAT_KEY = 'heartbeat';
+const CONFIG_PREFIX = 'c_';
 const OPERATOR = {
   EQUALS: '$eq',
   NOT_EQUALS: '$ne',
@@ -183,6 +185,9 @@ class RunsTable extends Component {
       dataVersion: 0,
       isCompareButtonDisabled: true,
       showCompareColumnsModal: false,
+      showDrillDownRunModal: false,
+      runIdToExpand: null,
+      runIdStatus: null,
       isDeleteButtonDisabled: true,
       showDeleteConfirmationModal: false,
       isDeleteInProgress: false,
@@ -193,7 +198,10 @@ class RunsTable extends Component {
 
   _getColumnNameMap = (configs, rootName) => {
     return Object.keys(configs).reduce((configMap, conf) => {
-      configMap[conf] = `${rootName}.${conf}`;
+      // Remove the config prefix if present in value to get the correct mapping
+      const confValue = conf.startsWith(CONFIG_PREFIX) ? conf.slice(CONFIG_PREFIX.length) : conf;
+
+      configMap[conf] = `${rootName}.${confValue}`;
       return configMap;
     }, {});
   };
@@ -249,11 +257,11 @@ class RunsTable extends Component {
     // Process advanced filters
     if (filters && filters.advanced.length > 0) {
       filters.advanced.forEach(filter => {
-        if (filter.operator === '$in') {
-          let orFilters = [{[filter.name]: filter.value}];
-          if (filter.name === 'status') {
-            orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
-          } else if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
+        if (filter.disabled === true) {
+          // ignore
+        } else if (filter.operator === '$in') {
+          let orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
+          if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
             const orFilters1 = buildQueryFilter('$in', 'config.tags')(filter.value);
             const orFilters2 = buildQueryFilter('$in', 'omniboard.tags')(filter.value);
             orFilters = [orFilters1, orFilters2];
@@ -371,9 +379,14 @@ class RunsTable extends Component {
     const parsedRuns = runsResponseData.map(data => {
       if ('config' in data) {
         const {config} = data;
+        // Add a prefix to config keys to avoid polluting the keys in root namespace
+        const prefixedConfig = Object.keys(config).reduce((prevValue, currentValue) => {
+          prevValue[`${CONFIG_PREFIX}${currentValue}`] = config[currentValue];
+          return prevValue;
+        }, {});
         // Expand each key of config column as individual columns
-        data = {...data, ...config};
-        const configNameMap = this._getColumnNameMap(config, 'config');
+        data = {...data, ...prefixedConfig};
+        const configNameMap = this._getColumnNameMap(prefixedConfig, 'config');
         columnNameMap = {...columnNameMap, ...configNameMap};
       }
 
@@ -417,10 +430,13 @@ class RunsTable extends Component {
       }
 
       // Convert config.tags into array
-      if ('tags' in data) {
-        const {tags} = data;
+      const tagsKey = `${CONFIG_PREFIX}tags`;
+      if (tagsKey in data) {
+        const tags = data[tagsKey];
         if (typeof tags === 'string' && tags.length > 0) {
           data.tags = tags.split(',');
+        } else if (Array.isArray(tags)) {
+          data.tags = tags;
         }
       }
 
@@ -1050,6 +1066,24 @@ class RunsTable extends Component {
         showCompareColumnsModal: queryString.showCompareModal === 'true'
       });
     }
+
+    if (queryString.showDrillDownRunModal) {
+      this.setState({
+        showDrillDownRunModal: queryString.showDrillDownRunModal === 'true'
+      });
+    }
+
+    if (queryString.runIdToExpand) {
+      this.setState({
+        runIdToExpand: queryString.runIdToExpand
+      });
+    }
+
+    if (queryString.runIdStatus) {
+      this.setState({
+        runIdStatus: queryString.runIdStatus
+      });
+    }
   };
 
   /**
@@ -1096,6 +1130,8 @@ class RunsTable extends Component {
     return this.state.expandedRows.has(index) ? DEFAULT_EXPANDED_ROW_HEIGHT : 0;
   };
 
+  _getLocalStorageKeyForDrillDown = (dbInfo, runId) => `${dbInfo.key}|DrillDownView|${runId}`;
+
   _rowExpandedGetter = ({rowIndex, width, height}) => {
     if (!this.state.expandedRows.has(rowIndex)) {
       return null;
@@ -1106,9 +1142,9 @@ class RunsTable extends Component {
     const {dbInfo} = this.props;
 
     // Local storage key is used for synchronizing state of each drilldown view with local storage
-    const localStorageKey = `${dbInfo.key}|DrillDownView|${runId}`;
+    const localStorageKey = this._getLocalStorageKeyForDrillDown(dbInfo, runId);
     return (
-      <DrillDownView width={width} height={height} runId={runId} status={status} dbInfo={dbInfo} localStorageKey={localStorageKey}/>
+      <DrillDownView showHeader width={width} height={height} runId={runId} status={status} dbInfo={dbInfo} localStorageKey={localStorageKey} handleExpandViewClick={this._handleDrillDownRunExpandClick}/>
     );
   };
 
@@ -1192,6 +1228,10 @@ class RunsTable extends Component {
     this._updateQueryString({showCompareModal: true});
   };
 
+  _handleDrillDownRunExpandClick = (runId, status) => {
+    this._updateQueryString({showDrillDownRunModal: true, runIdToExpand: runId, runIdStatus: status});
+  };
+
   _handleDeleteRunsClick = rowsToDelete => () => {
     this.setState({
       showDeleteConfirmationModal: true,
@@ -1210,7 +1250,8 @@ class RunsTable extends Component {
       const newFilter = {
         name: filterColumnName,
         operator: filterColumnOperator,
-        value: filterColumnValue
+        value: filterColumnValue,
+        disabled: false
       };
       advancedFilters.push(newFilter);
       this.setState({
@@ -1244,6 +1285,10 @@ class RunsTable extends Component {
   _handleCompareColumnsModalClose = () => {
     this._updateQueryString({showCompareModal: false});
   };
+
+  _handleDrillDownRunModalClose = () => {
+    this._updateQueryString({showDrillDownRunModal: false});
+  }
 
   _handleDeleteRunsModalClose = () => {
     this.setState({
@@ -1416,6 +1461,28 @@ class RunsTable extends Component {
         const advancedFilters = filters.advanced.reduce((advFilters, advFilter) => {
           if (advFilter.name !== filter.name || advFilter.operator !== filter.operator ||
             JSON.stringify(advFilter.value) !== JSON.stringify(filter.value)) {
+            advFilters.push(advFilter);
+          }
+
+          return advFilters;
+        }, []);
+        this.setState({
+          filters: {...filters, advanced: advancedFilters}
+        }, this.loadData);
+      }
+    };
+  };
+
+  _handleDisableFilter = filter => {
+    return () => {
+      const {filters} = this.state;
+      if ('name' in filter && 'operator' in filter && 'value' in filter) {
+        const advancedFilters = filters.advanced.reduce((advFilters, advFilter) => {
+          if (advFilter.name !== filter.name || advFilter.operator !== filter.operator ||
+            JSON.stringify(advFilter.value) !== JSON.stringify(filter.value)) {
+            advFilters.push(advFilter);
+          } else {
+            advFilter.disabled = advFilter.disabled === false;
             advFilters.push(advFilter);
           }
 
@@ -1645,7 +1712,8 @@ class RunsTable extends Component {
       filters, currentColumnValueOptions, columnNameMap, filterOperatorAsyncValueOptionsKey, autoRefresh,
       lastUpdateTime, isFetchingUpdates, runsCount, dataVersion, newRunsCount, selectedRows, selectAll,
       selectAllIndeterminate, isCompareButtonDisabled, showCompareColumnsModal, rowsToDelete,
-      isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress} = this.state;
+      isDeleteButtonDisabled, showDeleteConfirmationModal, isDeleteInProgress, deleteProgress,
+      showDrillDownRunModal, runIdToExpand, runIdStatus} = this.state;
     const {showCustomColumnModal, handleCustomColumnModalClose, showSettingsModal, handleSettingsModalClose, dbInfo} = this.props;
     const rowHeight = Number(this.global.settings[ROW_HEIGHT].value);
     if (sortedData && sortedData.getSize()) {
@@ -1711,6 +1779,7 @@ class RunsTable extends Component {
       'count-text': true,
       hide: isTableLoading
     });
+    const localStorageKey = (runIdToExpand === null) ? null : this._getLocalStorageKeyForDrillDown(dbInfo, runIdToExpand);
     return (
       <div>
         <div className='table-header'>
@@ -1745,7 +1814,7 @@ class RunsTable extends Component {
                   filters.advanced.map((filter, i) => (
                     <div key={i} className='item'>
                       <div className='tags'>
-                        <span className='tag'>{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
+                        <span className={'tag ' + (filter.disabled ? 'filter-disabled' : '')} onClick={this._handleDisableFilter(filter)}>{getFilterNameLabel(filter.name)} {FILTER_OPERATOR_LABELS[filter.operator]} {getFilterValueLabel(filter.value)}</span>
                         <a className='tag is-delete' onClick={this._handleDeleteFilter(filter)}/>
                       </div>
                     </div>
@@ -1950,6 +2019,10 @@ class RunsTable extends Component {
           handleAutoRefreshUpdate={this._handleAutoRefreshUpdate} handleInitialFetchSizeUpdate={this.loadData}/>
         <CompareRunsModal shouldShow={showCompareColumnsModal} handleClose={this._handleCompareColumnsModalClose}
           runs={compareRuns} dbInfo={dbInfo}/>
+        <DrillDownRunModal shouldShow={showDrillDownRunModal} handleClose={this._handleDrillDownRunModalClose}
+          runId={runIdToExpand} status={runIdStatus} dbInfo={dbInfo}
+          localStorageKey={localStorageKey}
+        />
         <DeleteRunsConfirmationModal handleClose={this._handleDeleteRunsModalClose}
           shouldShow={showDeleteConfirmationModal} runs={rowsToDelete} isDeleteInProgress={isDeleteInProgress}
           handleDelete={this._handleDeleteRuns(rowsToDelete)} progressPercent={deleteProgress}/>

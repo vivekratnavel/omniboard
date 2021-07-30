@@ -6,7 +6,7 @@ exports[`SourceFilesView should render correctly 1`] = `
     Object {
       "key": "default",
       "name": "test_db",
-      "path": "test",
+      "path": "/test",
     }
   }
   files={
@@ -49,7 +49,7 @@ exports[`SourceFilesView should render correctly 2`] = `
     Object {
       "key": "default",
       "name": "test_db",
-      "path": "test",
+      "path": "/test",
     }
   }
   files={
@@ -395,6 +395,13 @@ exports[`SourceFilesView should render correctly 2`] = `
                                                       </div>
                                                     </div>
                                                     <FilePreview
+                                                      dbInfo={
+                                                        Object {
+                                                          "key": "default",
+                                                          "name": "test_db",
+                                                          "path": "/test",
+                                                        }
+                                                      }
                                                       errorMessage=""
                                                       fileId="5a1bd242ca100c1a210b0d3a"
                                                       fileName="/src/hello_world.py"

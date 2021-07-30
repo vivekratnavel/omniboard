@@ -5,8 +5,9 @@ import reactMixin from 'react-mixin';
 import Slider from 'rc-slider';
 import LocalStorageMixin from 'react-localstorage';
 import Multiselect from 'react-bootstrap-multiselect';
+import Select from 'react-select';
 import NumericInput from 'react-numeric-input';
-import {capitalize, resolveObjectPath} from '../Helpers/utils';
+import {capitalize, resolveObjectPath, getOption} from '../Helpers/utils';
 import {SCALE_VALUE, SCALE_VALUES, X_AXIS_VALUES} from '../../appConstants/drillDownView.constants';
 import './metricsPlotView.scss';
 
@@ -14,12 +15,18 @@ const DEFAULT_SELECTION_KEY = 'MetricsPlotView|default';
 const DEFAULT_PLOT_WIDTH = 800;
 const DEFAULT_PLOT_HEIGHT = 400;
 const DEFAULT_PLOT_SMOOTHING = 0;
+const DEFAULT_PLOT_MODE = 'lines+markers';
+
+const plotModeOptions = ['lines', 'lines+markers', 'markers'].map(value => ({
+  label: value,
+  value
+}));
 
 class MetricsPlotView extends Component {
   static propTypes = {
     metricsResponse: PropTypes.array,
     runId: PropTypes.any,
-    metricLabel: PropTypes.string,
+    metricLabels: PropTypes.array,
     dbKey: PropTypes.string
   };
 
@@ -38,6 +45,7 @@ class MetricsPlotView extends Component {
       smoothing: DEFAULT_PLOT_SMOOTHING,
       plotWidth: DEFAULT_PLOT_WIDTH,
       plotHeight: DEFAULT_PLOT_HEIGHT,
+      plotMode: DEFAULT_PLOT_MODE,
       metricNameOptions: []
     };
   }
@@ -83,6 +91,7 @@ class MetricsPlotView extends Component {
         selectedYAxis: defaultSelection.selectedYAxis || SCALE_VALUES[0],
         plotWidth: defaultSelection.plotWidth || DEFAULT_PLOT_WIDTH,
         plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT,
+        plotMode: defaultSelection.plotMode || DEFAULT_PLOT_MODE,
         smoothing: defaultSelection.smoothing || DEFAULT_PLOT_SMOOTHING
       });
     }
@@ -102,6 +111,14 @@ class MetricsPlotView extends Component {
 
   componentDidMount() {
     this._setDefaultSelection();
+  }
+
+  _plotModeChangeHandler = ({value}) => {
+    this.setState({
+      plotMode: value
+    });
+    // Update local storage to set default width
+    this._updateDefaultSelection({plotMode: value});
   }
 
   _plotWidthChangeHandler = value => {
@@ -146,18 +163,25 @@ class MetricsPlotView extends Component {
   };
 
   render() {
-    const {metricsResponse, runId, metricLabel} = this.props;
-    const {selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing, metricNameOptions} = this.state;
+    const {metricsResponse, runId, metricLabels} = this.props;
+    const {selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing, metricNameOptions, plotMode} = this.state;
     let metricsResponseMap = {};
     let metricNames = [];
     const distinctRuns = [...new Set(metricsResponse.map(metric => metric.run_id))];
     const runMap = {};
+    // Get metric labels concatenated with a '-' separator
+    const getConcatenatedLabels = (metricLabels, run) => {
+      return metricLabels.reduce((result, metricLabelPath) => {
+        const label = resolveObjectPath(run, metricLabelPath, 'NA');
+        return `${result}${label}-`;
+      }, '');
+    };
+
     if (metricsResponse && metricsResponse.length > 0) {
       metricsResponseMap = metricsResponse.reduce((map, metric) => {
-        // Display run id with metric name while showing plot with multiple runs
-        const metricNameLabel = metricLabel && 'run' in metric && metric.run.length > 0 ?
-          `${resolveObjectPath(metric.run[0], metricLabel, metric.run_id)}.${metric.name}` :
-          `${metric.run_id}.${metric.name}`;
+        const metricNameLabel = metricLabels && 'run' in metric && metric.run.length > 0 ?
+          `${getConcatenatedLabels(metricLabels, metric.run[0])}${metric.name}` :
+          `${metric.run_id}-${metric.name}`;
         const metricName = distinctRuns.length > 1 ?
           metricNameLabel : metric.name;
         runMap[metric.run_id] = 'run' in metric && metric.run.length > 0 ? metric.run[0] : {};
@@ -189,15 +213,15 @@ class MetricsPlotView extends Component {
     const selectedMetricNames = this._getSelectedMetrics(metricNameOptions);
     const plotData = [...selectedMetricNames].reduce((r, metricName) => {
       distinctRuns.forEach((runId, i) => {
-        const metricNameLabel = metricLabel && runId in runMap ?
-          `${resolveObjectPath(runMap[runId], metricLabel, runId)}.${metricName}` : `${runId}.${metricName}`;
+        const metricNameLabel = metricLabels && runId in runMap ?
+          `${getConcatenatedLabels(metricLabels, runMap[runId])}${metricName}` : `${runId}-${metricName}`;
         const metricNameKey = distinctRuns.length > 1 ? metricNameLabel : metricName;
         // Original data
         const colorindex = ((r.length / 2) + i) % colors.length;
         if (metricsResponseMap[metricNameKey]) {
           r.push({
             type: 'scatter',
-            mode: 'lines+points',
+            mode: plotMode,
             name: metricNameKey + '.unsmoothed',
             x: metricsResponseMap[metricNameKey][selectedXAxis],
             y: metricsResponseMap[metricNameKey].values,
@@ -218,7 +242,7 @@ class MetricsPlotView extends Component {
           // Smoothed data
           r.push({
             type: 'scatter',
-            mode: 'lines+points',
+            mode: plotMode,
             name: metricNameKey,
             x: metricsResponseMap[metricNameKey][selectedXAxis],
             y: smoothed,
@@ -236,7 +260,7 @@ class MetricsPlotView extends Component {
     return (
       <div className='metrics-plot-view'>
         <div className='metrics-plot-left'>
-          <h5>Metrics to plot</h5>
+          <h6>Metrics to plot</h6>
           <div id='plot-metric-names'>
             <Multiselect
               ref={el => this.metricNameOptionsDomNode = el}
@@ -258,7 +282,7 @@ class MetricsPlotView extends Component {
               onDeselectAll={this._handleMetricNamesChange}
             />
           </div>
-          <h5>X-Axis Type</h5>
+          <h6>X-Axis Type</h6>
           <div id='plot-x-axis-types'>
             {X_AXIS_VALUES.map((value, i) => {
               return (
@@ -271,7 +295,7 @@ class MetricsPlotView extends Component {
               );
             })}
           </div>
-          <h5>Y-Axis Type</h5>
+          <h6>Y-Axis Type</h6>
           <div id='plot-y-axis-types'>
             {SCALE_VALUES.map((value, i) => {
               return (
@@ -288,7 +312,18 @@ class MetricsPlotView extends Component {
             <div>Smoothing: <NumericInput className='smoothing-input' min={0} max={0.999} step={0.001} value={smoothing} onChange={this._plotSmoothingChangeHandler}/></div>
             <Slider className='smoothing-slider' test-attr='plot-smoothing-slider' min={0} max={0.999} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
           </div>
-          <h5>Plot Size</h5>
+          <h6>Plot Mode</h6>
+          <div id='plot-mode'>
+            <Select
+              className='select-plot-mode'
+              test-attr='select-plot-mode'
+              options={plotModeOptions}
+              placeholder='Plot Mode'
+              value={getOption(plotMode, plotModeOptions)}
+              onChange={this._plotModeChangeHandler}
+            />
+          </div>
+          <h6>Plot Size</h6>
           <div id='plot-size'>
             <div style={wrapperStyle}>
               <div>Width: {plotWidth}px</div>

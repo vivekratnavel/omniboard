@@ -159,7 +159,9 @@ class TextCell extends React.PureComponent {
   render() {
     const {data, rowIndex, columnKey, ...props} = this.props;
     const dataValue = data.getObjectAt(rowIndex)[columnKey];
-    const value = columnKey === 'duration' && dataValue ? prettyMs(dataValue) : dataValue;
+    const value = columnKey === 'duration' && dataValue ? prettyMs(dataValue) :
+      // eslint-disable-next-line no-negated-condition
+      (typeof dataValue) !== 'string' ? JSON.stringify(dataValue) : dataValue;
     return (
       <Cell {...props}>
         {value}

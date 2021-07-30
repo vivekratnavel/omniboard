@@ -17,7 +17,7 @@ import makeGetRunsResponse from './runs.response';
 import makeSourceFilesResponse from './sourceFiles.response';
 
 
-export default function (db, key) {
+export default function (db, configKey, uriPath, runsCollectionName, metricsCollectionName) {
   const databaseConn = db.connection;
   const gfs = db.gfs;
   const app = express();
@@ -79,7 +79,7 @@ export default function (db, key) {
     next();
   });
 
-  restify.serve(router, MetricsModel(databaseConn));
+  restify.serve(router, MetricsModel(databaseConn, metricsCollectionName));
   restify.serve(router, OmniboardMetricColumnsModel(databaseConn));
   restify.serve(router, OmniboardCustomColumnsModel(databaseConn));
   restify.serve(router, OmniboardSettingsModel(databaseConn));
@@ -87,8 +87,8 @@ export default function (db, key) {
   restify.serve(router, ChunksModel(databaseConn));
   app.use(router);
 
-  const {getRunsResponse} = makeGetRunsResponse(databaseConn);
-  const {getSourceFilesCountResponse, getSourceFilesResponse} = makeSourceFilesResponse(databaseConn);
+  const {getRunsResponse} = makeGetRunsResponse(databaseConn, runsCollectionName);
+  const {getSourceFilesCountResponse, getSourceFilesResponse} = makeSourceFilesResponse(databaseConn, runsCollectionName);
 
   router.get('/api/v1/files/:id', function (req, res) {
     FilesModel(databaseConn).findById(req.params.id).populate('chunk').exec(function (err, result) {
@@ -112,7 +112,7 @@ export default function (db, key) {
     if (req.query.query) {
       getRunsResponse(req, res, next, null, true);
     } else {
-      RunsModel(databaseConn).estimatedDocumentCount({}, function(err, count) {
+      RunsModel(databaseConn, runsCollectionName).estimatedDocumentCount({}, function(err, count) {
         if (err) return next(err);
         res.json({count});
       });
@@ -175,7 +175,7 @@ export default function (db, key) {
 
     const update = moredots(depopulate(req.body));
 
-    RunsModel(databaseConn).findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
+    RunsModel(databaseConn, runsCollectionName).findOneAndUpdate(filter, update, {new: true}, function(err, doc) {
       if (err) {
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
@@ -187,7 +187,7 @@ export default function (db, key) {
   });
 
   router.delete('/api/v1/Runs/:id', function(req, res, next) {
-    RunsModel(databaseConn).findOneAndDelete({_id: req.params.id}, function(err, doc) {
+    RunsModel(databaseConn, runsCollectionName).findOneAndDelete({_id: req.params.id}, function(err, doc) {
       if (err) {
         /* eslint-disable no-console */
         console.error('An error occurred: ', err);
@@ -233,7 +233,7 @@ export default function (db, key) {
     if (!allowedTypes.includes(fileType)) {
       res.status(400).json({message: 'Error: Invalid input for fileType.'});
     } else {
-      RunsModel(databaseConn).findById(req.params.runId).exec(function(err, result) {
+      RunsModel(databaseConn, runsCollectionName).findById(req.params.runId).exec(function(err, result) {
         if (err) return next(err);
         let files = [];
         if (fileType === FILE_TYPE.SOURCE_FILES) {
@@ -286,7 +286,7 @@ export default function (db, key) {
     }
   });
 
-  router.get('/api/v1/files/preview/:fileId', function (req, res, next) {
+  router.get('/api/v1/files/preview/:fileId/:fileName?', function (req, res, next) {
     // Read file as stream from Mongo GridFS
     const readStream = db.gfs.createReadStream({
       _id: req.params.fileId
@@ -297,13 +297,64 @@ export default function (db, key) {
       throw err;
     });
 
+    const fileName = req.params.fileName;
+    if (fileName) {
+      res.contentType(fileName);
+    }
+
     // Pipe the file stream to http response
     readStream.pipe(res);
   });
 
+  router.get('/api/v1/files/source/:runId', function (req, res, next) {
+    // get all source files for given run id
+    const runId = req.params.runId;
+    if (runId) {
+      RunsModel(databaseConn, runsCollectionName).findById(runId).exec(function (err, result) {
+        if (err) throw (err);
+        if (result && 'experiment' in result && 'sources' in result.experiment) {
+          const fileIds = result.experiment.sources.map(source => source[1]);
+          FilesModel(databaseConn).find({
+            _id: {
+              $in: fileIds
+            }
+          }).exec(function (err1, result1) {
+            if (err1) throw (err1);
+            res.json(result1);
+          });
+        } else {
+          res.status(500).json({message: `Run id ${runId} not found in the runs collection.`})
+        }
+      });
+    }
+  });
+
+  router.get('/api/v1/files/artifacts/:runId', function (req, res, next) {
+    // get all artifacts for given run id
+    const runId = req.params.runId;
+    if (runId) {
+      RunsModel(databaseConn, runsCollectionName).findById(runId).exec(function (err, result) {
+        if (err) throw (err);
+        if (result && 'artifacts' in result) {
+          const fileIds = result.artifacts.map(artifact => artifact.file_id);
+          FilesModel(databaseConn).find({
+            _id: {
+              $in: fileIds
+            }
+          }).exec(function (err1, result1) {
+            if (err1) throw (err1);
+            res.json(result1);
+          });
+        } else {
+          res.status(500).json({message: `Run id ${runId} not found in the runs collection.`})
+        }
+      });
+    }
+  });
+
   router.get('/api/v1/database', function (req, res) {
     if (databaseConn && databaseConn.name) {
-      res.json({key: key, name: databaseConn.name});
+      res.json({key: configKey, name: databaseConn.name, path: uriPath});
     } else {
       res.status(500).json({message: 'An unknown error occurred'})
     }

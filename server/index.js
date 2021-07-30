@@ -13,18 +13,21 @@ const allDatabases = [];
 for (const section in sections) {
   const key = sections[section];
   const database = db(config[key].mongodbURI);
-  if (!config[key].path.startsWith('/')) {
+  let path = config[key].path;
+  const runsCollectionName = "runsCollectionName" in config[key] ? config[key]["runsCollectionName"] : 'runs';
+  const metricsCollectionName = "metricsCollectionName" in config[key] ? config[key]["metricsCollectionName"] : 'metrics';
+  if (!path.startsWith('/')) {
     console.error(`Error: path for key ${key} is not absolute, prepending a slash...`);
-    config[key].path = '/' + config[key].path;
+    path = '/' + path;
   }
-  if (config[key].path === '/') {
+  if (path === '/') {
     throw `Fatal: cannot use root path for key ${key}, fix your database config.`;
   }
   allDatabases.push({
-    "key": key,
-    "path": config[key].path,
+    key,
+    path,
     "name": database.connection.name});
-  app.use(config[key].path, subApp(database, key));
+  app.use(config[key].path, subApp(database, key, path, runsCollectionName, metricsCollectionName));
 }
 
 app.get("/api/v1/databases", function (req, res) {

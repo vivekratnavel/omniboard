@@ -10,6 +10,7 @@ exports[`DrillDownView should render correctly 1`] = `
   }
   height={500}
   runId={200}
+  showHeader={true}
   stateFilterKeys={
     Array [
       "selectedNavTab",
@@ -33,11 +34,23 @@ exports[`DrillDownView should render correctly 1`] = `
       <span
         className="navbar-brand"
       >
-        Details for: 
-        <strong />
-         (Id: 
-        200
-        ) 
+        <a
+          onClick={[Function]}
+        >
+          Details for: 
+          <strong />
+           (Id: 
+          200
+          )  
+          <Glyphicon
+            bsClass="glyphicon"
+            glyph="resize-full"
+          >
+            <span
+              className="glyphicon glyphicon-resize-full"
+            />
+          </Glyphicon>
+        </a>
       </span>
     </nav>
     <div
