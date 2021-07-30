@@ -32,7 +32,7 @@ class MetricsPlotView extends Component {
 
   // Filter out state objects that need to be synchronized with local storage
   static defaultProps = {
-    stateFilterKeys: ['selectedMetricNames', 'selectedXAxis', 'selectedYAxis', 'plotWidth', 'plotHeight', 'smoothing']
+    stateFilterKeys: ['selectedMetricNames', 'selectedXAxis', 'selectedYAxis', 'plotWidth', 'plotHeight', 'smoothing', 'plotModes']
   };
 
   metricNameOptionsDomNode = null;
@@ -45,7 +45,7 @@ class MetricsPlotView extends Component {
       smoothing: DEFAULT_PLOT_SMOOTHING,
       plotWidth: DEFAULT_PLOT_WIDTH,
       plotHeight: DEFAULT_PLOT_HEIGHT,
-      plotMode: DEFAULT_PLOT_MODE,
+      plotModes: [DEFAULT_PLOT_MODE, plotModeOptions[0].value],
       metricNameOptions: []
     };
   }
@@ -91,7 +91,7 @@ class MetricsPlotView extends Component {
         selectedYAxis: defaultSelection.selectedYAxis || SCALE_VALUES[0],
         plotWidth: defaultSelection.plotWidth || DEFAULT_PLOT_WIDTH,
         plotHeight: defaultSelection.plotHeight || DEFAULT_PLOT_HEIGHT,
-        plotMode: defaultSelection.plotMode || DEFAULT_PLOT_MODE,
+        plotModes: defaultSelection.plotModes || [DEFAULT_PLOT_MODE, plotModeOptions[0].value],
         smoothing: defaultSelection.smoothing || DEFAULT_PLOT_SMOOTHING
       });
     }
@@ -113,9 +113,13 @@ class MetricsPlotView extends Component {
     this._setDefaultSelection();
   }
 
-  _plotModeChangeHandler = ({value}) => {
-    this.setState({
-      plotMode: value
+  _plotModeChangeHandler = index => ({value}) => {
+    this.setState(prevState => {
+      const plotModes = [...prevState.plotModes];
+      plotModes[index] = value;
+      return {
+        plotModes
+      };
     });
     // Update local storage to set default width
     this._updateDefaultSelection({plotMode: value});
@@ -164,7 +168,7 @@ class MetricsPlotView extends Component {
 
   render() {
     const {metricsResponse, runId, metricLabels} = this.props;
-    const {selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing, metricNameOptions, plotMode} = this.state;
+    const {selectedXAxis, selectedYAxis, plotWidth, plotHeight, smoothing, metricNameOptions, plotModes} = this.state;
     let metricsResponseMap = {};
     let metricNames = [];
     const distinctRuns = [...new Set(metricsResponse.map(metric => metric.run_id))];
@@ -221,7 +225,7 @@ class MetricsPlotView extends Component {
         if (metricsResponseMap[metricNameKey]) {
           r.push({
             type: 'scatter',
-            mode: plotMode,
+            mode: plotModes[i],
             name: metricNameKey + '.unsmoothed',
             x: metricsResponseMap[metricNameKey][selectedXAxis],
             y: metricsResponseMap[metricNameKey].values,
@@ -242,7 +246,7 @@ class MetricsPlotView extends Component {
           // Smoothed data
           r.push({
             type: 'scatter',
-            mode: plotMode,
+            mode: plotModes[i],
             name: metricNameKey,
             x: metricsResponseMap[metricNameKey][selectedXAxis],
             y: smoothed,
@@ -256,7 +260,46 @@ class MetricsPlotView extends Component {
 
     const yAxisLayout = selectedYAxis === SCALE_VALUE.LOGARITHMIC ? {type: 'log', autorange: true} : {};
     const wrapperStyle = {width: 120, margin: 0};
-
+    const plotModesDom = distinctRuns.length > 1 ? (
+      <div>
+        {
+          distinctRuns.map((runId, index) => {
+            const id = 'plot-mode-' + index;
+            const testAttr = 'select-plot-mode-' + index;
+            return (
+              <div key={runId}>
+                <h6>Plot Mode for Run {runId}</h6>
+                <div id={id}>
+                  <Select
+                    className='select-plot-mode'
+                    test-attr={testAttr}
+                    options={plotModeOptions}
+                    placeholder='Plot Mode'
+                    value={getOption(plotModes[index], plotModeOptions)}
+                    onChange={this._plotModeChangeHandler(index)}
+                  />
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
+    ) :
+      (
+        <div>
+          <h6>Plot Mode</h6>
+          <div id='plot-mode'>
+            <Select
+              className='select-plot-mode'
+              test-attr='select-plot-mode'
+              options={plotModeOptions}
+              placeholder='Plot Mode'
+              value={getOption(plotModes[0], plotModeOptions)}
+              onChange={this._plotModeChangeHandler(0)}
+            />
+          </div>
+        </div>
+      );
     return (
       <div className='metrics-plot-view'>
         <div className='metrics-plot-left'>
@@ -312,17 +355,7 @@ class MetricsPlotView extends Component {
             <div>Smoothing: <NumericInput className='smoothing-input' min={0} max={0.999} step={0.001} value={smoothing} onChange={this._plotSmoothingChangeHandler}/></div>
             <Slider className='smoothing-slider' test-attr='plot-smoothing-slider' min={0} max={0.999} value={smoothing} step={0.001} onChange={this._plotSmoothingChangeHandler}/>
           </div>
-          <h6>Plot Mode</h6>
-          <div id='plot-mode'>
-            <Select
-              className='select-plot-mode'
-              test-attr='select-plot-mode'
-              options={plotModeOptions}
-              placeholder='Plot Mode'
-              value={getOption(plotMode, plotModeOptions)}
-              onChange={this._plotModeChangeHandler}
-            />
-          </div>
+          {plotModesDom}
           <h6>Plot Size</h6>
           <div id='plot-size'>
             <div style={wrapperStyle}>
