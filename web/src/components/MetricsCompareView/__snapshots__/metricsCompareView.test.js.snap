@@ -467,6 +467,7 @@ exports[`MetricsCompareView should load data success 1`] = `
             "plotWidth",
             "plotHeight",
             "smoothing",
+            "plotModes",
           ]
         }
       />

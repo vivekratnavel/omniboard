@@ -46,8 +46,8 @@ describe('MetricsPlotView', () => {
   it('should set default selection correctly', () => {
     localStorage.getItem.mockImplementationOnce(() => '{"metricNameOptions": [{"label": "pretrain.val.loss",' +
       ' "value": "pretrain.val.loss", "selected": true}],' +
-      ' "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450, "plotMode":' +
-      ' "markers"}');
+      ' "selectedXAxis": "time", "selectedYAxis": "linear", "plotWidth": 900, "plotHeight": 450, "plotModes":' +
+      ' ["markers","lines"]}');
     wrapper.instance()._setDefaultSelection();
 
     let selectedMetrics = wrapper.state().metricNameOptions.filter(option => option.selected === true);
@@ -56,7 +56,8 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().selectedYAxis).toEqual('linear');
     expect(wrapper.state().plotWidth).toEqual(900);
     expect(wrapper.state().plotHeight).toEqual(450);
-    expect(wrapper.state().plotMode).toEqual('markers');
+    expect(wrapper.state().plotModes).toContainEqual('markers');
+    expect(wrapper.state().plotModes).toHaveLength(2);
 
     localStorage.getItem.mockImplementationOnce(() => '{}');
     wrapper.instance()._setDefaultSelection();
@@ -67,7 +68,8 @@ describe('MetricsPlotView', () => {
     expect(wrapper.state().selectedYAxis).toEqual(SCALE_VALUES[0]);
     expect(wrapper.state().plotWidth).toEqual(800);
     expect(wrapper.state().plotHeight).toEqual(400);
-    expect(wrapper.state().plotMode).toEqual('lines+markers');
+    expect(wrapper.state().plotModes).toContainEqual('dashdot');
+    expect(wrapper.state().plotModes).toContainEqual('lines');
     // Reset localStorage
     localStorage.clear();
   });
@@ -137,9 +139,14 @@ describe('MetricsPlotView', () => {
     });
 
     it('plot mode change correctly', async () => {
-      wrapper.instance()._plotModeChangeHandler({value: 'lines'});
+      wrapper.instance()._plotModeChangeHandler(0)({value: 'lines'});
 
-      expect(wrapper.update().state().plotMode).toEqual('lines');
+      expect(wrapper.update().state().plotModes).toContainEqual('lines');
+
+      wrapper.instance()._plotModeChangeHandler(1)({value: 'marker'});
+
+      expect(wrapper.update().state().plotModes).toContainEqual('lines');
+      expect(wrapper.update().state().plotModes).toContainEqual('marker');
     });
   });
 });
