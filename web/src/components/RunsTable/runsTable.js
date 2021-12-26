@@ -260,10 +260,24 @@ class RunsTable extends Component {
         if (filter.disabled === true) {
           // ignore
         } else if (filter.operator === '$in') {
-          let orFilters = filter.value.map(buildQueryFilter('$eq', filter.name));
+          const value = filter.value.map(value => {
+            // Check if the value is a number or boolean and convert type accordingly
+            if (isNaN(value)) {
+              // Check if value is boolean
+              value = value === 'true' || (value === 'false' ? false : value);
+              // Convert to milliseconds for duration
+              value = filter.name === 'duration' ? ms(value) : value;
+            } else {
+              value = Number(value);
+            }
+
+            return value;
+          });
+
+          let orFilters = value.map(buildQueryFilter('$eq', filter.name));
           if (filter.name === 'config.tags' || filter.name === 'omniboard.tags') {
-            const orFilters1 = buildQueryFilter('$in', 'config.tags')(filter.value);
-            const orFilters2 = buildQueryFilter('$in', 'omniboard.tags')(filter.value);
+            const orFilters1 = buildQueryFilter('$in', 'config.tags')(value);
+            const orFilters2 = buildQueryFilter('$in', 'omniboard.tags')(value);
             orFilters = [orFilters1, orFilters2];
           }
 
