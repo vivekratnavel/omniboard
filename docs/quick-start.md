@@ -54,6 +54,8 @@ To connect to multiple sacred databases, create a database configuration file, s
 ```
 Set the environment variable `OMNIBOARD_CONFIG=/path/to/database_config.json` before running omniboard.
 
+Then access the databases at `localhost:9000/db1` and `localhost:9000/db2`. You can configure these paths with the `path` entry in the config above.
+
 For basic authentication, start omniboard with the `-u` option:
 
 ```bash
