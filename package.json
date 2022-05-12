@@ -68,7 +68,7 @@
     "lint-staged": "^10.0.8",
     "node-env-run": "^3.0.2",
     "nodemon": "^1.19.1",
-    "semantic-release": "^16.0.0-beta.22",
+    "semantic-release": "^17.2.3",
     "travis-deploy-once": "^5.0.11",
     "commitizen": "^4.0.3",
     "cz-conventional-changelog": "3.0.2"
