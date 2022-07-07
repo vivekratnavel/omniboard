@@ -35,7 +35,7 @@
     "html-webpack-plugin": "2.29.0",
     "ify-loader": "^1.1.0",
     "jsondiffpatch": "^0.3.11",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.23",
     "ms": "^2.1.1",
     "node-sass": "^6.0.1",
